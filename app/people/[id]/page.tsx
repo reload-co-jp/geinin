@@ -13,6 +13,7 @@ export const generateMetadata = async ({ params }: Props) => {
     ? {
         title: `${p.name}（${p.reading}）`,
         description: `${p.name}の師弟・同期・コンビ・共演などの関係性`,
+        alternates: { canonical: `/people/${id}/` },
       }
     : {}
 }

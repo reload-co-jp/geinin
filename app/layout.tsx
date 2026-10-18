@@ -3,9 +3,12 @@ import { Footer, Header, Main, Title } from "@/components/elements/layout"
 import "./reset.css"
 
 export const metadata = {
+  metadataBase: new URL("https://geinin.reload.co.jp"),
   title: { default: "芸人系譜DB", template: "%s | 芸人系譜DB" },
   description:
     "お笑い芸人の師弟・同期・コンビ変遷・共演・賞レースの関係をネットワークグラフでたどるデータベース",
+  openGraph: { siteName: "芸人系譜DB", type: "website", locale: "ja_JP" },
+  twitter: { card: "summary" },
 }
 
 const RootLayout = ({ children }: { children: React.ReactNode }) => {
