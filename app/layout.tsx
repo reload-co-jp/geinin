@@ -21,6 +21,7 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
           <nav style={{ display: "flex", gap: "1rem", fontSize: ".9rem" }}>
             <Link href="/graph/">関係性グラフ</Link>
             <Link href="/list/">一覧</Link>
+            <Link href="/schedule/">賞レース</Link>
           </nav>
         </Header>
         <Main>{children}</Main>
