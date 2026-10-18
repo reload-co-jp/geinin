@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { db } from "@/data/db"
+import { db } from "@/lib/db"
 import { buildGraph, EDGE_KINDS, visibleSubgraph, type EdgeKind } from "./graph"
 
 const g = buildGraph(db)
@@ -51,7 +51,11 @@ describe("buildGraph", () => {
       comp.some((e) => e.source === "g:nonstyle" && e.target === "g:audrey")
     ).toBe(true)
     expect(
-      comp.some((e) => [e.source, e.target].includes("g:nakagawake"))
+      comp.some(
+        (e) =>
+          [e.source, e.target].includes("g:nakagawake") &&
+          [e.source, e.target].includes("g:sandwichman")
+      )
     ).toBe(false)
   })
 

@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { FC } from "react"
-import { db, groupById } from "@/lib/db"
+import { db, graph } from "@/lib/db"
 
 export const metadata = { title: "賞レース決勝進出の遍歴" }
 
@@ -19,10 +19,11 @@ const competitions = Object.entries(
   )
 ).map(([name, results = []]) => {
   const years = [...new Set(results.map((r) => r.year))].sort((a, b) => a - b)
-  const rows = Object.entries(Object.groupBy(results, (r) => r.group_id))
+  const rows = Object.entries(Object.groupBy(results, (r) => r.entrant_id))
     .map(([id, rs = []]) => ({
       id,
-      name: groupById.get(id)?.name ?? id,
+      name: graph.nodes.get(id)?.label ?? id,
+      href: `/${id.startsWith("p:") ? "people" : "groups"}/${id.slice(2)}/`,
       byYear: new Map(rs.map((r) => [r.year, r.rank])),
       first: Math.min(...rs.map((r) => r.year)),
     }))
@@ -51,7 +52,7 @@ const Page: FC = () => (
           >
             <thead>
               <tr>
-                <th style={{ ...cell, textAlign: "left" }}>コンビ</th>
+                <th style={{ ...cell, textAlign: "left" }}>出場者</th>
                 {c.years.map((y) => (
                   <th key={y} scope="col" style={cell}>
                     {y}
@@ -63,7 +64,7 @@ const Page: FC = () => (
               {c.rows.map((g) => (
                 <tr key={g.id}>
                   <th scope="row" style={{ ...cell, textAlign: "left" }}>
-                    <Link href={`/groups/${g.id}/`}>{g.name}</Link>
+                    <Link href={g.href}>{g.name}</Link>
                   </th>
                   {c.years.map((y) => {
                     const rank = g.byYear.get(y)

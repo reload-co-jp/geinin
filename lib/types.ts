@@ -89,7 +89,8 @@ export type CompetitionResult = {
   id: string
   competition_name: string
   year: number
-  group_id: string
+  // 出場者のノード id。コンビ・トリオは "g:<group id>"、ピン芸人は "p:<person id>"
+  entrant_id: string
   stage: "決勝" | "準決勝" | "準々決勝"
   rank: number | null
   score: number | null

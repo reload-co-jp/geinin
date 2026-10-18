@@ -3,7 +3,7 @@ import { FC } from "react"
 import { SearchBox } from "@/components/search-box"
 import { WeeklyPick, type Pick } from "@/components/weekly-pick"
 import { db as manual } from "@/data/db"
-import { db, edgeIndex, graph, groupById, personById } from "@/lib/db"
+import { db, edgeIndex, graph, personById } from "@/lib/db"
 import { EDGE_KINDS, graphHref, linksOf, type GEdge } from "@/lib/graph"
 
 // トップの特集はすべて登録データから組み立てる。該当データがなければ節ごと出さない
@@ -469,7 +469,7 @@ const Page: FC = () => (
         <SecHead
           kicker="賞レース"
           title="賞レースから見るライバル関係"
-          lead="同じ年の決勝を戦ったコンビ同士"
+          lead="同じ年の決勝を戦った芸人同士"
         />
         <div className="races">
           {races.map((race) => (
@@ -482,8 +482,8 @@ const Page: FC = () => (
                 {race.rs.map((r) => (
                   <li key={r.id}>
                     <span className="num">{r.rank ?? "-"}</span>
-                    <Link href={graphHref(`g:${r.group_id}`, "&mode=race")}>
-                      {groupById.get(r.group_id)?.name}
+                    <Link href={graphHref(r.entrant_id, "&mode=race")}>
+                      {graph.nodes.get(r.entrant_id)?.label}
                     </Link>
                     {r.rank === 1 && (
                       <span className="sticker" data-tone="red">

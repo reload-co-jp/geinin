@@ -26,15 +26,17 @@ export const CONFIDENCE_LABEL: Record<Confidence, string> = {
 }
 
 const resultsOf = (nodeId: string) => {
-  const [kind, id] = nodeId.split(":")
-  const groupIds =
-    kind === "g"
-      ? [id]
-      : (edgeIndex.get(nodeId) ?? [])
+  // 個人は本人のピン出場に加え、所属グループの出場も含める
+  const entrants = [
+    nodeId,
+    ...(nodeId.startsWith("p:")
+      ? (edgeIndex.get(nodeId) ?? [])
           .filter((e) => e.kind === "member" || e.kind === "former_member")
-          .map((e) => e.target.slice(2))
+          .map((e) => e.target)
+      : []),
+  ]
   return db.competitionResults
-    .filter((r) => groupIds.includes(r.group_id))
+    .filter((r) => entrants.includes(r.entrant_id))
     .toSorted((a, b) => a.year - b.year)
 }
 
@@ -129,7 +131,7 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
     links,
     results: results.map(
       (r) =>
-        `${r.competition_name} ${r.year} ${r.stage}${r.rank ? ` ${r.rank === 1 ? "優勝" : `${r.rank}位`}` : ""}${person ? `（${groupById.get(r.group_id)?.name}）` : ""}`
+        `${r.competition_name} ${r.year} ${r.stage}${r.rank ? ` ${r.rank === 1 ? "優勝" : `${r.rank}位`}` : ""}${r.entrant_id !== nodeId ? `（${graph.nodes.get(r.entrant_id)?.label}）` : ""}`
     ),
     sources: [...sourceIds].flatMap((sid) => {
       const s = sourceById.get(sid)

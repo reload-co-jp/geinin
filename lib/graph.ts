@@ -294,8 +294,8 @@ export const buildGraph = (db: Db): Graph => {
     for (const [a, b] of pairs(rs))
       edges.push({
         id: `c:${a.id}:${b.id}`,
-        source: `g:${a.group_id}`,
-        target: `g:${b.group_id}`,
+        source: a.entrant_id,
+        target: b.entrant_id,
         kind: "competition",
         label: `${comp} 決勝`,
         derived: true,
