@@ -152,16 +152,35 @@ const style: cytoscape.StylesheetJson = [
   },
 ]
 
+// 写真の無い芸人に出す人影（コンビ・グループは二人分）
+const silhouette = (heads: { x: number; r: number }[]) =>
+  `data:image/svg+xml,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="#efe9dc"/>${heads
+      .map(
+        ({ x, r }) =>
+          `<circle cx="${x}" cy="${36 - r * 1.6}" r="${r}" fill="#b9b1a0"/><ellipse cx="${x}" cy="64" rx="${r * 1.9}" ry="${r * 1.7}" fill="#b9b1a0"/>`
+      )
+      .join("")}</svg>`
+  )}`
+const PLACEHOLDER = {
+  person: silhouette([{ x: 32, r: 11 }]),
+  group: silhouette([
+    { x: 22, r: 9 },
+    { x: 42, r: 9 },
+  ]),
+}
+
 // 名前を枠の中に収めるため、文字数から大きさを決める
 const nodeData = (n: GNode, root: boolean) => {
   const status =
     n.status && n.status !== "active" ? STATUS_LABEL[n.status] : null
   const em = root ? 17 : n.kind === "term" ? 12 : 13
   const chars = Math.max(n.label.length, status ? status.length + 2 : 0)
-  if (n.photo) {
+  if (n.kind !== "term") {
     const size = root ? 76 : 56
     return {
       ...n,
+      photo: n.photo ?? PLACEHOLDER[n.kind],
       display: status ? `${n.label}\n［${status}］` : n.label,
       w: size,
       h: size,
@@ -170,7 +189,7 @@ const nodeData = (n: GNode, root: boolean) => {
   return {
     ...n,
     display: status ? `${n.label}\n［${status}］` : n.label,
-    w: Math.max(chars * em + (n.kind === "person" ? 30 : 22), 52),
+    w: Math.max(chars * em + 22, 52),
     h: (status ? 2.4 : 1.2) * em + (root ? 26 : 20),
   }
 }
@@ -297,15 +316,30 @@ export const CyGraph: FC<Props> = ({
       .roots()
       .filter((n) => n.outgoers("edge[kind = 'master']").nonempty())
     if (animate) added.nodes().style("opacity", 0)
+    // 起点からの距離ごとに同心円へ置く。concentric は人数に応じて円を広げるので重ならない
+    const depth = new Map<string, number>()
+    c.elements().bfs({
+      roots: focus,
+      visit: (v, _e, _u, _i, d) => void depth.set(v.id(), d),
+    })
+    const far = Math.max(0, ...depth.values()) + 1
     c.layout({
-      name: "breadthfirst",
-      roots: (layout === "tree" && treeRoots.nonempty()
-        ? treeRoots
-        : focus
-      ).map((n) => n.id()),
-      directed: layout === "tree" && treeRoots.nonempty(),
-      circle: layout === "radial",
-      spacingFactor: layout === "radial" ? 0.8 : 0.9,
+      ...(layout === "radial"
+        ? {
+            name: "concentric",
+            concentric: (n: cytoscape.NodeSingular) =>
+              -(depth.get(n.id()) ?? far),
+            levelWidth: () => 1,
+            minNodeSpacing: 16,
+          }
+        : {
+            name: "breadthfirst",
+            roots: (treeRoots.nonempty() ? treeRoots : focus).map((n) =>
+              n.id()
+            ),
+            directed: treeRoots.nonempty(),
+            spacingFactor: 0.9,
+          }),
       avoidOverlap: true,
       nodeDimensionsIncludeLabels: true,
       padding: 40,
