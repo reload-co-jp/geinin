@@ -24,6 +24,14 @@ export type NodeInfo = {
   reading: string
   aliases: string[]
   photo_url?: string | null
+  status?: string | null
+  // 数字で大きく見せる項目。芸歴は表示時点の年から数える
+  career?: {
+    kind: "デビュー" | "結成"
+    since: number
+    until: number | null
+  } | null
+  finals?: { count: number; best: number | null } | null
   facts: [string, string][]
   links: LinkInfo[]
   results: string[]

@@ -15,8 +15,9 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
         maxWidth: 760,
         margin: "0 auto",
         background: "var(--surface)",
-        border: "1px solid var(--line)",
-        padding: "1.5rem",
+        border: "3px solid var(--line)",
+        boxShadow: "6px 6px 0 var(--accent)",
+        padding: "clamp(1rem, 4vw, 2rem)",
       }}
     >
       <Heading info={info} level={1} />

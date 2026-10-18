@@ -1,9 +1,9 @@
 // サーバー側（静的生成時）専用。クライアントへは /data/*.json で必要な分だけ配信する
 import { db as manual } from "@/data/db"
 import yoshimoto from "@/data/yoshimoto.json"
-import { buildGraph, indexEdges } from "@/lib/graph"
+import { buildGraph, indexEdges, STATUS_LABEL } from "@/lib/graph"
 import { linkInfos, termInfo, type NodeInfo } from "@/lib/node-info"
-import type { ActivityStatus, Confidence } from "@/lib/types"
+import type { Confidence } from "@/lib/types"
 import { mergeYoshimoto, type YoshimotoDump } from "@/lib/yoshimoto"
 
 export const db = mergeYoshimoto(manual, yoshimoto as YoshimotoDump)
@@ -18,14 +18,6 @@ const relById = new Map(db.relationships.map((r) => [r.id, r]))
 
 export const agencyName = (id: string | null) =>
   (id && agencyById.get(id)) ?? null
-
-const STATUS_LABEL: Record<ActivityStatus, string> = {
-  active: "活動中",
-  hiatus: "活動休止",
-  retired: "引退",
-  deceased: "故人",
-  disbanded: "解散",
-}
 
 export const CONFIDENCE_LABEL: Record<Confidence, string> = {
   high: "確度高",
@@ -45,6 +37,19 @@ const resultsOf = (nodeId: string) => {
     .filter((r) => groupIds.includes(r.group_id))
     .toSorted((a, b) => a.year - b.year)
 }
+
+const careerOf = (
+  since: string | null,
+  until: string | null,
+  kind: "デビュー" | "結成"
+) =>
+  since
+    ? {
+        kind,
+        since: Number(since.slice(0, 4)),
+        until: until ? Number(until.slice(0, 4)) : null,
+      }
+    : null
 
 export const nodeInfo = (nodeId: string): NodeInfo | null => {
   const [kind, id] = nodeId.split(":")
@@ -105,6 +110,21 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
     reading: e.reading,
     aliases: e.aliases,
     photo_url: e.photo_url,
+    status: e.activity_status && STATUS_LABEL[e.activity_status],
+    career: careerOf(
+      person?.debut_date ?? group?.formation_date ?? null,
+      group?.dissolution_date ?? null,
+      person ? "デビュー" : "結成"
+    ),
+    finals: results.length
+      ? {
+          count: results.filter((r) => r.stage === "決勝").length,
+          best:
+            results
+              .flatMap((r) => (r.rank ? [r.rank] : []))
+              .sort((a, b) => a - b)[0] ?? null,
+        }
+      : null,
     facts: facts.filter((f): f is [string, string] => !!f[1]),
     links,
     results: results.map(

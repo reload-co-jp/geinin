@@ -7,18 +7,20 @@
 }
 
 :root {
-  --bg: #fff4dc;
+  --bg: #fbf6ea;
   --surface: #ffffff;
-  --text: #16121f;
-  --muted: #5a5266;
-  --line: #16121f;
-  --accent: #ff3d7f;
-  --pop: #ffd60a;
-  --cyan: #2ec4d6;
+  --text: #1f1d1a;
+  --muted: #5f5a52;
+  --line: #1f1d1a;
+  --accent: #d9342b;
+  --accent-soft: #fde3df;
+  --pop: #ffcf24;
+  --blue: #1f6fd1;
+  --blue-soft: #dde9fb;
   --shadow: 4px 4px 0 var(--text);
   --display: "Dela Gothic One", "Hiragino Sans", sans-serif;
   background-color: var(--bg);
-  background-image: radial-gradient(#16121f1a 1.2px, transparent 1.3px);
+  background-image: radial-gradient(#1f1d1a14 1.2px, transparent 1.3px);
   background-size: 14px 14px;
   color: var(--text);
   color-scheme: light;
@@ -114,7 +116,8 @@ header nav a:nth-child(3n + 1):hover {
   background: var(--pop);
 }
 header nav a:nth-child(3n + 2):hover {
-  background: var(--cyan);
+  background: var(--blue);
+  color: #fff;
 }
 header nav a:nth-child(3n):hover {
   background: var(--accent);
@@ -141,5 +144,75 @@ header nav a:nth-child(3n):hover {
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* 共通の装飾。読みやすさを損なわない範囲でポイント使いする */
+.sticker {
+  display: inline-block;
+  padding: 0.05rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  border: 2px solid var(--text);
+  background: var(--pop);
+  transform: rotate(-2deg);
+  white-space: nowrap;
+}
+
+.sticker[data-tone="red"] {
+  background: var(--accent);
+  color: #fff;
+}
+
+.sticker[data-tone="blue"] {
+  background: var(--blue);
+  color: #fff;
+}
+
+.sticker[data-tone="plain"] {
+  background: var(--surface);
+}
+
+.num {
+  font-family: var(--display);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 2.25rem;
+  padding: 0.2rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  border: 2px solid var(--text);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: 2px 2px 0 var(--text);
+}
+
+@media (max-width: 600px) {
+  header {
+    flex-wrap: nowrap !important;
+    gap: 0.5rem !important;
+    padding: 0.6rem 0.75rem !important;
+  }
+  header nav {
+    flex-wrap: nowrap !important;
+    gap: 0.3rem !important;
+    font-size: 0.75rem !important;
+  }
+  header nav a {
+    padding: 0.1rem 0.5rem;
+    white-space: nowrap;
+  }
+  .logo {
+    font-size: 1rem;
+    white-space: nowrap;
   }
 }

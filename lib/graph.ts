@@ -1,61 +1,153 @@
-import type { Confidence, Db, RelationshipType } from "@/lib/types"
+import type {
+  ActivityStatus,
+  Confidence,
+  Db,
+  RelationshipType,
+} from "@/lib/types"
 
 export type EdgeKind =
   "member" | "former_member" | RelationshipType | "doki" | "competition"
 
-// 線種は色に頼らず判別できるよう種類ごとに変える。dash は SVG stroke-dasharray / cytoscape line-dash-pattern 共用
+// 線種・太さ・矢印でも判別できるよう種類ごとに変える。色は色覚多様性に配慮した Okabe-Ito 系。
+// dash は SVG stroke-dasharray / cytoscape line-dash-pattern 共用
 export const EDGE_KINDS: Record<
   EdgeKind,
   {
     label: string
     color: string
+    width: number
     dash: number[] | null
     arrow: "triangle" | "tee" | null
   }
 > = {
-  member: { label: "メンバー", color: "#3d4451", dash: null, arrow: null },
+  member: {
+    label: "コンビ・メンバー",
+    color: "#1f1d1a",
+    width: 5,
+    dash: null,
+    arrow: null,
+  },
   former_member: {
-    label: "元メンバー",
-    color: "#8a919c",
-    dash: [8, 4],
+    label: "元メンバー（元コンビ）",
+    color: "#7a746b",
+    width: 3,
+    dash: [9, 5],
     arrow: null,
   },
   master: {
     label: "師弟（師匠→弟子）",
-    color: "#c0392b",
+    color: "#d55e00",
+    width: 3.5,
     dash: null,
     arrow: "triangle",
   },
   doki: {
     label: "同期（養成所の同一期）",
-    color: "#2471a3",
+    color: "#0072b2",
+    width: 2,
     dash: [2, 4],
     arrow: null,
   },
   senpai_kohai: {
     label: "先輩→後輩",
-    color: "#7d3c98",
+    color: "#cc79a7",
+    width: 2,
     dash: [8, 4],
     arrow: "triangle",
   },
   family: {
     label: "兄弟・親族",
-    color: "#b9770e",
+    color: "#a8780a",
+    width: 2.5,
     dash: [8, 3, 2, 3, 2, 3],
     arrow: null,
   },
-  costar: { label: "共演", color: "#1e8449", dash: [14, 6], arrow: null },
+  costar: {
+    label: "共演",
+    color: "#009e73",
+    width: 1.5,
+    dash: [14, 6],
+    arrow: null,
+  },
   competition: {
     label: "賞レース競演",
-    color: "#d35400",
+    color: "#e69f00",
+    width: 2.5,
     dash: [10, 3, 2, 3],
     arrow: null,
   },
   rival: {
     label: "ライバル（本人公言）",
-    color: "#34495e",
+    color: "#56446b",
+    width: 2.5,
     dash: null,
     arrow: "tee",
+  },
+}
+
+export const STATUS_LABEL: Record<ActivityStatus, string> = {
+  active: "活動中",
+  hiatus: "活動休止",
+  retired: "引退",
+  deceased: "故人",
+  disbanded: "解散",
+}
+
+// 探索モード。関係の種類・距離・配置の初期値と説明の組
+export type ModeId = "all" | "lineage" | "doki" | "combi" | "race" | "costar"
+export const MODES: Record<
+  ModeId,
+  {
+    label: string
+    description: string
+    kinds: EdgeKind[]
+    depth: number
+    layout: "radial" | "tree"
+  }
+> = {
+  all: {
+    label: "人物相関図",
+    description:
+      "すべての関係をまとめて表示。起点から距離ごとの同心円に並びます。",
+    kinds: Object.keys(EDGE_KINDS) as EdgeKind[],
+    depth: 2,
+    layout: "radial",
+  },
+  lineage: {
+    label: "師弟系譜",
+    description: "師匠→弟子の流れを上から下への系譜ツリーで表示します。",
+    kinds: ["master", "senpai_kohai"],
+    depth: 3,
+    layout: "tree",
+  },
+  doki: {
+    label: "同期・世代",
+    description: "養成所の同じ期でつながる同期と、所属コンビを表示します。",
+    kinds: ["doki", "member"],
+    depth: 2,
+    layout: "radial",
+  },
+  combi: {
+    label: "コンビ変遷",
+    description:
+      "現在のコンビ（太線）と元コンビ（破線）をたどり、結成・解散の流れを追います。",
+    kinds: ["member", "former_member"],
+    depth: 3,
+    layout: "tree",
+  },
+  race: {
+    label: "賞レース競演",
+    description: "同じ年の決勝で戦ったコンビ同士をつなぎます。",
+    kinds: ["competition", "member"],
+    depth: 2,
+    layout: "radial",
+  },
+  costar: {
+    label: "共演ネットワーク",
+    description: "共演・ライバル・親族など、番組や私生活での関係を表示します。",
+    kinds: ["costar", "rival", "family", "member"],
+    depth: 2,
+    layout: "radial",
   },
 }
 
@@ -65,6 +157,7 @@ export type GNode = {
   label: string
   agencyId: string | null
   year: number | null
+  status: ActivityStatus | null
   // 正規化済みの検索対象文字列（名前・読み・別名・事務所・養成所）
   search: string
 }
@@ -107,6 +200,7 @@ export const buildGraph = (db: Db): Graph => {
       label: p.name,
       agencyId: p.agency_id,
       year: year(p.debut_date),
+      status: p.activity_status,
       search: search(
         p.name,
         p.reading,
@@ -123,6 +217,7 @@ export const buildGraph = (db: Db): Graph => {
       label: g.name,
       agencyId: g.agency_id,
       year: year(g.formation_date),
+      status: g.activity_status,
       search: search(
         g.name,
         g.reading,
@@ -171,6 +266,7 @@ export const buildGraph = (db: Db): Graph => {
         label: term,
         agencyId: null,
         year: null,
+        status: null,
         search: normalize(term),
       })
     edges.push({
@@ -300,13 +396,17 @@ export const linksOf = (index: EdgeIndex, nodeId: string): Link[] =>
           ? out
             ? "後輩"
             : "先輩"
-          : edge.kind === "member" || edge.kind === "former_member"
+          : edge.kind === "member"
             ? out
-              ? EDGE_KINDS[edge.kind].label.replace("メンバー", "所属")
-              : EDGE_KINDS[edge.kind].label
-            : edge.kind === "doki" && !out
-              ? "同期生"
-              : edge.label
+              ? "所属コンビ"
+              : "メンバー"
+            : edge.kind === "former_member"
+              ? out
+                ? "元コンビ"
+                : "元メンバー"
+              : edge.kind === "doki" && !out
+                ? "同期生"
+                : edge.label
     return { edge, other, label }
   })
 

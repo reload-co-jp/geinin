@@ -2,53 +2,91 @@
 
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { FC, FormEvent, useEffect, useMemo, useRef, useState } from "react"
+import { FC, useEffect, useMemo, useRef, useState } from "react"
 import { CyGraph } from "@/components/graph/cy-graph"
 import { Legend } from "@/components/graph/legend"
 import { useGraphData, useNodeInfo } from "@/components/graph/use-data"
 import { Heading, Profile } from "@/components/profile"
+import { SearchBox } from "@/components/search-box"
 import {
   EDGE_KINDS,
+  linksOf,
+  MODES,
   nodeHref,
-  searchNodes,
   visibleSubgraph,
   type EdgeKind,
   type Graph,
+  type ModeId,
 } from "@/lib/graph"
+import type { NodeInfo } from "@/lib/node-info"
 
 const EMPTY: Graph = { nodes: new Map(), edges: [] }
 
-const ALL_KINDS = Object.keys(EDGE_KINDS) as EdgeKind[]
 const DEFAULT_FOCUS = "p:sanma"
 const DECADES = [1970, 1980, 1990, 2000, 2010, 2020]
 
 const css = `
-.ex { display: grid; grid-template-columns: minmax(0, 1fr) 360px; grid-template-rows: auto auto minmax(0, 1fr); height: calc(100dvh - 7rem); min-height: 480px; border: 3px solid var(--line); background: var(--surface); box-shadow: var(--shadow); }
-.ex-bar { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; padding: .5rem; border-bottom: 3px solid var(--line); background: var(--pop); }
-.ex-bar select, .ex-bar input { font-size: .85rem; padding: .25rem .5rem; border: 2px solid var(--line); border-radius: 999px; background: var(--surface); }
-.ex-bar button, .ex-panel button { font-size: .85rem; padding: .25rem .75rem; }
-.ex-bar button { background: var(--surface); }
-.ex-bar button, .ex-panel button { cursor: pointer; }
-.ex-canvas { position: relative; min-height: 0; }
-.ex-panel { grid-row: 2 / 4; grid-column: 2; overflow: auto; border-left: 1px solid var(--line); padding: 1rem; }
-.ex-legend { grid-column: 1; border-bottom: 1px solid var(--line); padding: .4rem .5rem; }
-.ex-legend summary { font-size: .8rem; cursor: pointer; }
-.ex-close { display: none; }
-@media (max-width: 768px) {
-  .ex { grid-template-columns: 1fr; height: calc(100dvh - 6rem); }
-  .ex-panel { grid-row: auto; grid-column: auto; position: fixed; left: 0; right: 0; bottom: 0; max-height: 60dvh; border: 1px solid var(--line); border-radius: 12px 12px 0 0; background: var(--surface); box-shadow: 0 -4px 16px rgba(0,0,0,.15); z-index: 10; }
+.ex { display: grid; grid-template-columns: 250px minmax(0, 1fr) 380px; grid-template-rows: auto minmax(0, 1fr); height: calc(100dvh - 6.5rem); min-height: 520px; border: 3px solid var(--line); background: var(--surface); box-shadow: var(--shadow); }
+.ex-bar { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; padding: .6rem .75rem; border-bottom: 3px solid var(--line); background: var(--pop); }
+.ex-modes { display: flex; gap: .35rem; overflow-x: auto; scrollbar-width: none; padding: 2px 4px 4px 2px; }
+.ex-modes button { flex-shrink: 0; font-size: .82rem; padding: .3rem .8rem; background: var(--surface); }
+.ex-modes button[aria-pressed="true"] { background: var(--text); color: var(--pop); }
+.ex-side { overflow: auto; border-right: 2px solid var(--line); padding: .75rem; display: grid; align-content: start; gap: .9rem; font-size: .82rem; }
+.ex-side select { width: 100%; padding: .35rem .5rem; border: 2px solid var(--line); border-radius: 8px; background: var(--surface); }
+.ex-side button, .ex-panel button { font-size: .82rem; padding: .3rem .8rem; }
+.ex-side summary { display: none; }
+.ex-canvas { display: flex; flex-direction: column; min-height: 0; overflow: hidden; background: radial-gradient(circle at 50% 45%, #fffdf6 0 30%, #fbf6ea 70%); }
+.ex-stage { position: relative; flex: 1; min-height: 0; }
+.ex-bubble { position: relative; z-index: 1; margin: .6rem .75rem 0; align-self: flex-start; max-width: min(560px, calc(100% - 1.5rem)); padding: .5rem .8rem; background: var(--surface); border: 2px solid var(--line); border-radius: 14px; font-size: .78rem; line-height: 1.5; box-shadow: 3px 3px 0 var(--line); }
+.ex-bubble::after { content: ""; position: absolute; left: 22px; bottom: -9px; width: 14px; height: 14px; background: var(--surface); border-right: 2px solid var(--line); border-bottom: 2px solid var(--line); transform: rotate(45deg); }
+.ex-bubble strong { font-family: var(--display); font-weight: 400; color: var(--accent); }
+.ex-panel { overflow: auto; border-left: 2px solid var(--line); padding: 1rem; overscroll-behavior: contain; }
+.ex-panel-actions { display: flex; flex-wrap: wrap; gap: .35rem; margin: .75rem 0; }
+.ex-panel-actions button[data-tone="blue"] { background: var(--blue); color: #fff; }
+.ex-panel-actions button[data-tone="red"] { background: var(--accent); color: #fff; }
+.ex-close, .ex-grip { display: none; }
+.zoom { width: 2.5rem; height: 2.5rem; padding: 0; font-size: 1.1rem; background: var(--surface); border-radius: 10px; }
+@media (max-width: 1100px) {
+  .ex { grid-template-columns: 220px minmax(0, 1fr) 320px; }
+}
+@media (max-width: 860px) {
+  .ex { grid-template-columns: 1fr; grid-template-rows: auto auto minmax(0, 1fr); height: calc(100dvh - 5.5rem); margin: -1rem; border-width: 0; box-shadow: none; }
+  .ex-bar { padding: .5rem; gap: .4rem; }
+  .ex-bar > [role="search"] { width: 100%; }
+  .ex-modes { width: 100%; }
+  .ex-side { display: block; border-right: 0; border-bottom: 2px solid var(--line); padding: .25rem .5rem; overflow: auto; }
+  .ex-side[open] > * + * { margin-top: .6rem; }
+  .ex-side summary { display: block; cursor: pointer; font-weight: 700; padding: .25rem 0; min-height: 2rem; }
+  .ex-side:not([open]) > :not(summary) { display: none; }
+  .ex-side[open] { max-height: 45dvh; }
+  .ex-panel { position: fixed; left: 0; right: 0; bottom: 0; max-height: 52dvh; border: 3px solid var(--line); border-bottom: 0; border-radius: 18px 18px 0 0; background: var(--surface); box-shadow: 0 -6px 0 var(--pop); z-index: 20; padding-top: .5rem; }
   .ex-panel[data-open="false"] { display: none; }
-  .ex-close { display: inline-block; float: right; }
+  .ex-grip { display: block; width: 48px; height: 5px; border-radius: 3px; background: var(--muted); margin: 0 auto .5rem; }
+  .ex-close { display: inline-flex; align-items: center; justify-content: center; float: right; width: 2.5rem; height: 2.5rem; padding: 0; }
+  .ex-bubble { font-size: .72rem; }
+  .ex-desc { display: none; }
 }
 `
 
+// 師匠・同期・元コンビなど、選んだ人物から次の探索へ進むための導線
+const nextSteps = (info: NodeInfo) => {
+  const first = (pred: (l: NodeInfo["links"][number]) => boolean) =>
+    info.links.find(pred)
+  return {
+    master: first((l) => l.kind === "master" && l.label === "師匠"),
+    pupil: first((l) => l.kind === "master" && l.label === "弟子"),
+    doki: first((l) => l.kind === "doki"),
+    former: info.links.some((l) => l.kind === "former_member"),
+    race: info.links.some((l) => l.kind === "competition") || !!info.finals,
+  }
+}
+
 export const Explorer: FC = () => {
   const params = useSearchParams()
-  // スマホではグラフ領域を優先し凡例を畳んでおく
-  const legendRef = useRef<HTMLDetailsElement>(null)
+  const sideRef = useRef<HTMLDetailsElement>(null)
+  // スマホではグラフ領域を優先し絞り込みを畳んでおく
   useEffect(() => {
-    if (matchMedia("(max-width: 768px)").matches)
-      legendRef.current!.open = false
+    if (matchMedia("(max-width: 860px)").matches) sideRef.current!.open = false
   }, [])
   const data = useGraphData()
   const graph = data?.graph ?? EMPTY
@@ -58,16 +96,19 @@ export const Explorer: FC = () => {
     focusParam && (!data || graph.nodes.has(focusParam))
       ? focusParam
       : DEFAULT_FOCUS
-  const depth = Number(params.get("depth") ?? 2)
+  const modeParam = params.get("mode")
+  const mode: ModeId =
+    modeParam && modeParam in MODES ? (modeParam as ModeId) : "all"
+  const depth = Number(params.get("depth") ?? MODES[mode].depth)
   const kindsParam = params.get("kinds")
   const kinds = useMemo(
     () =>
       new Set(
         kindsParam === null
-          ? ALL_KINDS
+          ? MODES[mode].kinds
           : (kindsParam.split(",").filter((k) => k in EDGE_KINDS) as EdgeKind[])
       ),
-    [kindsParam]
+    [kindsParam, mode]
   )
   const exParam = params.get("ex")
   const expanded = useMemo(
@@ -104,145 +145,190 @@ export const Explorer: FC = () => {
   )
   const info = useNodeInfo(data, selected)
   const roots = useMemo(() => [focus, ...expanded], [focus, expanded])
-  const [resetKey, setResetKey] = useState(0)
   const [notice, setNotice] = useState("")
 
-  const setFocus = (id: string) => update({ focus: id, ex: null, sel: id })
-  const visit = (id: string) => {
-    if (!sub.nodes.has(id)) update({ ex: [...expanded, id].join(","), sel: id })
-    else update({ sel: id })
+  const setFocus = (id: string, m?: ModeId) =>
+    update({
+      focus: id,
+      ex: null,
+      sel: id,
+      ...(m && { mode: m === "all" ? null : m, kinds: null, depth: null }),
+    })
+  const addToGraph = (id: string) => {
+    if (sub.nodes.has(id)) return update({ sel: id })
+    update({ ex: [...expanded, id].join(","), sel: id })
   }
+  const setMode = (m: ModeId) =>
+    update({ mode: m === "all" ? null : m, kinds: null, depth: null })
   const toggleKind = (k: EdgeKind) => {
     const next = new Set(kinds)
     if (next.has(k)) next.delete(k)
     else next.add(k)
-    update({
-      kinds: next.size === ALL_KINDS.length ? null : [...next].join(","),
-    })
-  }
-  const onSearch = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const q = new FormData(e.currentTarget).get("q") as string
-    const hit = searchNodes(graph, q)[0]
-    if (!hit) return setNotice(`「${q}」は見つかりません`)
-    setNotice("")
-    if (sub.nodes.has(hit)) update({ sel: hit })
-    else setFocus(hit)
+    update({ kinds: [...next].join(",") })
   }
   const share = async () => {
     await navigator.clipboard.writeText(window.location.href)
     setNotice("URLをコピーしました")
   }
+  // ホバー時の概要: 関係の種類ごとの件数
+  const summarize = (id: string) => {
+    if (!data) return ""
+    const counts = new Map<string, number>()
+    for (const l of linksOf(data.index, id))
+      counts.set(l.label, (counts.get(l.label) ?? 0) + 1)
+    return [...counts]
+      .slice(0, 5)
+      .map(([k, n]) => `${k} ${n}`)
+      .join(" / ")
+  }
+
+  const steps = info && nextSteps(info)
 
   return (
     <>
       <style>{css}</style>
       <div className="ex">
         <div className="ex-bar">
-          <form
-            onSubmit={onSearch}
-            role="search"
-            style={{ display: "flex", gap: ".25rem" }}
-          >
-            <input
-              name="q"
-              placeholder="芸人・コンビ名・NSC◯期"
-              aria-label="芸人・コンビ名で検索"
-            />
-            <button>検索</button>
-          </form>
-          <label>
-            距離{" "}
+          <SearchBox
+            compact
+            onSubmitHit={(id) => setFocus(id)}
+            actions={(id, close) => (
+              <>
+                <button
+                  onClick={() => {
+                    close()
+                    setFocus(id)
+                  }}
+                >
+                  起点にする
+                </button>
+                <button
+                  onClick={() => {
+                    close()
+                    addToGraph(id)
+                  }}
+                  style={{ background: "var(--surface)" }}
+                >
+                  ＋グラフに追加
+                </button>
+              </>
+            )}
+          />
+          <div className="ex-modes" role="group" aria-label="表示モード">
+            {(Object.keys(MODES) as ModeId[]).map((m) => (
+              <button
+                key={m}
+                aria-pressed={m === mode}
+                onClick={() => setMode(m)}
+              >
+                {MODES[m].label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <details className="ex-side" ref={sideRef} open>
+          <summary>絞り込み・凡例</summary>
+          <label style={{ display: "grid", gap: ".2rem" }}>
+            起点からの距離
             <select
               value={depth}
               onChange={(e) => update({ depth: e.target.value })}
             >
               {[1, 2, 3].map((d) => (
                 <option key={d} value={d}>
-                  {d}
+                  {d}ステップ
                 </option>
               ))}
             </select>
           </label>
-          <select
-            aria-label="事務所で絞り込み"
-            value={agencyId ?? ""}
-            onChange={(e) => update({ agency: e.target.value || null })}
-          >
-            <option value="">全事務所</option>
-            {data?.agencies.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.name}
-              </option>
-            ))}
-          </select>
-          <select
-            aria-label="年代で絞り込み"
-            value={decade ?? ""}
-            onChange={(e) => update({ decade: e.target.value || null })}
-          >
-            <option value="">全年代</option>
-            {DECADES.map((d) => (
-              <option key={d} value={d}>
-                {d}年代デビュー・結成
-              </option>
-            ))}
-          </select>
-          <button onClick={() => setResetKey((k) => k + 1)}>全体表示</button>
-          <button
-            onClick={() =>
-              update({
-                ex: null,
-                sel: null,
-                agency: null,
-                decade: null,
-                kinds: null,
-                depth: null,
-              })
-            }
-          >
-            リセット
-          </button>
-          <button onClick={share}>URL共有</button>
-          <span
-            role="status"
-            style={{ fontSize: ".8rem", color: "var(--muted)" }}
-          >
-            {!data
-              ? "データ読み込み中…"
-              : notice ||
-                `起点: ${nodeName(focus)} / ${sub.nodes.size}件表示（全${graph.nodes.size}件）`}
-          </span>
-        </div>
-        <details className="ex-legend" open ref={legendRef}>
-          <summary>凡例・表示切替 / 操作方法</summary>
+          <label style={{ display: "grid", gap: ".2rem" }}>
+            事務所
+            <select
+              value={agencyId ?? ""}
+              onChange={(e) => update({ agency: e.target.value || null })}
+            >
+              <option value="">すべての事務所</option>
+              {data?.agencies.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label style={{ display: "grid", gap: ".2rem" }}>
+            年代（デビュー・結成）
+            <select
+              value={decade ?? ""}
+              onChange={(e) => update({ decade: e.target.value || null })}
+            >
+              <option value="">すべての年代</option>
+              {DECADES.map((d) => (
+                <option key={d} value={d}>
+                  {d}年代
+                </option>
+              ))}
+            </select>
+          </label>
           <Legend kinds={kinds} onToggle={toggleKind} />
-          <p
-            style={{
-              fontSize: ".75rem",
-              color: "var(--muted)",
-              marginTop: ".25rem",
-            }}
-          >
-            ○個人 ▭グループ
-            ◇養成所の期（同期はここでつながる）。ドラッグで移動、ホイール・ピンチで拡大縮小。ノードを選ぶと関係を強調。半透明の線は確度が中以下。
+          <div style={{ display: "flex", flexWrap: "wrap", gap: ".35rem" }}>
+            <button
+              onClick={() =>
+                update({
+                  ex: null,
+                  sel: null,
+                  agency: null,
+                  decade: null,
+                  kinds: null,
+                  depth: null,
+                })
+              }
+            >
+              条件をリセット
+            </button>
+            <button onClick={share} style={{ background: "var(--surface)" }}>
+              URL共有
+            </button>
+          </div>
+          <p style={{ color: "var(--muted)", fontSize: ".75rem" }}>
+            ○個人 ▭コンビ・グループ
+            ◇養成所の期。破線の枠は解散・引退など。ドラッグで移動、ホイール・ピンチで拡大縮小。線を選ぶと関係の詳細を表示。半透明の線は確度が中以下。
           </p>
         </details>
+
         <div className="ex-canvas">
-          <CyGraph
-            graph={sub}
-            roots={roots}
-            selected={selected}
-            onSelect={(id) => update({ sel: id })}
-            resetKey={resetKey}
-          />
+          <p className="ex-bubble" role="status">
+            <strong>{MODES[mode].label}</strong>{" "}
+            {!data
+              ? "データ読み込み中…"
+              : notice || (
+                  <>
+                    {nodeName(focus)} から {sub.nodes.size}件（全
+                    {graph.nodes.size.toLocaleString()}件）
+                    <span className="ex-desc">。{MODES[mode].description}</span>
+                  </>
+                )}
+          </p>
+          <div className="ex-stage">
+            <CyGraph
+              graph={sub}
+              roots={roots}
+              layout={MODES[mode].layout}
+              selected={selected}
+              onSelect={(id) => update({ sel: id })}
+              summarize={summarize}
+              nodeName={nodeName}
+            />
+          </div>
         </div>
+
         <aside
           className="ex-panel"
           data-open={selected ? "true" : "false"}
           aria-label="選択中の詳細"
         >
-          {selected && info ? (
+          <div className="ex-grip" aria-hidden="true" />
+          {selected && info && steps ? (
             <>
               <button
                 className="ex-close"
@@ -252,41 +338,63 @@ export const Explorer: FC = () => {
                 ×
               </button>
               <Heading info={info} />
-              <div
-                style={{
-                  display: "flex",
-                  gap: ".25rem",
-                  flexWrap: "wrap",
-                  margin: ".5rem 0",
-                }}
-              >
+              <div className="ex-panel-actions">
                 {selected !== focus && (
-                  <button onClick={() => setFocus(selected)}>
+                  <button data-tone="red" onClick={() => setFocus(selected)}>
                     ここを起点にする
+                  </button>
+                )}
+                {steps.master && (
+                  <button
+                    data-tone="blue"
+                    onClick={() => setFocus(steps.master!.other, "lineage")}
+                  >
+                    師匠をたどる
+                  </button>
+                )}
+                {!steps.master && steps.pupil && (
+                  <button
+                    data-tone="blue"
+                    onClick={() => setFocus(selected, "lineage")}
+                  >
+                    弟子の系譜を見る
+                  </button>
+                )}
+                {steps.doki && (
+                  <button onClick={() => setFocus(steps.doki!.other, "doki")}>
+                    同期をもっと見る
+                  </button>
+                )}
+                {steps.former && (
+                  <button onClick={() => setFocus(selected, "combi")}>
+                    元コンビを表示
+                  </button>
+                )}
+                {steps.race && (
+                  <button onClick={() => setFocus(selected, "race")}>
+                    賞レースの競演
                   </button>
                 )}
                 {!expanded.includes(selected) && selected !== focus && (
                   <button
-                    onClick={() =>
-                      update({ ex: [...expanded, selected].join(",") })
-                    }
+                    onClick={() => addToGraph(selected)}
+                    style={{ background: "var(--surface)" }}
                   >
                     関連を展開
                   </button>
                 )}
-                <Link
-                  href={nodeHref(selected)}
-                  style={{ fontSize: ".85rem", alignSelf: "center" }}
-                >
-                  詳細ページ →
-                </Link>
               </div>
+              {!selected.startsWith("t:") && (
+                <p style={{ fontSize: ".85rem", marginBottom: ".5rem" }}>
+                  <Link href={nodeHref(selected)}>詳細ページを開く →</Link>
+                </p>
+              )}
               <Profile
                 info={info}
                 renderOther={(l) => (
                   <button
-                    onClick={() => visit(l.other)}
-                    style={{ fontWeight: "bold" }}
+                    onClick={() => addToGraph(l.other)}
+                    style={{ background: "var(--surface)" }}
                   >
                     {l.otherName}
                   </button>
@@ -294,11 +402,29 @@ export const Explorer: FC = () => {
               />
             </>
           ) : (
-            <p style={{ fontSize: ".875rem", color: "var(--muted)" }}>
-              {selected
-                ? "読み込み中…"
-                : "ノードを選択すると詳細を表示します。"}
-            </p>
+            <div style={{ fontSize: ".875rem", color: "var(--muted)" }}>
+              {selected ? (
+                "読み込み中…"
+              ) : (
+                <>
+                  <p className="sticker" style={{ marginBottom: ".75rem" }}>
+                    つかいかた
+                  </p>
+                  <ol
+                    style={{
+                      paddingLeft: "1.2rem",
+                      display: "grid",
+                      gap: ".4rem",
+                    }}
+                  >
+                    <li>名前の枠を選ぶと、その芸人の関係が強調されます。</li>
+                    <li>線を選ぶと、どんな関係かを表示します。</li>
+                    <li>上のモードで師弟・同期・コンビ変遷などに切り替え。</li>
+                    <li>検索から「＋グラフに追加」で人物をつなげて表示。</li>
+                  </ol>
+                </>
+              )}
+            </div>
           )}
         </aside>
       </div>
