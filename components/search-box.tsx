@@ -53,9 +53,11 @@ export const SearchBox: FC<{
   const name = (id: string) => data?.graph.nodes.get(id)?.label ?? id
   const onSubmit = (e: FormEvent) => {
     e.preventDefault()
-    if (!hits[0]) return
-    if (onSubmitHit) onSubmitHit(hits[0])
-    else router.push(graphHref(hits[0]))
+    if (onSubmitHit) {
+      if (!hits[0]) return
+      onSubmitHit(hits[0])
+    } else if (q.trim()) router.push(`/search/?q=${encodeURIComponent(q)}`)
+    else return
     setQ("")
   }
   return (

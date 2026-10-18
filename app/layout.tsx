@@ -37,6 +37,7 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
             <Link href="/graph/">関係性グラフ</Link>
             <Link href="/list/">一覧</Link>
             <Link href="/schedule/">賞レース</Link>
+            <Link href="/search/">検索</Link>
           </nav>
         </Header>
         <Main>{children}</Main>
