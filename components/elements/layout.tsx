@@ -15,11 +15,12 @@ export const Header: FC<{ children: ReactNode }> = ({ children }) => (
     style={{
       alignItems: "center",
       backgroundColor: "var(--surface)",
-      borderBottom: "3px solid var(--accent)",
+      borderBottom: "3px solid var(--text)",
+      boxShadow: "0 4px 0 var(--accent)",
       display: "flex",
       flexWrap: "wrap",
-      gap: ".5rem 1.5rem",
-      padding: ".5rem 1rem",
+      gap: ".75rem 1.5rem",
+      padding: ".75rem 1rem",
       position: "relative",
     }}
   >

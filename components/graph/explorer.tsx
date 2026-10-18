@@ -23,9 +23,11 @@ const DEFAULT_FOCUS = "p:sanma"
 const DECADES = [1970, 1980, 1990, 2000, 2010, 2020]
 
 const css = `
-.ex { display: grid; grid-template-columns: minmax(0, 1fr) 360px; grid-template-rows: auto auto minmax(0, 1fr); height: calc(100dvh - 7rem); min-height: 480px; border: 1px solid var(--line); background: var(--surface); }
-.ex-bar { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; padding: .5rem; border-bottom: 1px solid var(--line); }
-.ex-bar select, .ex-bar input, .ex-bar button, .ex-panel button { font: inherit; font-size: .85rem; padding: .25rem .5rem; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: inherit; }
+.ex { display: grid; grid-template-columns: minmax(0, 1fr) 360px; grid-template-rows: auto auto minmax(0, 1fr); height: calc(100dvh - 7rem); min-height: 480px; border: 3px solid var(--line); background: var(--surface); box-shadow: var(--shadow); }
+.ex-bar { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; padding: .5rem; border-bottom: 3px solid var(--line); background: var(--pop); }
+.ex-bar select, .ex-bar input { font-size: .85rem; padding: .25rem .5rem; border: 2px solid var(--line); border-radius: 999px; background: var(--surface); }
+.ex-bar button, .ex-panel button { font-size: .85rem; padding: .25rem .75rem; }
+.ex-bar button { background: var(--surface); }
 .ex-bar button, .ex-panel button { cursor: pointer; }
 .ex-canvas { position: relative; min-height: 0; }
 .ex-panel { grid-row: 2 / 4; grid-column: 2; overflow: auto; border-left: 1px solid var(--line); padding: 1rem; }

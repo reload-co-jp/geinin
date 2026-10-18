@@ -11,14 +11,29 @@ export const metadata = {
 const RootLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <html lang="ja">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap"
+        />
+      </head>
       <body>
         <Header>
-          <Title style={{ fontSize: "1.1rem" }}>
-            <Link href="/" style={{ color: "inherit", textDecoration: "none" }}>
+          <Title style={{ fontSize: "1.3rem" }}>
+            <Link href="/" className="logo">
               芸人系譜DB
             </Link>
           </Title>
-          <nav style={{ display: "flex", gap: "1rem", fontSize: ".9rem" }}>
+          <nav
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: ".6rem",
+              fontSize: ".85rem",
+            }}
+          >
             <Link href="/graph/">関係性グラフ</Link>
             <Link href="/list/">一覧</Link>
             <Link href="/schedule/">賞レース</Link>
