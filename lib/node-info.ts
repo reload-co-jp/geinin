@@ -76,5 +76,11 @@ export const termInfo = (
   sources: [],
 })
 
-// 静的JSONのファイル名（URLに使えない ":" を避ける）
-export const nodeFile = (nodeId: string) => `${nodeId.replace(":", "_")}.json`
+// 詳細JSONはノード毎だと静的生成が数千件になるため、ハッシュで分割してまとめて配信する
+export const NODE_SHARDS = 64
+export const nodeShard = (nodeId: string) => {
+  let h = 0
+  for (let i = 0; i < nodeId.length; i++)
+    h = (h * 31 + nodeId.charCodeAt(i)) >>> 0
+  return h % NODE_SHARDS
+}

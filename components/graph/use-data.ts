@@ -8,7 +8,7 @@ import {
   type Graph,
   type GraphJSON,
 } from "@/lib/graph"
-import { nodeFile, termInfo, type NodeInfo } from "@/lib/node-info"
+import { nodeShard, termInfo, type NodeInfo } from "@/lib/node-info"
 import type { Agency } from "@/lib/types"
 
 export type GraphData = { graph: Graph; index: EdgeIndex; agencies: Agency[] }
@@ -32,6 +32,15 @@ export const useGraphData = () => {
 }
 
 const infoCache = new Map<string, Promise<NodeInfo>>()
+const shardCache = new Map<number, Promise<Record<string, NodeInfo>>>()
+const loadShard = (shard: number) => {
+  if (!shardCache.has(shard))
+    shardCache.set(
+      shard,
+      fetch(`/data/node/${shard}.json`).then((r) => r.json())
+    )
+  return shardCache.get(shard)!
+}
 
 export const useNodeInfo = (data: GraphData | null, nodeId: string | null) => {
   const [info, setInfo] = useState<NodeInfo | null>(null)
@@ -43,7 +52,7 @@ export const useNodeInfo = (data: GraphData | null, nodeId: string | null) => {
         nodeId,
         nodeId.startsWith("t:")
           ? Promise.resolve(termInfo(data.graph, data.index, nodeId))
-          : fetch(`/data/node/${nodeFile(nodeId)}`).then((r) => r.json())
+          : loadShard(nodeShard(nodeId)).then((m) => m[nodeId])
       )
     infoCache.get(nodeId)!.then((i) => alive && setInfo(i))
     return () => {
