@@ -25,6 +25,11 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap"
         />
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6542845006087970"
+          crossOrigin="anonymous"
+        />
       </head>
       <body>
         <Header>

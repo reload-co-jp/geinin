@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { FC } from "react"
+import { InArticleAd } from "@/components/in-article-ad"
 import { Heading, Profile } from "@/components/profile"
 import { nodeInfo } from "@/lib/db"
 import { graphHref, nodeHref } from "@/lib/graph"
@@ -35,6 +36,7 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
           </Link>
         )}
       />
+      <InArticleAd />
     </article>
   )
 }
