@@ -52,6 +52,23 @@ const style: cytoscape.StylesheetJson = [
       "font-size": 12,
     },
   },
+  // 写真があれば顔を出し、名前は下に置く
+  {
+    selector: "node[?photo]",
+    style: {
+      shape: "ellipse",
+      "background-image": "data(photo)",
+      "background-fit": "cover",
+      // CORS ヘッダの無い外部画像も描けるようにする（"null" は実装にあるが型に無い）
+      "background-image-crossorigin": "null" as "anonymous",
+      "text-valign": "bottom",
+      "text-margin-y": 4,
+      "text-background-color": "#ffffff",
+      "text-background-opacity": 0.85,
+      "text-background-padding": "2px",
+      "text-background-shape": "roundrectangle",
+    },
+  },
   // 活動中以外は輪郭を破線にして状態ラベルと併せて伝える
   {
     selector:
@@ -67,6 +84,8 @@ const style: cytoscape.StylesheetJson = [
       "border-width": 4,
     },
   },
+  // 写真の起点は名前が白地に乗るので文字色を戻す
+  { selector: "node.root[?photo]", style: { color: INK } },
   {
     selector: "node.hover",
     style: {
@@ -139,6 +158,15 @@ const nodeData = (n: GNode, root: boolean) => {
     n.status && n.status !== "active" ? STATUS_LABEL[n.status] : null
   const em = root ? 17 : n.kind === "term" ? 12 : 13
   const chars = Math.max(n.label.length, status ? status.length + 2 : 0)
+  if (n.photo) {
+    const size = root ? 76 : 56
+    return {
+      ...n,
+      display: status ? `${n.label}\n［${status}］` : n.label,
+      w: size,
+      h: size,
+    }
+  }
   return {
     ...n,
     display: status ? `${n.label}\n［${status}］` : n.label,

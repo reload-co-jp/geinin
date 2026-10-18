@@ -158,6 +158,7 @@ export type GNode = {
   agencyId: string | null
   year: number | null
   status: ActivityStatus | null
+  photo: string | null
   // 正規化済みの検索対象文字列（名前・読み・別名・事務所・養成所）
   search: string
 }
@@ -201,6 +202,7 @@ export const buildGraph = (db: Db): Graph => {
       agencyId: p.agency_id,
       year: year(p.debut_date),
       status: p.activity_status,
+      photo: p.photo_url ?? null,
       search: search(
         p.name,
         p.reading,
@@ -218,6 +220,7 @@ export const buildGraph = (db: Db): Graph => {
       agencyId: g.agency_id,
       year: year(g.formation_date),
       status: g.activity_status,
+      photo: g.photo_url ?? null,
       search: search(
         g.name,
         g.reading,
@@ -267,6 +270,7 @@ export const buildGraph = (db: Db): Graph => {
         agencyId: null,
         year: null,
         status: null,
+        photo: null,
         search: normalize(term),
       })
     edges.push({
