@@ -16,6 +16,7 @@ export type YoshimotoTalent = {
   }[]
   birth: string | null
   origin: string | null
+  photo?: string | null
 }
 export type YoshimotoDump = {
   source: string
@@ -102,6 +103,7 @@ export const mergeYoshimoto = (base: Db, dump: YoshimotoDump): Db => {
     const existing = groupsByName.get(key(t.name))
     if (existing) {
       existing.formation_date ??= t.formed
+      existing.photo_url ??= t.photo
       existing.agency_id ??= "yoshimoto"
       existing.source_ids = [...existing.source_ids, src]
       localId.set(t.id, existing.id)
@@ -118,6 +120,7 @@ export const mergeYoshimoto = (base: Db, dump: YoshimotoDump): Db => {
       dissolution_date: null,
       agency_id: "yoshimoto",
       activity_status: null,
+      photo_url: t.photo,
       source_ids: [src],
     }
     groups.push(g)
@@ -138,6 +141,7 @@ export const mergeYoshimoto = (base: Db, dump: YoshimotoDump): Db => {
     const existing = peopleByName.get(key(t.name)) ?? manualMemberOf(t)
     if (existing) {
       existing.birth_date ??= t.birth
+      existing.photo_url ??= t.photo
       existing.training_school ??= o.school
       existing.training_school_term ??= o.term
       existing.debut_date ??= o.year
@@ -158,6 +162,7 @@ export const mergeYoshimoto = (base: Db, dump: YoshimotoDump): Db => {
       training_school_term: o.term,
       biography: null,
       activity_status: null,
+      photo_url: t.photo,
       source_ids: [src],
     }
     people.push(p)

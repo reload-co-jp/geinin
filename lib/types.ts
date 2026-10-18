@@ -39,6 +39,7 @@ export type Person = {
   training_school_term: number | null
   biography: string | null
   activity_status: ActivityStatus | null
+  photo_url?: string | null
   source_ids: string[]
 }
 
@@ -52,6 +53,7 @@ export type Group = {
   dissolution_date: PartialDate
   agency_id: string | null
   activity_status: ActivityStatus | null
+  photo_url?: string | null
   source_ids: string[]
 }
 

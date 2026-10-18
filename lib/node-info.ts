@@ -23,6 +23,7 @@ export type NodeInfo = {
   name: string
   reading: string
   aliases: string[]
+  photo_url?: string | null
   facts: [string, string][]
   links: LinkInfo[]
   results: string[]

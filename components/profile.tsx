@@ -13,6 +13,14 @@ export const Heading: FC<{ info: NodeInfo; level?: 1 | 2 }> = ({
   const H = `h${level}` as const
   return (
     <div>
+      {info.photo_url && (
+        <img
+          src={info.photo_url}
+          alt={info.name}
+          loading="lazy"
+          style={{ width: 120, height: "auto", marginBottom: ".5rem" }}
+        />
+      )}
       <p style={{ fontSize: ".75rem", color: "var(--muted)" }}>
         {info.reading}
       </p>

@@ -104,6 +104,7 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
     name: e.name,
     reading: e.reading,
     aliases: e.aliases,
+    photo_url: e.photo_url,
     facts: facts.filter((f): f is [string, string] => !!f[1]),
     links,
     results: results.map(

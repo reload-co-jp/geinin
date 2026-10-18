@@ -83,6 +83,11 @@ export const parse = (id, html) => {
     // メンバー一覧を持つグループページでは個人欄はメンバーのもの
     birth: members.length ? null : date(field(html, "生年月日")),
     origin: members.length ? null : field(html, "出身\\/入社\\/入門"),
+    // 画像は保存せず公式の URL を参照する
+    photo:
+      html.match(
+        /src="(https:\/\/profile\.yoshimoto\.co\.jp\/assets\/data\/profile\/[^"]+)"/
+      )?.[1] ?? null,
   }
 }
 
@@ -99,7 +104,8 @@ const main = async () => {
       ? JSON.parse(readFileSync(OUT, "utf8")).talents.map((t) => [t.id, t])
       : []
   )
-  const todo = ids.filter((id) => !data.has(id))
+  // photo 追加前に取得した分も取り直す
+  const todo = ids.filter((id) => !("photo" in (data.get(id) ?? {})))
   const save = () =>
     writeFileSync(
       OUT,
