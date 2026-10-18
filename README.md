@@ -92,3 +92,11 @@ export const metadata: Metadata = {
 ## ライセンス
 
 ISC
+
+## データの追加・更新
+
+- 手入力データ: `data/db.ts`（師弟・共演・賞レースなど。出典と照合したら `last_verified_at` / `checked_at` に日付を入れる）
+- 吉本興業 公式プロフィール: `node scripts/import-yoshimoto.mjs` で未取得分を取得（`--all` で全件再取得、1秒1リクエスト、約2時間）。結果は `data/yoshimoto.json`
+  - 取り込むのは芸名・読み・結成年月・メンバー・生年月日・出身/入門（NSC期・師匠）の事実項目のみ
+  - 手入力データとは名前で統合し、空欄だけを補う（`lib/yoshimoto.ts`）
+- 参照切れや出典IDの誤りは `pnpm test` で検出される

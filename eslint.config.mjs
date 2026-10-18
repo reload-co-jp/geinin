@@ -9,6 +9,17 @@ export default [
   { files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"] },
   { ignores: [".next", "out", "next-env.d.ts", "next.config.js"] },
   pluginJs.configs.recommended,
+  {
+    files: ["scripts/**/*.mjs"],
+    languageOptions: {
+      globals: Object.fromEntries(
+        ["console", "process", "fetch", "setTimeout", "URL"].map((g) => [
+          g,
+          "readonly",
+        ])
+      ),
+    },
+  },
   ...tseslint.configs.recommended,
   ...fixupConfigRules(pluginReact.configs.flat.recommended),
   ...fixupConfigRules(jsxA11y.flatConfigs.recommended),

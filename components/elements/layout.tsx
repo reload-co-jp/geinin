@@ -13,8 +13,12 @@ export const Title: FC<ComponentProps<"h1">> = ({
 export const Header: FC<{ children: ReactNode }> = ({ children }) => (
   <header
     style={{
-      backgroundColor: "#333",
-      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+      alignItems: "center",
+      backgroundColor: "var(--surface)",
+      borderBottom: "3px solid var(--accent)",
+      display: "flex",
+      flexWrap: "wrap",
+      gap: ".5rem 1.5rem",
       padding: ".5rem 1rem",
       position: "relative",
     }}
@@ -26,7 +30,6 @@ export const Header: FC<{ children: ReactNode }> = ({ children }) => (
 export const Main: FC<{ children: ReactNode }> = ({ children }) => (
   <main
     style={{
-      background: "#222",
       minHeight: "calc(100dvh - 5.625rem)",
       padding: "1rem",
     }}
@@ -38,8 +41,8 @@ export const Main: FC<{ children: ReactNode }> = ({ children }) => (
 export const Footer: FC<{ children: ReactNode }> = ({ children }) => (
   <footer
     style={{
-      backgroundColor: "#333",
-      boxShadow: "0 -4px 6px rgba(0, 0, 0, 0.1)",
+      borderTop: "1px solid var(--line)",
+      color: "var(--muted)",
       fontSize: ".75rem",
       padding: "1rem",
     }}
