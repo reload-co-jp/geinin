@@ -1,115 +1,91 @@
 import Link from "next/link"
 import { FC } from "react"
-import { db as manual } from "@/data/db"
-import { edgeIndex, graph } from "@/lib/db"
-import { graphHref, linksOf } from "@/lib/graph"
+import { db, edgeIndex, graph } from "@/lib/db"
+import { nodeHref } from "@/lib/graph"
 
-export const metadata = { title: "養成所の同期一覧" }
+export const metadata = { title: "同期芸人一覧" }
 
-const cell = {
-  padding: ".35rem .5rem",
-  borderBottom: "1px solid var(--line)",
-  textAlign: "left",
-  verticalAlign: "top",
-} as const
+const results = Map.groupBy(db.competitionResults, (r) => r.entrant_id)
+// 賞レース成績（本人とコンビ等の出場）と共演の数
+const score = (id: string) => {
+  const es = edgeIndex.get(id) ?? []
+  return (
+    [
+      id,
+      ...es
+        .filter((e) => e.kind === "member" || e.kind === "former_member")
+        .map((e) => e.target),
+    ].reduce((n, x) => n + (results.get(x)?.length ?? 0), 0) +
+    es.filter((e) => e.kind === "costar").length
+  )
+}
 
-const manualIds = new Set(manual.people.map((p) => `p:${p.id}`))
+const SHOWN = 5
 
-// 期ノードのラベルは「養成所名+期数+期」
-const terms = [...graph.nodes.values()]
-  .filter((n) => n.kind === "term" && n.label.endsWith("期"))
-  .map((n) => {
-    const members = linksOf(edgeIndex, n.id)
-      .filter((l) => l.label === "同期生")
-      .map((l) => l.other)
-    return {
-      id: n.id,
-      label: n.label,
-      school: n.label.replace(/\d+期$/, ""),
-      year: n.year,
-      count: members.length,
-      notable: members
-        .filter((m) => manualIds.has(m))
-        .map((m) => ({ id: m, name: graph.nodes.get(m)?.label ?? m })),
-    }
+// 人物ノードの year はデビュー年
+const years = [
+  ...Map.groupBy(
+    [...graph.nodes.values()].filter((n) => n.kind === "person" && n.year),
+    (n) => n.year!
+  ),
+]
+  .toSorted(([a], [b]) => a - b)
+  .map(([y, ps]) => {
+    const scores = new Map(ps.map((p) => [p.id, score(p.id)]))
+    return [
+      y,
+      ps.toSorted((a, b) => scores.get(b.id)! - scores.get(a.id)!),
+    ] as const
   })
 
-// 行は入学年（不明は末尾）、列は養成所（期の多い順）
-const schools = [...Map.groupBy(terms, (t) => t.school)]
-  .toSorted((a, b) => b[1].length - a[1].length)
-  .map(([s]) => s)
-const years = [...Map.groupBy(terms, (t) => t.year)].toSorted(
-  ([a], [b]) => (a ?? Infinity) - (b ?? Infinity)
-)
+const Names: FC<{ ps: (typeof years)[number][1] }> = ({ ps }) =>
+  ps.map((p, i) => (
+    <span key={p.id}>
+      {i > 0 && "・"}
+      <Link href={nodeHref(p.id)}>{p.label}</Link>
+    </span>
+  ))
 
 const Page: FC = () => (
   <div
     style={{ maxWidth: 1000, margin: "0 auto", display: "grid", gap: "1rem" }}
   >
-    <h2 style={{ fontSize: "1.1rem" }}>養成所の同期一覧</h2>
+    <h2 style={{ fontSize: "1.1rem" }}>同期芸人一覧</h2>
     <p style={{ color: "var(--muted)", fontSize: ".875rem" }}>
-      養成所の期を入学年ごとに並べています。入学年は Wikipedia
-      の各校の表により、載っていない期は期生のデビュー年から推定しています。
-      期の名前を押すと、同期をグラフでたどれます。
+      デビュー年が同じ芸人を、賞レース成績や共演の多い順に並べています。
     </p>
-    <div style={{ overflowX: "auto" }}>
-      <table
+    {years.map(([year, ps]) => (
+      <section
+        key={year}
         style={{
-          borderCollapse: "collapse",
           background: "var(--surface)",
-          fontSize: ".8rem",
+          borderBottom: "1px solid var(--line)",
+          padding: ".5rem",
+          fontSize: ".875rem",
+          display: "grid",
+          gap: ".25rem",
         }}
       >
-        <thead>
-          <tr>
-            <th style={{ ...cell, whiteSpace: "nowrap" }}>入学年</th>
-            {schools.map((s) => (
-              <th key={s} scope="col" style={{ ...cell, whiteSpace: "nowrap" }}>
-                {s}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {years.map(([year, ts]) => (
-            <tr key={year ?? "unknown"}>
-              <th scope="row" style={{ ...cell, whiteSpace: "nowrap" }}>
-                {year ?? "不明"}
-              </th>
-              {schools.map((s) => (
-                <td key={s} style={cell}>
-                  {ts
-                    .filter((t) => t.school === s)
-                    .map((t) => (
-                      <div key={t.id} style={{ minWidth: "8rem" }}>
-                        <Link href={graphHref(t.id, "&mode=doki")}>
-                          {t.label}
-                        </Link>
-                        <span style={{ color: "var(--muted)" }}>
-                          {" "}
-                          {t.count.toLocaleString()}人
-                        </span>
-                        {t.notable.length > 0 && (
-                          <div>
-                            {t.notable.map((p, i) => (
-                              <span key={p.id}>
-                                {i > 0 && "・"}
-                                <Link href={`/people/${p.id.slice(2)}/`}>
-                                  {p.name}
-                                </Link>
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+        <h3 style={{ fontSize: "inherit" }}>
+          {year}年デビュー
+          <span style={{ color: "var(--muted)", fontWeight: "normal" }}>
+            {" "}
+            {ps.length.toLocaleString()}人
+          </span>
+        </h3>
+        <div>
+          <Names ps={ps.slice(0, SHOWN)} />
+        </div>
+        {ps.length > SHOWN && (
+          <details style={{ fontSize: ".8rem" }}>
+            <summary style={{ cursor: "pointer", color: "var(--muted)" }}>
+              ほか{(ps.length - SHOWN).toLocaleString()}人
+            </summary>
+            <Names ps={ps.slice(SHOWN)} />
+          </details>
+        )}
+      </section>
+    ))}
   </div>
 )
 
