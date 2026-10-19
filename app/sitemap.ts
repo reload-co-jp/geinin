@@ -13,6 +13,7 @@ const sitemap = (): MetadataRoute.Sitemap =>
     "/list/",
     "/schedule/",
     "/finals/",
+    "/doki/",
     "/search/",
     ...[...ROWS, OTHER].map((r) => `/list/${r.slug}/`),
     ...db.people.map((p) => `/people/${p.id}/`),
