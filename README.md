@@ -99,4 +99,6 @@ ISC
 - 吉本興業 公式プロフィール: `node scripts/import-yoshimoto.mjs` で未取得分を取得（`--all` で全件再取得、1秒1リクエスト、約2時間）。結果は `data/yoshimoto.json`
   - 取り込むのは芸名・読み・結成年月・メンバー・生年月日・出身/入門（NSC期・師匠）の事実項目のみ
   - 手入力データとは名前で統合し、空欄だけを補う（`lib/yoshimoto.ts`）
+- その他事務所（松竹芸能・ワタナベ・太田プロ・人力舎・SMA・グレープ・タイタン・マセキ・浅井企画）の公式サイト: `node scripts/import-agencies.mjs [事務所id...]`（`--all` で全件再取得、事務所ごとに1秒1リクエスト、約4分）。結果は `data/agencies.json`
+  - 取り込むのは芸名・読み・メンバー名のみ。吉本統合後のデータと名前で統合する（`lib/agencies.ts`）
 - 参照切れや出典IDの誤りは `pnpm test` で検出される

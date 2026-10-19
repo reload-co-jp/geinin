@@ -157,6 +157,10 @@ export const db: Db = {
     { id: "kdash", name: "ケイダッシュステージ" },
     { id: "maseki", name: "マセキ芸能社" },
     { id: "jinrikisha", name: "プロダクション人力舎" },
+    { id: "shochiku", name: "松竹芸能" },
+    { id: "watanabe", name: "ワタナベエンターテインメント" },
+    { id: "sma", name: "ソニー・ミュージックアーティスツ" },
+    { id: "asai", name: "浅井企画" },
   ],
   people: [
     // NSC大阪1期
