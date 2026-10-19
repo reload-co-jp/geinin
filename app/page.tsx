@@ -66,7 +66,7 @@ const terms = [...graph.nodes.values()]
       notable: members.filter((m) => manualIds.has(m)).map(name),
     }
   })
-  .toSorted((a, b) => b.notable.length - a.notable.length || b.count - a.count)
+  .toSorted((a, b) => b.count - a.count || b.notable.length - a.notable.length)
   .slice(0, 5)
 
 // コンビ変遷: 結成年が分かるグループを年表に
