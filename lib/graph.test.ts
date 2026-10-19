@@ -45,6 +45,22 @@ describe("buildGraph", () => {
       expect(doki.some((e) => e.source === p && e.target === term)).toBe(true)
   })
 
+  it("treats non-school debut in the graduation year as 同期", () => {
+    const base = db.people.find((p) => p.id === "matsumoto")!
+    const people = [
+      ...db.people,
+      { ...base, id: "x1", training_school: null, training_school_term: null },
+      { ...base, id: "x2", training_school: null, debut_date: "1900" },
+    ]
+    const doki = buildGraph({ ...db, people }).edges.filter(
+      (e) => e.kind === "doki"
+    )
+    expect(
+      doki.some((e) => e.source === "p:x1" && e.target === "t:NSC大阪1期")
+    ).toBe(true)
+    expect(doki.some((e) => e.source === "p:x2")).toBe(false)
+  })
+
   it("derives 競演 as 開催 nodes, not pairwise edges", () => {
     const comp = g.edges.filter((e) => e.kind === "competition")
     // 出場者は開催ノードへつながる（組同士の直接の線は作らない）

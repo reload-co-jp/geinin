@@ -275,6 +275,7 @@ export const buildGraph = (db: Db): Graph => {
     })
 
   // 同期は全ペアだと1期数百人で辺が爆発するため「養成所の期」ノードを介してつなぐ
+  const termDebuts = new Map<string, number[]>()
   for (const p of db.people) {
     if (!p.training_school || !p.training_school_term) continue
     const term = `${p.training_school}${p.training_school_term}期`
@@ -301,6 +302,34 @@ export const buildGraph = (db: Db): Graph => {
       verified: false,
       refId: null,
     })
+    const y = year(p.debut_date)
+    if (y) termDebuts.set(id, [...(termDebuts.get(id) ?? []), y])
+  }
+
+  // 養成所を経ていない芸人は、卒業年（＝期生のデビュー年で最も多い年）とデビュー年が同じ期の同期とみなす
+  const termsByYear = Map.groupBy(
+    termDebuts,
+    ([, ys]) =>
+      ys.toSorted(
+        (a, b) =>
+          ys.filter((v) => v === b).length - ys.filter((v) => v === a).length
+      )[0]
+  )
+  for (const p of db.people) {
+    if (p.training_school) continue
+    const y = year(p.debut_date)
+    for (const [id] of (y && termsByYear.get(y)) || [])
+      edges.push({
+        id: `d:${p.id}:${id}`,
+        source: `p:${p.id}`,
+        target: id,
+        kind: "doki",
+        label: nodes.get(id)!.label,
+        derived: true,
+        confidence: "medium",
+        verified: false,
+        refId: null,
+      })
   }
 
   // 賞レースは決勝出場同士をすべてつなぐと辺が爆発（1年だけで40本超）するため、
