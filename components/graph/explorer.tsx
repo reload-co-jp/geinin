@@ -40,6 +40,10 @@ const css = `
 .ex-bubble { position: relative; z-index: 1; margin: .6rem .75rem 0; align-self: flex-start; max-width: min(560px, calc(100% - 1.5rem)); padding: .5rem .8rem; background: var(--surface); border: 2px solid var(--line); border-radius: 14px; font-size: .78rem; line-height: 1.5; box-shadow: 3px 3px 0 var(--line); }
 .ex-bubble::after { content: ""; position: absolute; left: 22px; bottom: -9px; width: 14px; height: 14px; background: var(--surface); border-right: 2px solid var(--line); border-bottom: 2px solid var(--line); transform: rotate(45deg); }
 .ex-bubble strong { font-family: var(--display); font-weight: 400; color: var(--accent); }
+.ex-bubble a { color: var(--accent); }
+.ex-detail { display: inline-flex; align-items: center; gap: .3rem; margin: .5rem 0 .25rem; }
+.ex-detail:hover { background: var(--pop); }
+.ex-rel-link { font-size: .8rem; white-space: nowrap; }
 .ex-panel { overflow: auto; border-left: 2px solid var(--line); padding: 1rem; overscroll-behavior: contain; }
 .ex-panel-actions { display: flex; flex-wrap: wrap; gap: .35rem; margin: .75rem 0; }
 .ex-panel-actions button[data-tone="blue"] { background: var(--blue); color: #fff; }
@@ -211,6 +215,11 @@ export const Explorer: FC = () => {
                 >
                   ＋グラフに追加
                 </button>
+                {!id.startsWith("t:") && (
+                  <Link className="chip" href={nodeHref(id)} onClick={close}>
+                    詳細
+                  </Link>
+                )}
               </>
             )}
           />
@@ -303,7 +312,12 @@ export const Explorer: FC = () => {
               ? "データ読み込み中…"
               : notice || (
                   <>
-                    {nodeName(focus)} から {sub.nodes.size}件（全
+                    {focus.startsWith("t:") ? (
+                      nodeName(focus)
+                    ) : (
+                      <Link href={nodeHref(focus)}>{nodeName(focus)}</Link>
+                    )}{" "}
+                    から {sub.nodes.size}件（全
                     {graph.nodes.size.toLocaleString()}件）
                     <span className="ex-desc">。{MODES[mode].description}</span>
                   </>
@@ -338,6 +352,13 @@ export const Explorer: FC = () => {
                 ×
               </button>
               <Heading info={info} />
+              {!selected.startsWith("t:") && (
+                <p className="ex-detail">
+                  <Link className="chip" href={nodeHref(selected)}>
+                    {info.name} の詳細ページ →
+                  </Link>
+                </p>
+              )}
               <div className="ex-panel-actions">
                 {selected !== focus && (
                   <button data-tone="red" onClick={() => setFocus(selected)}>
@@ -384,20 +405,22 @@ export const Explorer: FC = () => {
                   </button>
                 )}
               </div>
-              {!selected.startsWith("t:") && (
-                <p style={{ fontSize: ".85rem", marginBottom: ".5rem" }}>
-                  <Link href={nodeHref(selected)}>詳細ページを開く →</Link>
-                </p>
-              )}
               <Profile
                 info={info}
                 renderOther={(l) => (
-                  <button
-                    onClick={() => addToGraph(l.other)}
-                    style={{ background: "var(--surface)" }}
-                  >
-                    {l.otherName}
-                  </button>
+                  <>
+                    <button
+                      onClick={() => addToGraph(l.other)}
+                      style={{ background: "var(--surface)" }}
+                    >
+                      {l.otherName}
+                    </button>
+                    {!l.other.startsWith("t:") && (
+                      <Link className="ex-rel-link" href={nodeHref(l.other)}>
+                        詳細
+                      </Link>
+                    )}
+                  </>
                 )}
               />
             </>
@@ -420,6 +443,9 @@ export const Explorer: FC = () => {
                     <li>名前の枠を選ぶと、その芸人の関係が強調されます。</li>
                     <li>線を選ぶと、どんな関係かを表示します。</li>
                     <li>上のモードで師弟・同期・コンビ変遷などに切り替え。</li>
+                    <li>
+                      選んだ芸人の「詳細ページ」から、詳しいプロフィールへ。
+                    </li>
                     <li>検索から「＋グラフに追加」で人物をつなげて表示。</li>
                   </ol>
                 </>
