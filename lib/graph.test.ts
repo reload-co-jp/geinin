@@ -45,18 +45,30 @@ describe("buildGraph", () => {
       expect(doki.some((e) => e.source === p && e.target === term)).toBe(true)
   })
 
-  it("derives 競演 only among finalists of the same year", () => {
+  it("derives 競演 as 開催 nodes, not pairwise edges", () => {
     const comp = g.edges.filter((e) => e.kind === "competition")
-    expect(
-      comp.some((e) => e.source === "g:nonstyle" && e.target === "g:audrey")
-    ).toBe(true)
-    expect(
-      comp.some(
-        (e) =>
-          [e.source, e.target].includes("g:nakagawake") &&
-          [e.source, e.target].includes("g:sandwichman")
-      )
-    ).toBe(false)
+    // 出場者は開催ノードへつながる（組同士の直接の線は作らない）
+    for (const e of comp) {
+      expect(g.nodes.get(e.target)?.kind, e.id).toBe("race")
+      expect(["person", "group"]).toContain(g.nodes.get(e.source)?.kind)
+    }
+    // 2008年 M-1 の優勝 NON STYLE と準優勝 オードリーは同じ開催につながる
+    const race = g.nodes.get("x:M-1グランプリ 2008")
+    expect(race?.kind).toBe("race")
+    expect(race?.label).toBe("M-1グランプリ 2008")
+    const inRace = comp.filter((e) => e.target === "x:M-1グランプリ 2008")
+    expect(inRace.some((e) => e.source === "g:nonstyle")).toBe(true)
+    expect(inRace.some((e) => e.source === "g:audrey")).toBe(true)
+    expect(inRace.find((e) => e.source === "g:nonstyle")?.rank).toBe(1)
+    // 別の年に出場した組とはつながらない
+    expect(inRace.some((e) => e.source === "g:nakagawake")).toBe(false)
+  })
+
+  it("keeps one 競演 edge per 決勝 result", () => {
+    const finals = db.competitionResults.filter((r) => r.stage === "決勝")
+    expect(g.edges.filter((e) => e.kind === "competition")).toHaveLength(
+      finals.length
+    )
   })
 
   it("separates current and former members", () => {

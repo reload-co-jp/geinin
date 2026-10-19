@@ -137,7 +137,8 @@ export const MODES: Record<
   },
   race: {
     label: "賞レース競演",
-    description: "同じ年の決勝で戦ったコンビ同士をつなぎます。",
+    description:
+      "同じ年の決勝で戦った組を、開催（大会×年）ごとにまとめてつなぎます。",
     kinds: ["competition", "member"],
     depth: 2,
     layout: "radial",
@@ -153,7 +154,8 @@ export const MODES: Record<
 
 export type GNode = {
   id: string
-  kind: "person" | "group" | "term"
+  // race = 賞レースの開催（大会×年）を表す中継ノード
+  kind: "person" | "group" | "term" | "race"
   label: string
   agencyId: string | null
   year: number | null
@@ -174,14 +176,29 @@ export type GEdge = {
   confidence: Confidence
   verified: boolean
   refId: string | null
+  // 賞レースの順位（優勝=1）。それ以外は null
+  rank?: number | null
 }
 
 export type Graph = { nodes: Map<string, GNode>; edges: GEdge[] }
 
 const year = (d: string | null) => (d ? Number(d.slice(0, 4)) : null)
 
-const pairs = <T>(xs: T[]) =>
-  xs.flatMap((a, i) => xs.slice(i + 1).map((b) => [a, b] as const))
+// 賞レースの開催（大会×年）を表すノード。ID は「x:大会名 年」
+export const raceId = (competition: string, year: number) =>
+  `x:${competition} ${year}`
+
+export const parseRaceId = (id: string) => {
+  if (!id.startsWith("x:")) return null
+  const s = id.slice(2)
+  const i = s.lastIndexOf(" ")
+  if (i < 1) return null
+  return { competition: s.slice(0, i), year: Number(s.slice(i + 1)) }
+}
+
+// 順位のラベル。順位不明は空文字
+export const rankLabel = (rank: number | null | undefined) =>
+  rank === 1 ? "優勝" : rank ? `${rank}位` : ""
 
 export const normalize = (s: string) =>
   s
@@ -286,23 +303,41 @@ export const buildGraph = (db: Db): Graph => {
     })
   }
 
+  // 賞レースは決勝出場同士をすべてつなぐと辺が爆発（1年だけで40本超）するため、
+  // 開催（大会×年）を表すノードを中継点に置き、各出場をそこへつなぐ
   const finals = Map.groupBy(
     db.competitionResults.filter((r) => r.stage === "決勝"),
     (r) => `${r.competition_name} ${r.year}`
   )
-  for (const [comp, rs] of finals)
-    for (const [a, b] of pairs(rs))
+  for (const [comp, rs] of finals) {
+    const i = comp.lastIndexOf(" ")
+    const name = comp.slice(0, i)
+    const y = Number(comp.slice(i + 1))
+    const id = raceId(name, y)
+    nodes.set(id, {
+      id,
+      kind: "race",
+      label: `${name} ${y}`,
+      agencyId: null,
+      year: y,
+      status: null,
+      photo: null,
+      search: search(name, String(y)),
+    })
+    for (const r of rs)
       edges.push({
-        id: `c:${a.id}:${b.id}`,
-        source: a.entrant_id,
-        target: b.entrant_id,
+        id: `cx:${r.id}`,
+        source: r.entrant_id,
+        target: id,
         kind: "competition",
         label: `${comp} 決勝`,
         derived: true,
         confidence: "high",
         verified: false,
         refId: null,
+        rank: r.rank,
       })
+  }
 
   return { nodes, edges }
 }
@@ -317,12 +352,17 @@ export type View = {
   limit: number
 }
 
-// 期ノードは同期をたどる中継点なので絞り込み対象外
-const passes = (n: GNode, v: View) =>
-  n.kind === "term" ||
-  ((!v.agencyId || n.agencyId === v.agencyId) &&
-    (v.decade === null ||
-      (n.year !== null && Math.floor(n.year / 10) * 10 === v.decade)))
+// 期ノードは同期をたどる中継点なので絞り込み対象外。
+// 開催ノードも事務所は无关で、年代（開催年）でのみ絞り込む
+const passes = (n: GNode, v: View) => {
+  if (n.kind === "term") return true
+  const okAgency =
+    n.kind === "race" ? true : !v.agencyId || n.agencyId === v.agencyId
+  const okDecade =
+    v.decade === null ||
+    (n.year !== null && Math.floor(n.year / 10) * 10 === v.decade)
+  return okAgency && okDecade
+}
 
 // focus から depth 以内 + 展開済みノードの隣接を返す。絞り込みで外れたノードは辿らない（起点は常に残す）
 export const visibleSubgraph = (g: Graph, v: View): Graph => {
@@ -410,7 +450,9 @@ export const linksOf = (index: EdgeIndex, nodeId: string): Link[] =>
                 : "元メンバー"
               : edge.kind === "doki" && !out
                 ? "同期生"
-                : edge.label
+                : edge.kind === "competition"
+                  ? rankLabel(edge.rank) || "決勝進出"
+                  : edge.label
     return { edge, other, label }
   })
 

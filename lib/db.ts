@@ -3,7 +3,14 @@ import { db as manual } from "@/data/db"
 import agencies from "@/data/agencies.json"
 import yoshimoto from "@/data/yoshimoto.json"
 import { mergeAgencies, type AgencyDump } from "@/lib/agencies"
-import { buildGraph, indexEdges, STATUS_LABEL } from "@/lib/graph"
+import {
+  buildGraph,
+  indexEdges,
+  parseRaceId,
+  rankLabel,
+  raceId,
+  STATUS_LABEL,
+} from "@/lib/graph"
 import { linkInfos, termInfo, type NodeInfo } from "@/lib/node-info"
 import type { Confidence } from "@/lib/types"
 import { mergeYoshimoto, type YoshimotoDump } from "@/lib/yoshimoto"
@@ -58,9 +65,73 @@ const careerOf = (
       }
     : null
 
+// 賞レースの開催（大会×年）ごとの詳細。決勝出場を順位順に並べる
+const raceInfo = (nodeId: string): NodeInfo | null => {
+  const parsed = parseRaceId(nodeId)
+  if (!parsed) return null
+  const { competition, year } = parsed
+  const finals = db.competitionResults
+    .filter(
+      (r) =>
+        r.stage === "決勝" &&
+        r.competition_name === competition &&
+        r.year === year
+    )
+    .toSorted((a, b) => (a.rank ?? 999) - (b.rank ?? 999))
+  const sourceIds = new Set(finals.flatMap((r) => r.source_ids))
+  return {
+    id: nodeId,
+    name: `${competition} ${year} 決勝`,
+    reading: "賞レースの決勝",
+    aliases: [],
+    status: null,
+    finals: null,
+    facts: [
+      ["大会", competition],
+      ["年", String(year)],
+      ["決勝出場", `${finals.length}組`],
+    ],
+    links: finals.map((r) => ({
+      edgeId: `cx:${r.id}`,
+      kind: "competition" as const,
+      other: r.entrant_id,
+      otherName: graph.nodes.get(r.entrant_id)?.label ?? r.entrant_id,
+      label: rankLabel(r.rank) || "決勝進出",
+      derived: true,
+      confidence: "high" as const,
+      rel: null,
+    })),
+    results: [],
+    sources: [...sourceIds].flatMap((sid) => {
+      const s = sourceById.get(sid)
+      return s
+        ? [
+            {
+              id: s.id,
+              name: s.source_name,
+              url: s.source_url,
+              checked_at: s.checked_at,
+              ...(s.notes && { notes: s.notes }),
+            },
+          ]
+        : []
+    }),
+  }
+}
+
+// 開催ノードのID一覧（詳細JSONに含めるため）
+export const raceIds = [
+  ...new Set(
+    db.competitionResults
+      .filter((r) => r.stage === "決勝")
+      .map((r) => raceId(r.competition_name, r.year))
+  ),
+]
+
 export const nodeInfo = (nodeId: string): NodeInfo | null => {
   const [kind, id] = nodeId.split(":")
   if (kind === "t") return termInfo(graph, edgeIndex, nodeId)
+  if (kind === "x") return raceInfo(nodeId)
   const person = kind === "p" ? personById.get(id) : undefined
   const group = kind === "g" ? groupById.get(id) : undefined
   const e = person ?? group

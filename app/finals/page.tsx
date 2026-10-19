@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { FC } from "react"
 import { db, graph } from "@/lib/db"
+import { graphHref, raceId } from "@/lib/graph"
 
 export const metadata = { title: "賞レース決勝進出の遍歴" }
 
@@ -38,6 +39,7 @@ const Page: FC = () => (
     <h2 style={{ fontSize: "1.1rem" }}>賞レース決勝進出の遍歴</h2>
     <p style={{ color: "var(--muted)", fontSize: ".875rem" }}>
       登録済みの決勝結果のみ表示しています。数字は順位、●は順位不明です。
+      年の文字を押すと、その年の決勝をグラフでたどれます。
     </p>
     {competitions.map((c) => (
       <section key={c.name} style={{ display: "grid", gap: ".5rem" }}>
@@ -55,7 +57,9 @@ const Page: FC = () => (
                 <th style={{ ...cell, textAlign: "left" }}>出場者</th>
                 {c.years.map((y) => (
                   <th key={y} scope="col" style={cell}>
-                    {y}
+                    <Link href={graphHref(raceId(c.name, y), "&mode=race")}>
+                      {y}
+                    </Link>
                   </th>
                 ))}
               </tr>

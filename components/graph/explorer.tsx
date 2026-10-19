@@ -177,9 +177,11 @@ export const Explorer: FC = () => {
   // ホバー時の概要: 関係の種類ごとの件数
   const summarize = (id: string) => {
     if (!data) return ""
+    const links = linksOf(data.index, id)
+    // 開催ノードは順位ごとの数より出場数を出したほうが分かりやすい
+    if (id.startsWith("x:")) return `決勝出場 ${links.length}組`
     const counts = new Map<string, number>()
-    for (const l of linksOf(data.index, id))
-      counts.set(l.label, (counts.get(l.label) ?? 0) + 1)
+    for (const l of links) counts.set(l.label, (counts.get(l.label) ?? 0) + 1)
     return [...counts]
       .slice(0, 5)
       .map(([k, n]) => `${k} ${n}`)
@@ -300,8 +302,8 @@ export const Explorer: FC = () => {
             </button>
           </div>
           <p style={{ color: "var(--muted)", fontSize: ".75rem" }}>
-            ○個人 ▭コンビ・グループ
-            ◇養成所の期。破線の枠は解散・引退など。ドラッグで移動、ホイール・ピンチで拡大縮小。線を選ぶと関係の詳細を表示。半透明の線は確度が中以下。
+            ○個人 ▭コンビ・グループ ◇養成所の期 ⬡賞レースの決勝（開催）。
+            破線の枠は解散・引退など。ドラッグで移動、ホイール・ピンチで拡大縮小。線を選ぶと関係の詳細を表示。半透明の線は確度が中以下。
           </p>
         </details>
 
@@ -312,7 +314,7 @@ export const Explorer: FC = () => {
               ? "データ読み込み中…"
               : notice || (
                   <>
-                    {focus.startsWith("t:") ? (
+                    {focus.startsWith("t:") || focus.startsWith("x:") ? (
                       nodeName(focus)
                     ) : (
                       <Link href={nodeHref(focus)}>{nodeName(focus)}</Link>
@@ -332,6 +334,7 @@ export const Explorer: FC = () => {
               onSelect={(id) => update({ sel: id })}
               summarize={summarize}
               nodeName={nodeName}
+              showRanks={mode === "race"}
             />
           </div>
         </div>
@@ -352,7 +355,7 @@ export const Explorer: FC = () => {
                 ×
               </button>
               <Heading info={info} />
-              {!selected.startsWith("t:") && (
+              {!selected.startsWith("t:") && !selected.startsWith("x:") && (
                 <p className="ex-detail">
                   <Link className="chip" href={nodeHref(selected)}>
                     {info.name} の詳細ページ →
@@ -393,7 +396,9 @@ export const Explorer: FC = () => {
                 )}
                 {steps.race && (
                   <button onClick={() => setFocus(selected, "race")}>
-                    賞レースの競演
+                    {selected.startsWith("x:")
+                      ? "出場者を見る"
+                      : "賞レースの競演"}
                   </button>
                 )}
                 {!expanded.includes(selected) && selected !== focus && (
@@ -443,6 +448,9 @@ export const Explorer: FC = () => {
                     <li>名前の枠を選ぶと、その芸人の関係が強調されます。</li>
                     <li>線を選ぶと、どんな関係かを表示します。</li>
                     <li>上のモードで師弟・同期・コンビ変遷などに切り替え。</li>
+                    <li>
+                      賞レースは六角形の「開催」にまとめられます。選ぶと出場者が順位で並びます。
+                    </li>
                     <li>
                       選んだ芸人の「詳細ページ」から、詳しいプロフィールへ。
                     </li>

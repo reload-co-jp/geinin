@@ -11,6 +11,7 @@ const TYPES = [
   { id: "p:", label: "芸人" },
   { id: "g:", label: "コンビ" },
   { id: "t:", label: "同期（期）" },
+  { id: "x:", label: "賞レース" },
 ] as const
 
 const css = `
@@ -32,7 +33,7 @@ const css = `
 .sb-list .sb-acts a, .sb-list .sb-acts button { font-size: .75rem; padding: .15rem .6rem; }
 `
 
-const KIND_TAG = { p: "芸人", g: "コンビ", t: "同期" } as const
+const KIND_TAG = { p: "芸人", g: "コンビ", t: "同期", x: "賞レース" } as const
 
 export const SearchBox: FC<{
   compact?: boolean
@@ -105,12 +106,19 @@ export const SearchBox: FC<{
               (l) => l.edge.kind !== "member" && l.edge.kind !== "former_member"
             )
             const tag = KIND_TAG[id[0] as keyof typeof KIND_TAG]
+            const isRace = id[0] === "x"
             return (
               <li key={id}>
                 <span
                   className="sticker"
                   data-tone={
-                    id[0] === "p" ? "plain" : id[0] === "t" ? "blue" : undefined
+                    id[0] === "p"
+                      ? "plain"
+                      : id[0] === "t"
+                        ? "blue"
+                        : isRace
+                          ? "plain"
+                          : undefined
                   }
                   style={{ transform: "none", fontSize: ".65rem" }}
                 >
@@ -118,8 +126,9 @@ export const SearchBox: FC<{
                 </span>
                 <strong>{name(id)}</strong>
                 <span style={{ fontSize: ".78rem", color: "var(--muted)" }}>
-                  {groups.join("・")}
-                  {rel && ` ${rel.label}: ${name(rel.other)}`}
+                  {isRace
+                    ? `決勝 ${links.length}組`
+                    : `${groups.join("・")}${rel && ` ${rel.label}: ${name(rel.other)}`}`}
                 </span>
                 <span className="sb-acts">
                   {actions ? (

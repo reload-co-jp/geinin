@@ -6,9 +6,11 @@ import { Explorer } from "./explorer"
 vi.mock("./cy-graph", () => ({ CyGraph: () => <div data-testid="cy" /> }))
 
 vi.mock("next/navigation", () => ({
-  useSearchParams: () => new URLSearchParams("focus=p:sanma&sel=p:sanma"),
+  useSearchParams: () => params,
   useRouter: () => ({ push: vi.fn() }),
 }))
+
+let params = new URLSearchParams("focus=p:sanma&sel=p:sanma")
 
 const GRAPH = {
   nodes: [
@@ -32,6 +34,16 @@ const GRAPH = {
       photo: null,
       search: "たなか",
     },
+    {
+      id: "x:M-1グランプリ 2008",
+      kind: "race",
+      label: "M-1グランプリ 2008",
+      agencyId: null,
+      year: 2008,
+      status: null,
+      photo: null,
+      search: "m-1グランプリ\n2008",
+    },
   ],
   edges: [
     {
@@ -44,6 +56,18 @@ const GRAPH = {
       confidence: "high",
       verified: true,
       refId: "1",
+    },
+    {
+      id: "cx:M-1グランプリ-2008-g:nonstyle",
+      source: "g:nonstyle",
+      target: "x:M-1グランプリ 2008",
+      kind: "competition",
+      label: "M-1グランプリ 2008 決勝",
+      derived: true,
+      confidence: "high",
+      verified: false,
+      refId: null,
+      rank: 1,
     },
   ],
   agencies: [],
@@ -71,7 +95,35 @@ const INFO = {
   sources: [],
 }
 
+// 賞レースの開催ノード。出場者が順位付きで並ぶ
+const RACE_INFO = {
+  id: "x:M-1グランプリ 2008",
+  name: "M-1グランプリ 2008 決勝",
+  reading: "賞レースの決勝",
+  aliases: [],
+  facts: [
+    ["大会", "M-1グランプリ"],
+    ["年", "2008"],
+    ["決勝出場", "1組"],
+  ],
+  links: [
+    {
+      edgeId: "cx:M-1グランプリ-2008-g:nonstyle",
+      kind: "competition",
+      other: "g:nonstyle",
+      otherName: "NON STYLE",
+      label: "優勝",
+      derived: true,
+      confidence: "high",
+      rel: null,
+    },
+  ],
+  results: [],
+  sources: [],
+}
+
 beforeEach(() => {
+  params = new URLSearchParams("focus=p:sanma&sel=p:sanma")
   vi.stubGlobal(
     "matchMedia",
     (q: string) =>
@@ -91,7 +143,7 @@ beforeEach(() => {
     vi.fn(async (url: string) => {
       const body = String(url).includes("graph.json")
         ? GRAPH
-        : { "p:sanma": INFO }
+        : { "p:sanma": INFO, "x:M-1グランプリ 2008": RACE_INFO }
       return { json: async () => body } as unknown as Response
     })
   )
@@ -115,5 +167,15 @@ describe("Explorer", () => {
     render(<Explorer />)
     const link = await screen.findByRole("link", { name: "詳細" })
     expect(link.getAttribute("href")).toMatch(/^\/people\/tanaka\/?$/)
+  })
+
+  it("賞レースの開催を選ぶと出場者が順位で並ぶ", async () => {
+    params = new URLSearchParams(
+      "focus=x%3AM-1%E3%82%B0%E3%83%A9%E3%83%B3%E3%83%97%E3%83%AA%202008&sel=x%3AM-1%E3%82%B0%E3%83%A9%E3%83%B3%E3%83%97%E3%83%AA%202008"
+    )
+    render(<Explorer />)
+    expect(await screen.findByText("M-1グランプリ 2008 決勝")).toBeVisible()
+    expect(screen.getByText("優勝")).toBeVisible()
+    expect(screen.getByText("NON STYLE")).toBeVisible()
   })
 })

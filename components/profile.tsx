@@ -10,11 +10,13 @@ const KIND_NAME: Record<string, string> = {
   p: "芸人",
   g: "コンビ・グループ",
   t: "同期（養成所の期）",
+  x: "賞レースの決勝",
 }
 const KIND_TONE: Record<string, string | undefined> = {
   p: "red",
   g: undefined,
   t: "blue",
+  x: "plain",
 }
 // 関係が多い期ノードでもパネルが延々と伸びないように
 const LINK_LIMIT = 60

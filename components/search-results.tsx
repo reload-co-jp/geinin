@@ -6,7 +6,7 @@ import { FC } from "react"
 import { useGraphData } from "@/components/graph/use-data"
 import { graphHref, linksOf, nodeHref, searchNodes } from "@/lib/graph"
 
-const KIND_TAG = { p: "芸人", g: "コンビ", t: "同期" } as const
+const KIND_TAG = { p: "芸人", g: "コンビ", t: "同期", x: "賞レース" } as const
 
 export const SearchResults: FC = () => {
   const q = useSearchParams().get("q") ?? ""
@@ -43,9 +43,11 @@ export const SearchResults: FC = () => {
         style={{ listStyle: "none", padding: 0, display: "grid", gap: ".5rem" }}
       >
         {hits.map((id) => {
-          const groups = linksOf(data!.index, id)
+          const links = linksOf(data!.index, id)
+          const groups = links
             .filter((l) => l.edge.kind === "member")
             .map((l) => name(l.other))
+          const isRace = id[0] === "x"
           return (
             <li
               key={id}
@@ -66,7 +68,7 @@ export const SearchResults: FC = () => {
                 <strong>{name(id)}</strong>
               </Link>
               <span style={{ fontSize: ".78rem", color: "var(--muted)" }}>
-                {groups.join("・")}
+                {isRace ? `決勝 ${links.length}組` : groups.join("・")}
               </span>
               <Link
                 className="chip"

@@ -4,6 +4,7 @@ import cytoscape, { type Core } from "cytoscape"
 import { FC, useEffect, useRef, useState } from "react"
 import {
   EDGE_KINDS,
+  rankLabel,
   STATUS_LABEL,
   type GEdge,
   type GNode,
@@ -52,6 +53,19 @@ const style: cytoscape.StylesheetJson = [
       "font-size": 12,
     },
   },
+  // 賞レースの開催（大会×年）。競演のまとめ先
+  {
+    selector: "node[kind = 'race']",
+    style: {
+      shape: "hexagon",
+      "background-color": "#fdeecb",
+      "border-color": "#a8780a",
+      "border-width": 3,
+      color: "#5c3d00",
+      "font-size": 12,
+      "text-wrap": "wrap",
+    },
+  },
   // 写真があれば顔を出し、名前は下に置く
   {
     selector: "node[?photo]",
@@ -86,6 +100,15 @@ const style: cytoscape.StylesheetJson = [
   },
   // 写真の起点は名前が白地に乗るので文字色を戻す
   { selector: "node.root[?photo]", style: { color: INK } },
+  // 起点の開催ノードは形を保ったまま起点色（オレンジ）で示す
+  {
+    selector: "node.root[kind = 'race']",
+    style: {
+      "background-color": "#e69f00",
+      color: INK,
+      "border-color": "#5c3d00",
+    },
+  },
   {
     selector: "node.hover",
     style: {
@@ -139,6 +162,8 @@ const style: cytoscape.StylesheetJson = [
     },
   })),
   { selector: "edge[confidence != 'high']", style: { opacity: 0.55 } },
+  // 順位を出すモードのときだけ競演の線に順位を載せる
+  { selector: "edge.rank", style: { label: "data(rankLabel)" } },
   { selector: ".faded", style: { opacity: 0.12 } },
   { selector: "edge.hl", style: { label: "data(label)", "z-index": 10 } },
   {
@@ -176,6 +201,18 @@ const nodeData = (n: GNode, root: boolean) => {
     n.status && n.status !== "active" ? STATUS_LABEL[n.status] : null
   const em = root ? 17 : n.kind === "term" ? 12 : 13
   const chars = Math.max(n.label.length, status ? status.length + 2 : 0)
+  // 開催ノードは大会名と年を2行にして、横長の六角形で囲う
+  if (n.kind === "race") {
+    const rem = root ? 16 : 12
+    const [comp, yr] = n.label.split(" ")
+    const lines = [comp, yr].filter(Boolean)
+    return {
+      ...n,
+      display: lines.join("\n"),
+      w: Math.max(...lines.map((l) => l.length)) * rem + 30,
+      h: 2.4 * rem + 18,
+    }
+  }
   if (n.kind !== "term") {
     const size = root ? 76 : 56
     return {
@@ -208,6 +245,8 @@ type Props = {
   // ホバー時に出す関係の概要
   summarize: (id: string) => string
   nodeName: (id: string) => string
+  // 競演の線に順位を載せるか
+  showRanks?: boolean
 }
 
 export const CyGraph: FC<Props> = ({
@@ -218,6 +257,7 @@ export const CyGraph: FC<Props> = ({
   onSelect,
   summarize,
   nodeName,
+  showRanks,
 }) => {
   const ref = useRef<HTMLDivElement>(null)
   const cy = useRef<Core>(null)
@@ -296,8 +336,14 @@ export const CyGraph: FC<Props> = ({
         })),
       ...graph.edges
         .filter((e) => c.getElementById(e.id).empty())
-        .map((e) => ({ group: "edges" as const, data: { ...e } })),
+        .map((e) => ({
+          group: "edges" as const,
+          data: { ...e, rankLabel: rankLabel(e.rank) },
+        })),
     ])
+    // 順位を出すモードのときだけ競演の線に順位を載せる
+    c.edges().removeClass("rank")
+    if (showRanks) c.edges("[kind = 'competition']").addClass("rank")
     // 起点が変わったらラベルの大きさも付け直す
     c.nodes().forEach((n) => {
       const isRoot = rootSet.has(n.id())
@@ -318,15 +364,30 @@ export const CyGraph: FC<Props> = ({
     if (animate) added.nodes().style("opacity", 0)
     // 起点からの距離ごとに同心円へ置く。concentric は人数に応じて円を広げるので重ならない
     const depth = new Map<string, number>()
+    const order: string[] = []
     c.elements().bfs({
       roots: focus,
-      visit: (v, _e, _u, _i, d) => void depth.set(v.id(), d),
+      visit: (v, _e, _u, _i, d) => {
+        depth.set(v.id(), d)
+        order.push(v.id())
+      },
     })
     const far = Math.max(0, ...depth.values()) + 1
+    // 同じ距離のノードは BFS の順に並べて、開催ごとの出場者が隣り合うようにする
+    const seen = new Set(order)
+    const rest = c
+      .nodes()
+      .map((n) => n.id())
+      .filter((id) => !seen.has(id))
+    const ordered = [...order, ...rest]
+      .map((id) => c.getElementById(id))
+      .reduce((acc, col) => acc.merge(col), c.collection())
     c.layout({
       ...(layout === "radial"
         ? {
             name: "concentric",
+            // eles はcytoscape内部の指定。同じ距離の並び順をBFS順に固定する
+            eles: ordered,
             concentric: (n: cytoscape.NodeSingular) =>
               -(depth.get(n.id()) ?? far),
             levelWidth: () => 1,
@@ -354,7 +415,7 @@ export const CyGraph: FC<Props> = ({
             .removeStyle("opacity")
       },
     }).run()
-  }, [graph, roots, layout])
+  }, [graph, roots, layout, showRanks])
 
   useEffect(() => {
     const c = cy.current!
