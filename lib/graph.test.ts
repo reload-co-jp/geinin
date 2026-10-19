@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest"
 import { db } from "@/lib/db"
-import { buildGraph, EDGE_KINDS, visibleSubgraph, type EdgeKind } from "./graph"
+import {
+  buildGraph,
+  EDGE_KINDS,
+  termYear,
+  visibleSubgraph,
+  type EdgeKind,
+} from "./graph"
 
 const g = buildGraph(db)
 const all = new Set(Object.keys(EDGE_KINDS) as EdgeKind[])
@@ -56,9 +62,24 @@ describe("buildGraph", () => {
       (e) => e.kind === "doki"
     )
     expect(
-      doki.some((e) => e.source === "p:x1" && e.target === "t:NSC大阪1期")
+      doki.filter((e) => e.source === "p:x1").map((e) => e.target)
+    ).toEqual(["t:1982年デビュー"])
+    expect(
+      doki.some(
+        (e) => e.source === "t:1982年デビュー" && e.target === "t:NSC大阪1期"
+      )
     ).toBe(true)
     expect(doki.some((e) => e.source === "p:x2")).toBe(false)
+  })
+
+  it("maps school terms to entrance years", () => {
+    expect(termYear("NSC大阪", 1)).toBe(1982)
+    expect(termYear("NSC大阪", 14)).toBe(1994)
+    expect(termYear("NSC大阪", 21)).toBe(1998)
+    expect(termYear("NSC東京", 1)).toBe(1995)
+    expect(termYear("NSC広島", 3)).toBe(2021)
+    expect(termYear("NSC東京", 230)).toBe(null)
+    expect(termYear("NSC沖縄", 1)).toBe(null)
   })
 
   it("derives 競演 as 開催 nodes, not pairwise edges", () => {

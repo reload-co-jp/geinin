@@ -184,6 +184,55 @@ export type Graph = { nodes: Map<string, GNode>; edges: GEdge[] }
 
 const year = (d: string | null) => (d ? Number(d.slice(0, 4)) : null)
 
+// 名古屋校の旧課程（1993〜2006年）。4月・10月の2期制で、欠けている期は年が不明
+const NAGOYA: Record<number, number> = {
+  1: 1993,
+  2: 1994,
+  4: 1996,
+  5: 1997,
+  8: 1998,
+  9: 1999,
+  10: 1999,
+  11: 2000,
+  12: 2000,
+  15: 2002,
+  16: 2002,
+  17: 2003,
+  18: 2003,
+  19: 2004,
+  21: 2005,
+  23: 2006,
+}
+
+// 養成所の期の入学年。Wikipedia「吉本総合芸能学院」の各校の表による。
+// 大阪校の13〜20期は4月・10月の2期制。沖縄校は表がないため未収録
+export const termYear = (school: string, k: number): number | null => {
+  const y =
+    school === "NSC大阪"
+      ? k <= 13
+        ? 1981 + k
+        : k <= 20
+          ? 1994 + Math.floor((k - 13) / 2)
+          : 1977 + k
+      : school === "NSC東京"
+        ? 1994 + k
+        : school === "NSC福岡"
+          ? 2017 + k
+          : school === "NSC札幌"
+            ? 2019 + k
+            : school === "NSC広島"
+              ? k <= 2
+                ? 2001 + k
+                : 2018 + k
+              : school === "NSC岡山"
+                ? 2002 + k
+                : school === "NSC名古屋"
+                  ? (NAGOYA[k] ?? null)
+                  : null
+  // 期数の誤記（例: 東京230期）で未来の年にならないように
+  return y && y <= new Date().getFullYear() ? y : null
+}
+
 // 賞レースの開催（大会×年）を表すノード。ID は「x:大会名 年」
 export const raceId = (competition: string, year: number) =>
   `x:${competition} ${year}`
@@ -286,7 +335,7 @@ export const buildGraph = (db: Db): Graph => {
         kind: "term",
         label: term,
         agencyId: null,
-        year: null,
+        year: termYear(p.training_school, p.training_school_term),
         status: null,
         photo: null,
         search: normalize(term),
@@ -306,30 +355,51 @@ export const buildGraph = (db: Db): Graph => {
     if (y) termDebuts.set(id, [...(termDebuts.get(id) ?? []), y])
   }
 
-  // 養成所を経ていない芸人は、卒業年（＝期生のデビュー年で最も多い年）とデビュー年が同じ期の同期とみなす
+  // 入学年の表にない期は、期生のデビュー年で最も多い年を入学年とみなす
+  for (const [id, ys] of termDebuts)
+    nodes.get(id)!.year ??= ys.toSorted(
+      (a, b) =>
+        ys.filter((v) => v === b).length - ys.filter((v) => v === a).length
+    )[0]
+  // 養成所を経ていない芸人は、入学年とデビュー年が同じ期の同期とみなす。
+  // 期へ直接つなぐと1人が複数校の期に属して見えるため「◯年デビュー」ノードにまとめ、そこから各期へつなぐ
   const termsByYear = Map.groupBy(
-    termDebuts,
-    ([, ys]) =>
-      ys.toSorted(
-        (a, b) =>
-          ys.filter((v) => v === b).length - ys.filter((v) => v === a).length
-      )[0]
+    [...nodes.values()].filter((n) => n.kind === "term" && n.year),
+    (n) => n.year
   )
+  const doki = (id: string, source: string, target: string, label: string) =>
+    edges.push({
+      id,
+      source,
+      target,
+      kind: "doki",
+      label,
+      derived: true,
+      confidence: "medium",
+      verified: false,
+      refId: null,
+    })
   for (const p of db.people) {
     if (p.training_school) continue
     const y = year(p.debut_date)
-    for (const [id] of (y && termsByYear.get(y)) || [])
-      edges.push({
-        id: `d:${p.id}:${id}`,
-        source: `p:${p.id}`,
-        target: id,
-        kind: "doki",
-        label: nodes.get(id)!.label,
-        derived: true,
-        confidence: "medium",
-        verified: false,
-        refId: null,
+    const terms = y && termsByYear.get(y)
+    if (!terms) continue
+    const label = `${y}年デビュー`
+    const id = `t:${label}`
+    if (!nodes.has(id)) {
+      nodes.set(id, {
+        id,
+        kind: "term",
+        label,
+        agencyId: null,
+        year: y,
+        status: null,
+        photo: null,
+        search: normalize(label),
       })
+      for (const t of terms) doki(`d:${id}:${t.id}`, id, t.id, "同年の期")
+    }
+    doki(`d:${p.id}`, `p:${p.id}`, id, "同年デビュー")
   }
 
   // 賞レースは決勝出場同士をすべてつなぐと辺が爆発（1年だけで40本超）するため、
@@ -477,7 +547,7 @@ export const linksOf = (index: EdgeIndex, nodeId: string): Link[] =>
               ? out
                 ? "元コンビ"
                 : "元メンバー"
-              : edge.kind === "doki" && !out
+              : edge.kind === "doki" && !out && edge.confidence === "high"
                 ? "同期生"
                 : edge.kind === "competition"
                   ? rankLabel(edge.rank) || "決勝進出"

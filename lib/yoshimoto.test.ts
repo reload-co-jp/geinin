@@ -27,8 +27,20 @@ describe("parseOrigin", () => {
     ["2002年 NSC東京校 8期生", "NSC東京", 8],
     ["NSC岡山1期", "NSC岡山", 1],
     ["東京ＮＳＣ２２期", "NSC東京", 22],
+    ["2011年 一般 33期扱い", "NSC大阪", 33],
+    ["NSC大阪校 NSC31期扱い", "NSC大阪", 31],
+    ["2003年 入社 24期扱い", "NSC大阪", 24],
+    ["YOEC1期（NSC34期扱い）", "NSC大阪", 34],
+    ["NSC大阪校21期と同期", "NSC大阪", 21],
+    ["2009年5期扱い", null, null],
   ])("%s", (s, school, term) => {
     expect(parseOrigin(s)).toMatchObject({ school, term })
+  })
+
+  it("ignores award years", () => {
+    expect(
+      parseOrigin("2019年 第73回「文化庁芸術祭」にて演芸部門大賞受賞").year
+    ).toBe(null)
   })
 
   it("keeps only the year when no term is given", () => {

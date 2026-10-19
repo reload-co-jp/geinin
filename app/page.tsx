@@ -56,9 +56,11 @@ const masterPairs = db.relationships
 
 // 同期: 登録人数の多い養成所の期
 const terms = [...graph.nodes.values()]
-  .filter((n) => n.kind === "term")
+  .filter((n) => n.kind === "term" && n.label.endsWith("期"))
   .map((n) => {
-    const members = linksOf(edgeIndex, n.id).map((l) => l.other)
+    const members = linksOf(edgeIndex, n.id)
+      .filter((l) => l.label === "同期生")
+      .map((l) => l.other)
     return {
       id: n.id,
       label: n.label,

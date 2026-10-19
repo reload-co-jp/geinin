@@ -68,7 +68,7 @@ export const termInfo = (
 ): NodeInfo => ({
   id: nodeId,
   name: g.nodes.get(nodeId)?.label ?? nodeId,
-  reading: "養成所の期",
+  reading: nodeId.endsWith("デビュー") ? "同年デビュー" : "養成所の期",
   aliases: [],
   facts: [],
   links: linkInfos(g, index, nodeId),

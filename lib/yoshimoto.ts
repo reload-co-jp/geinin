@@ -27,13 +27,24 @@ export type YoshimotoDump = {
 const COMEDY = new Set(["芸人", "新喜劇", "落語家"])
 const REGION = "東京|大阪|名古屋|福岡|岡山|広島|札幌|北海道|沖縄|京都|仙台"
 
+// 公式プロフィールの誤記の訂正
+const ORIGIN_FIX: Record<string, string> = {
+  東京NSC230期: "東京NSC30期", // たかひら（おふくろパラダイス）
+}
+
 // 「東京NSC29期」「NSC大阪39期」「2002年 NSC東京校 8期生」→ NSC東京 / 29
 export const parseOrigin = (origin: string | null) => {
-  const s = origin?.normalize("NFKC") ?? ""
+  const s = (origin && (ORIGIN_FIX[origin] ?? origin))?.normalize("NFKC") ?? ""
+  // 「一般 33期扱い」「NSC大阪校 NSC31期扱い」「入社 24期扱い」は期生と同じ扱い。校名がなければ大阪校
+  const equiv = s.match(
+    /(?:NSC|一般|入社)(\D{0,10}?)(\d+)\s*期\s*(?:扱い|と同期)/
+  )
   const m =
     s.match(new RegExp(`(${REGION})\\s*NSC\\s*校?\\s*(\\d+)\\s*期`)) ??
-    s.match(new RegExp(`NSC\\s*(${REGION})\\s*校?\\s*(\\d+)\\s*期`))
-  const year = s.match(/(19|20)\d{2}/)?.[0] ?? null
+    s.match(new RegExp(`NSC\\s*(${REGION})\\s*校?\\s*(\\d+)\\s*期`)) ??
+    (equiv && ["", equiv[1].match(new RegExp(REGION))?.[0] ?? "大阪", equiv[2]])
+  // 受賞歴だけが書かれている場合はデビュー年ではない
+  const year = /受賞/.test(s) ? null : (s.match(/(19|20)\d{2}/)?.[0] ?? null)
   return {
     school: m ? `NSC${m[1] === "北海道" ? "札幌" : m[1]}` : null,
     term: m ? Number(m[2]) : null,
