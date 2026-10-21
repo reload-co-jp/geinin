@@ -12,6 +12,11 @@ const cell = {
   whiteSpace: "nowrap",
 } as const
 
+// 縦横スクロール時も年と出場者名が見えるよう固定する
+const sticky = { position: "sticky", background: "var(--surface)" } as const
+const head = { ...cell, ...sticky, top: 0, zIndex: 1 }
+const name = { ...cell, ...sticky, left: 0, textAlign: "left" } as const
+
 // 大会ごとに、決勝へ進んだコンビを初進出順に並べ、年ごとの順位を出す
 const competitions = Object.entries(
   Object.groupBy(
@@ -44,7 +49,7 @@ const Page: FC = () => (
     {competitions.map((c) => (
       <section key={c.name} style={{ display: "grid", gap: ".5rem" }}>
         <h3 style={{ fontSize: "1rem" }}>{c.name}</h3>
-        <div style={{ overflowX: "auto" }}>
+        <div style={{ overflow: "auto", maxHeight: "70vh" }}>
           <table
             style={{
               borderCollapse: "collapse",
@@ -54,9 +59,9 @@ const Page: FC = () => (
           >
             <thead>
               <tr>
-                <th style={{ ...cell, textAlign: "left" }}>出場者</th>
+                <th style={{ ...head, ...name, zIndex: 2 }}>出場者</th>
                 {c.years.map((y) => (
-                  <th key={y} scope="col" style={cell}>
+                  <th key={y} scope="col" style={head}>
                     <Link href={graphHref(raceId(c.name, y), "&mode=race")}>
                       {y}
                     </Link>
@@ -67,7 +72,7 @@ const Page: FC = () => (
             <tbody>
               {c.rows.map((g) => (
                 <tr key={g.id}>
-                  <th scope="row" style={{ ...cell, textAlign: "left" }}>
+                  <th scope="row" style={name}>
                     <Link href={g.href}>{g.name}</Link>
                   </th>
                   {c.years.map((y) => {
