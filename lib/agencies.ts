@@ -6,8 +6,9 @@ export type AgencyTalent = {
   url: string
   name: string
   kana: string | null
-  // null は詳細ページ未取得
+  // null は詳細ページ未取得、または公式に画像がない
   members: { name: string; kana: string | null }[] | null
+  photo?: string | null
 }
 export type AgencyDump = { fetched_at: string; talents: AgencyTalent[] }
 
@@ -55,6 +56,7 @@ export const mergeAgencies = (base: Db, dump: AgencyDump): Db => {
       name,
       reading: reading(name, kana),
       aliases: [],
+      photo_url: t.photo,
       agency_id: t.agency,
       debut_date: null,
       birth_date: null,
@@ -80,6 +82,7 @@ export const mergeAgencies = (base: Db, dump: AgencyDump): Db => {
       groupsByName.get(key(t.name)) ?? peopleByName.get(key(t.name))
     if (existing) {
       tag(existing, t)
+      existing.photo_url ??= t.photo
       if ("group_type" in existing) {
         // 既存メンバーは「松尾」→「松尾駿」のような短縮表記でも照合し、メンバー未登録のグループにだけ追加する
         const current = membersOf(existing.id)
@@ -105,6 +108,7 @@ export const mergeAgencies = (base: Db, dump: AgencyDump): Db => {
       name: t.name,
       reading: reading(t.name, t.kana),
       aliases: [],
+      photo_url: t.photo,
       group_type:
         members.length === 2 ? "combi" : members.length === 3 ? "trio" : "unit",
       formation_date: null,
