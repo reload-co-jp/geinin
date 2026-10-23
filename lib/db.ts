@@ -1,8 +1,10 @@
 // サーバー側（静的生成時）専用。クライアントへは /data/*.json で必要な分だけ配信する
 import { db as manual } from "@/data/db"
 import agencies from "@/data/agencies.json"
+import debuts from "@/data/debuts.json"
 import yoshimoto from "@/data/yoshimoto.json"
 import { mergeAgencies, type AgencyDump } from "@/lib/agencies"
+import { mergeDebuts, type DebutDump } from "@/lib/debuts"
 import {
   buildGraph,
   indexEdges,
@@ -15,9 +17,12 @@ import { linkInfos, termInfo, type NodeInfo } from "@/lib/node-info"
 import type { Confidence } from "@/lib/types"
 import { mergeYoshimoto, type YoshimotoDump } from "@/lib/yoshimoto"
 
-export const db = mergeAgencies(
-  mergeYoshimoto(manual, yoshimoto as YoshimotoDump),
-  agencies as AgencyDump
+export const db = mergeDebuts(
+  mergeAgencies(
+    mergeYoshimoto(manual, yoshimoto as YoshimotoDump),
+    agencies as AgencyDump
+  ),
+  debuts as DebutDump
 )
 export const graph = buildGraph(db)
 export const edgeIndex = indexEdges(graph)
