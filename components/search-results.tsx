@@ -14,9 +14,7 @@ export const SearchResults: FC = () => {
   const hits = data ? searchNodes(data.graph, q) : []
   const name = (id: string) => data?.graph.nodes.get(id)?.label ?? id
   return (
-    <div
-      style={{ maxWidth: 800, margin: "0 auto", display: "grid", gap: "1rem" }}
-    >
+    <div className="page" style={{ maxWidth: 800 }}>
       {/* key で URL 変更時に入力値をリセット */}
       <form
         action="/search/"

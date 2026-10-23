@@ -64,11 +64,9 @@ const Names: FC<{ ps: (typeof years)[number][1] }> = ({ ps }) =>
   })
 
 const Page: FC = () => (
-  <div
-    style={{ maxWidth: 1000, margin: "0 auto", display: "grid", gap: "1rem" }}
-  >
+  <div className="page">
     <h2 style={{ fontSize: "1.1rem" }}>同期芸人一覧</h2>
-    <p style={{ color: "var(--muted)", fontSize: ".875rem" }}>
+    <p className="lead">
       デビュー年が同じ芸人を、賞レース成績や共演の多い順に並べています。括弧内は出身養成所と期です。
     </p>
     {years.map(([year, ps]) => (

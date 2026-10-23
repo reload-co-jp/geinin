@@ -24,9 +24,7 @@ const Page: FC = () => (
     }}
   >
     <section>
-      <h2 style={{ fontSize: "1.1rem", marginBottom: ".5rem" }}>
-        芸人・グループ（読みの五十音順）
-      </h2>
+      <h2 className="section-title">芸人・グループ（読みの五十音順）</h2>
       <ul
         style={{
           display: "flex",
@@ -48,7 +46,7 @@ const Page: FC = () => (
       </ul>
     </section>
     <section>
-      <h2 style={{ fontSize: "1.1rem", marginBottom: ".5rem" }}>関係性</h2>
+      <h2 className="section-title">関係性</h2>
       <p style={{ color: "var(--muted)", marginBottom: ".5rem" }}>
         同期・賞レース競演は登録データから導出するため、ここには含みません。
       </p>

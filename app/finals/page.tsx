@@ -61,11 +61,9 @@ const byYear: YearData[] = [...new Set(competitions.flatMap((c) => c.years))]
   }))
 
 const Page: FC = () => (
-  <div
-    style={{ maxWidth: 1000, margin: "0 auto", display: "grid", gap: "1rem" }}
-  >
+  <div className="page">
     <h2 style={{ fontSize: "1.1rem" }}>賞レース決勝進出の遍歴</h2>
-    <p style={{ color: "var(--muted)", fontSize: ".875rem" }}>
+    <p className="lead">
       登録済みの決勝結果のみ表示しています。数字は順位、●は順位不明です。
       年の文字を押すと、その年の決勝をグラフでたどれます。
     </p>

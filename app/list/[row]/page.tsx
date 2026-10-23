@@ -48,7 +48,7 @@ const Page = async ({ params }: Props) => {
         )}
       </nav>
       <section>
-        <h2 style={{ fontSize: "1.1rem", marginBottom: ".5rem" }}>
+        <h2 className="section-title">
           グループ（{current.label}・{groups.length}組）
         </h2>
         <ul
@@ -73,7 +73,7 @@ const Page = async ({ params }: Props) => {
         </ul>
       </section>
       <section>
-        <h2 style={{ fontSize: "1.1rem", marginBottom: ".5rem" }}>
+        <h2 className="section-title">
           芸人（{current.label}・{people.length}人）
         </h2>
         <div style={{ overflowX: "auto" }}>

@@ -52,13 +52,9 @@ const SCHEDULE = [
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1)
 
 const Page: FC = () => (
-  <div
-    style={{ maxWidth: 1000, margin: "0 auto", display: "grid", gap: "1rem" }}
-  >
+  <div className="page">
     <h2 style={{ fontSize: "1.1rem" }}>賞レース開催時期</h2>
-    <p style={{ color: "var(--muted)", fontSize: ".875rem" }}>
-      例年の目安です。年によって前後します。
-    </p>
+    <p className="lead">例年の目安です。年によって前後します。</p>
     <div style={{ overflowX: "auto" }}>
       <div
         style={{

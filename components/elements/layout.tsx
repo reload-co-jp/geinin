@@ -10,44 +10,15 @@ export const Title: FC<ComponentProps<"h1">> = ({
   </h1>
 )
 
+// スタイルは app/reset.css の body > header / main / footer
 export const Header: FC<{ children: ReactNode }> = ({ children }) => (
-  <header
-    style={{
-      alignItems: "center",
-      backgroundColor: "var(--surface)",
-      borderBottom: "3px solid var(--text)",
-      boxShadow: "0 4px 0 var(--accent)",
-      display: "flex",
-      flexWrap: "wrap",
-      gap: ".75rem 1.5rem",
-      padding: ".75rem 1rem",
-      position: "relative",
-    }}
-  >
-    {children}
-  </header>
+  <header>{children}</header>
 )
 
 export const Main: FC<{ children: ReactNode }> = ({ children }) => (
-  <main
-    style={{
-      minHeight: "calc(100dvh - 5.625rem)",
-      padding: "1rem",
-    }}
-  >
-    {children}
-  </main>
+  <main>{children}</main>
 )
 
 export const Footer: FC<{ children: ReactNode }> = ({ children }) => (
-  <footer
-    style={{
-      borderTop: "1px solid var(--line)",
-      color: "var(--muted)",
-      fontSize: ".75rem",
-      padding: "1rem",
-    }}
-  >
-    {children}
-  </footer>
+  <footer>{children}</footer>
 )

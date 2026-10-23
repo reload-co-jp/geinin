@@ -47,14 +47,7 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
               芸人系譜DB
             </Link>
           </Title>
-          <nav
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: ".6rem",
-              fontSize: ".85rem",
-            }}
-          >
+          <nav>
             <Link href="/graph/">関係性グラフ</Link>
             <Link href="/list/">一覧</Link>
             <Link href="/schedule/">賞レース</Link>
