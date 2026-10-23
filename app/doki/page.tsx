@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { FC } from "react"
-import { db, edgeIndex, graph } from "@/lib/db"
+import { db, edgeIndex, graph, personById } from "@/lib/db"
 import { nodeHref } from "@/lib/graph"
 
 export const metadata = { title: "同期芸人一覧" }
@@ -38,13 +38,30 @@ const years = [
     ] as const
   })
 
+// 養成所出身なら「NSC大阪1期」のように添える
+const school = (id: string) => {
+  const p = personById.get(id.slice(2))
+  return (
+    p?.training_school &&
+    `${p.training_school}${p.training_school_term ? `${p.training_school_term}期` : ""}`
+  )
+}
+
 const Names: FC<{ ps: (typeof years)[number][1] }> = ({ ps }) =>
-  ps.map((p, i) => (
-    <span key={p.id}>
-      {i > 0 && "・"}
-      <Link href={nodeHref(p.id)}>{p.label}</Link>
-    </span>
-  ))
+  ps.map((p, i) => {
+    const s = school(p.id)
+    return (
+      <span key={p.id}>
+        {i > 0 && "・"}
+        <Link href={nodeHref(p.id)}>{p.label}</Link>
+        {s && (
+          <span style={{ color: "var(--muted)", fontSize: ".75rem" }}>
+            （{s}）
+          </span>
+        )}
+      </span>
+    )
+  })
 
 const Page: FC = () => (
   <div
@@ -52,7 +69,7 @@ const Page: FC = () => (
   >
     <h2 style={{ fontSize: "1.1rem" }}>同期芸人一覧</h2>
     <p style={{ color: "var(--muted)", fontSize: ".875rem" }}>
-      デビュー年が同じ芸人を、賞レース成績や共演の多い順に並べています。
+      デビュー年が同じ芸人を、賞レース成績や共演の多い順に並べています。括弧内は出身養成所と期です。
     </p>
     {years.map(([year, ps]) => (
       <section
