@@ -97,11 +97,13 @@ const races = [
 ]
   .map(([title, rs]) => ({
     title,
+    name: rs[0].competition_name,
     year: rs[0].year,
     rs: rs.toSorted((a, b) => (a.rank ?? 99) - (b.rank ?? 99)),
   }))
-  // 競演の顔ぶれが多い大会を優先
-  .toSorted((a, b) => b.rs.length - a.rs.length || b.year - a.year)
+  // 大会ごとの最新回を新しい順に
+  .toSorted((a, b) => b.year - a.year)
+  .filter((r, i, all) => all.findIndex((x) => x.name === r.name) === i)
   .slice(0, 3)
 
 const counts = [
