@@ -24,7 +24,12 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
       <Heading info={info} level={1} />
       <p style={{ margin: ".75rem 0 1rem" }}>
         <Link href={graphHref(nodeId)}>
-          この{nodeId.startsWith("p:") ? "芸人" : "グループ"}
+          この
+          {nodeId.startsWith("p:")
+            ? "芸人"
+            : nodeId.startsWith("x:")
+              ? "大会"
+              : "グループ"}
           を起点に関係性グラフを表示 →
         </Link>
       </p>

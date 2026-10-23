@@ -245,6 +245,13 @@ export const parseRaceId = (id: string) => {
   return { competition: s.slice(0, i), year: Number(s.slice(i + 1)) }
 }
 
+// 開催ページ /races/{slug}/{年}/ の大会スラッグ
+export const raceSlugs: Record<string, string> = {
+  "M-1グランプリ": "m1",
+  "R-1グランプリ": "r1",
+  キングオブコント: "kok",
+}
+
 // 順位のラベル。順位不明は空文字
 export const rankLabel = (rank: number | null | undefined) =>
   rank === 1 ? "優勝" : rank ? `${rank}位` : ""
@@ -580,12 +587,16 @@ export const fromJSON = (j: GraphJSON): Graph => ({
 export const graphHref = (nodeId: string, query = "") =>
   `/graph/?focus=${encodeURIComponent(nodeId)}${query}`
 
-// 期ノードは個別ページを持たないのでグラフへ
+// 期ノードなど個別ページを持たないものはグラフへ
 export const nodeHref = (nodeId: string) => {
   const [kind, id] = nodeId.split(":")
+  const race = parseRaceId(nodeId)
+  const slug = race && raceSlugs[race.competition]
   return kind === "p"
     ? `/people/${id}/`
     : kind === "g"
       ? `/groups/${id}/`
-      : graphHref(nodeId)
+      : slug
+        ? `/races/${slug}/${race.year}/`
+        : graphHref(nodeId)
 }

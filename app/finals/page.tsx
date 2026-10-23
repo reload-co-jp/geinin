@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { FC } from "react"
 import { db, graph } from "@/lib/db"
-import { graphHref, raceId } from "@/lib/graph"
+import { nodeHref, raceId } from "@/lib/graph"
 import { FinalsView, YearData } from "@/components/finals-view"
 
 export const metadata = { title: "賞レース決勝進出の遍歴" }
@@ -47,7 +47,7 @@ const byYear: YearData[] = [...new Set(competitions.flatMap((c) => c.years))]
       .filter((c) => c.years.includes(year))
       .map((c) => ({
         name: c.name,
-        href: graphHref(raceId(c.name, year), "&mode=race"),
+        href: nodeHref(raceId(c.name, year)),
         entries: c.rows
           .filter((g) => g.byYear.has(year))
           .map(({ id, name, href, byYear }) => ({
@@ -65,7 +65,7 @@ const Page: FC = () => (
     <h2 style={{ fontSize: "1.1rem" }}>賞レース決勝進出の遍歴</h2>
     <p className="lead">
       登録済みの決勝結果のみ表示しています。数字は順位、●は順位不明です。
-      年の文字を押すと、その年の決勝をグラフでたどれます。
+      年の文字を押すと、その年の決勝のページを開きます。
     </p>
     <FinalsView
       years={byYear}
@@ -85,7 +85,7 @@ const Page: FC = () => (
                   <th style={{ ...head, ...name, zIndex: 2 }}>出場者</th>
                   {c.years.map((y) => (
                     <th key={y} scope="col" style={head}>
-                      <Link href={graphHref(raceId(c.name, y), "&mode=race")}>
+                      <Link href={nodeHref(raceId(c.name, y))}>
                         {y}
                       </Link>
                     </th>

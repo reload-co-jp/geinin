@@ -4,7 +4,14 @@ import { SearchBox } from "@/components/search-box"
 import { WeeklyPick, type Pick } from "@/components/weekly-pick"
 import { db as manual } from "@/data/db"
 import { db, edgeIndex, graph, personById } from "@/lib/db"
-import { EDGE_KINDS, graphHref, linksOf, type GEdge } from "@/lib/graph"
+import {
+  EDGE_KINDS,
+  graphHref,
+  linksOf,
+  nodeHref,
+  raceId,
+  type GEdge,
+} from "@/lib/graph"
 
 // トップの特集はすべて登録データから組み立てる。該当データがなければ節ごと出さない
 
@@ -176,6 +183,7 @@ const css = `
 .race .num { font-size: 1.7rem; min-width: 2.2rem; text-align: right; }
 .race li:first-child .num { color: var(--accent); }
 .race a { text-decoration: none; }
+.race h3 a { color: inherit; }
 .counts { display: grid; grid-template-columns: repeat(4, 1fr); border: 3px solid var(--text); background: var(--text); gap: 3px; }
 .counts div { background: var(--pop); padding: 1rem; display: grid; gap: .2rem; }
 .counts div:nth-child(2n) { background: var(--surface); }
@@ -479,7 +487,9 @@ const Page: FC = () => (
           {races.map((race) => (
             <article className="race" key={race.title}>
               <h3>
-                <span>{race.title.replace(/ \d+$/, "")}</span>
+                <Link href={nodeHref(raceId(race.name, race.year))}>
+                  {race.name}
+                </Link>
                 <span>{race.year}</span>
               </h3>
               <ol>
