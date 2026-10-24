@@ -19,13 +19,12 @@ const score = (id: string) => {
 }
 
 export const SHOWN = 5
-export const ESTIMATED =
-  "デビュー年は養成所の卒業年（入学の翌年）またはグループの結成年から推定"
+export const ESTIMATED = "デビュー年が未登録のため、グループの結成年から推定"
 
 const groupsOf = Map.groupBy(db.memberships, (m) => m.person_id)
 const thisYear = new Date().getFullYear()
-// デビュー年が未登録なら、養成所の卒業年（入学の翌年）→所属グループの最初の結成年で補う。
-// 在学中でまだ卒業していない期は推定しない
+// 同期が同じ年に並ぶよう、養成所出身者は登録済みのデビュー年より期の卒業年（入学の翌年）を優先する。
+// それ以外はデビュー年、未登録なら所属グループの最初の結成年で補う。在学中の期は使わない
 const debut = (id: string) => {
   const p = personById.get(id.slice(2))!
   const enrolled =
@@ -39,18 +38,38 @@ const debut = (id: string) => {
     .map((m) => groupById.get(m.group_id)?.formation_date)
     .filter((d) => d != null)
     .map((d) => Number(d.slice(0, 4)))
-  const y = p.debut_date
-    ? Number(p.debut_date.slice(0, 4))
-    : term || (formed.length ? Math.min(...formed) : null)
-  return y ? { y, estimated: !p.debut_date } : null
+  const y =
+    term ||
+    (p.debut_date
+      ? Number(p.debut_date.slice(0, 4))
+      : formed.length
+        ? Math.min(...formed)
+        : null)
+  return y ? { y, estimated: !term && !p.debut_date } : null
 }
 
-const people = [...graph.nodes.values()]
+const termOf = (id: string) => {
+  const p = personById.get(id.slice(2))!
+  return p.training_school && p.training_school_term
+    ? `${p.training_school}${p.training_school_term}`
+    : null
+}
+const estimates = [...graph.nodes.values()]
   .filter((n) => n.kind === "person")
   .flatMap((n) => {
     const d = debut(n.id)
     return d ? [{ ...n, ...d }] : []
   })
+// 入学年のわからない期は各自のグループ結成年がばらつくため、期の中で最も早い年にそろえる
+const termFirst = new Map<string, number>()
+for (const n of estimates) {
+  const t = n.estimated && termOf(n.id)
+  if (t) termFirst.set(t, Math.min(termFirst.get(t) ?? n.y, n.y))
+}
+const people = estimates.map((n) => {
+  const t = n.estimated && termOf(n.id)
+  return t ? { ...n, y: termFirst.get(t)! } : n
+})
 export const unknown = db.people.length - people.length
 
 export const years = [...Map.groupBy(people, (n) => n.y)]
@@ -104,4 +123,4 @@ export const Names: FC<{ ps: (typeof years)[number][1] }> = ({ ps }) => (
 )
 
 export const ESTIMATED_NOTE =
-  "*はデビュー年が未登録のため、養成所の卒業年（入学の翌年）またはグループの結成年から推定しています。"
+  "養成所出身者は同期がそろうよう、期の卒業年（入学の翌年）でまとめています。*はデビュー年が未登録のため、グループの結成年から推定しています。"
