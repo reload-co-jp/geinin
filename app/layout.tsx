@@ -57,12 +57,18 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
           </nav>
         </Header>
         <Main>
+          <AdSlot
+            data-ad-slot="4829146611"
+            data-ad-format="auto"
+            data-full-width-responsive="true"
+            style={{ margin: "1rem auto" }}
+          />
           {children}
           <AdSlot
             data-ad-slot="4829146611"
             data-ad-format="auto"
             data-full-width-responsive="true"
-            style={{ marginTop: "2rem" }}
+            style={{ margin: "1rem auto" }}
           />
         </Main>
         <Footer>
