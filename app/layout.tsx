@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { AdSlot } from "@/components/ad-slot"
 import { Footer, Header, Main, Title } from "@/components/elements/layout"
 import "./reset.css"
 
@@ -56,7 +57,15 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
             <Link href="/search/">検索</Link>
           </nav>
         </Header>
-        <Main>{children}</Main>
+        <Main>
+          {children}
+          <AdSlot
+            data-ad-slot="4829146611"
+            data-ad-format="auto"
+            data-full-width-responsive="true"
+            style={{ marginTop: "2rem" }}
+          />
+        </Main>
         <Footer>
           <p>
             掲載情報は公開情報の要約です。「出典未照合」の項目は確定情報ではありません。
