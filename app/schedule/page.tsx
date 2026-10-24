@@ -31,6 +31,13 @@ const SCHEDULE = [
     ],
   },
   {
+    name: "ダブルインパクト",
+    spans: [
+      { label: "予選", from: 4, to: 6 },
+      { label: "決勝", from: 7, to: 7 },
+    ],
+  },
+  {
     name: "キングオブコント",
     spans: [
       { label: "予選", from: 6, to: 9 },

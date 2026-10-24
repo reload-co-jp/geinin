@@ -250,6 +250,9 @@ export const raceSlugs: Record<string, string> = {
   "M-1グランプリ": "m1",
   "R-1グランプリ": "r1",
   キングオブコント: "kok",
+  "THE SECOND": "the-second",
+  ABCお笑いグランプリ: "abc",
+  ダブルインパクト: "double-impact",
 }
 
 // 順位のラベル。順位不明は空文字
