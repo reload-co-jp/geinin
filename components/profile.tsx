@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { FC, Fragment, ReactNode } from "react"
 import { LineSample } from "@/components/graph/legend"
-import { EDGE_KINDS, nodeHref } from "@/lib/graph"
+import { EDGE_KINDS, nodeHref, programId } from "@/lib/graph"
 import {
   EVIDENCE_LABEL,
   verifyState,
@@ -35,22 +35,11 @@ const Stat: FC<{
   unit?: string
   tone?: string
 }> = ({ label, value, unit, tone = "var(--surface)" }) => (
-  <div
-    style={{
-      border: "2px solid var(--text)",
-      background: tone,
-      padding: ".5rem .6rem",
-      boxShadow: "3px 3px 0 var(--text)",
-    }}
-  >
-    <div style={{ fontSize: ".7rem", fontWeight: 800 }}>{label}</div>
+  <div className="pf-stat" style={{ background: tone }}>
+    <div className="pf-stat-label">{label}</div>
     <div>
-      <span className="num" style={{ fontSize: "2rem" }}>
-        {value}
-      </span>
-      {unit && (
-        <span style={{ fontSize: ".8rem", fontWeight: 800 }}> {unit}</span>
-      )}
+      <span className="num">{value}</span>
+      {unit && <span className="pf-stat-unit"> {unit}</span>}
     </div>
   </div>
 )
@@ -112,20 +101,7 @@ export const Stats: FC<{ info: NodeInfo }> = ({ info }) => {
         tone="var(--pop)"
       />
     )
-  return (
-    stats.length > 0 && (
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
-          gap: ".6rem",
-          margin: ".75rem 0 1rem",
-        }}
-      >
-        {stats}
-      </div>
-    )
-  )
+  return stats.length > 0 && <div className="pf-stats">{stats}</div>
 }
 
 export const Heading: FC<{ info: NodeInfo; level?: 1 | 2 }> = ({
@@ -140,45 +116,23 @@ export const Heading: FC<{ info: NodeInfo; level?: 1 | 2 }> = ({
           src={info.photo_url}
           alt={info.name}
           loading="lazy"
-          style={{ width: 120, height: "auto", marginBottom: ".5rem" }}
+          className="pf-photo"
         />
       )}
-      <p style={{ display: "flex", gap: ".35rem", flexWrap: "wrap" }}>
+      <p className="pf-row">
         <span className="sticker" data-tone={KIND_TONE[info.id[0]]}>
           {KIND_NAME[info.id[0]]}
         </span>
         {info.status && (
-          <span
-            className="sticker"
-            data-tone="plain"
-            style={{ transform: "rotate(1.5deg)" }}
-          >
+          <span className="sticker pf-tilt" data-tone="plain">
             {info.status}
           </span>
         )}
       </p>
-      <p
-        style={{
-          fontSize: ".75rem",
-          color: "var(--muted)",
-          marginTop: ".4rem",
-        }}
-      >
-        {info.reading}
-      </p>
-      <H
-        style={{
-          fontSize: level === 1 ? "clamp(2rem, 6vw, 3rem)" : "1.7rem",
-          lineHeight: 1.2,
-          background: "none",
-        }}
-      >
-        {info.name}
-      </H>
+      <p className="pf-muted pf-reading">{info.reading}</p>
+      <H className="pf-name">{info.name}</H>
       {info.aliases.length > 0 && (
-        <p style={{ fontSize: ".8rem", color: "var(--muted)" }}>
-          別名: {info.aliases.join("、")}
-        </p>
+        <p className="pf-muted">別名: {info.aliases.join("、")}</p>
       )}
     </div>
   )
@@ -186,17 +140,10 @@ export const Heading: FC<{ info: NodeInfo; level?: 1 | 2 }> = ({
 
 export const Facts: FC<{ info: NodeInfo }> = ({ info }) =>
   info.facts.length > 0 && (
-    <dl
-      style={{
-        display: "grid",
-        gridTemplateColumns: "auto 1fr",
-        gap: ".25rem 1rem",
-        fontSize: ".875rem",
-      }}
-    >
+    <dl className="pf-facts">
       {info.facts.map(([term, value]) => (
-        <div key={term} style={{ display: "contents" }}>
-          <dt style={{ color: "var(--muted)" }}>{term}</dt>
+        <div key={term}>
+          <dt>{term}</dt>
           <dd>{value}</dd>
         </div>
       ))}
@@ -207,21 +154,7 @@ const Badge: FC<{ children: ReactNode; tone?: "warn" | "ok" }> = ({
   children,
   tone,
 }) => (
-  <span
-    style={{
-      fontSize: ".7rem",
-      padding: "0 .35rem",
-      borderRadius: 4,
-      whiteSpace: "nowrap",
-      border: "1px solid",
-      color:
-        tone === "warn"
-          ? "#9a5b00"
-          : tone === "ok"
-            ? "#1e7a3c"
-            : "var(--muted)",
-    }}
-  >
+  <span className="pf-badge" data-tone={tone}>
     {children}
   </span>
 )
@@ -259,78 +192,47 @@ export const Links: FC<{
   renderOther: (l: LinkInfo) => ReactNode
 }> = ({ info, renderOther }) => {
   if (!info.links.length)
-    return <p style={{ fontSize: ".875rem" }}>登録された関係はありません。</p>
+    return <p className="pf-text">登録された関係はありません。</p>
   const order = Object.keys(EDGE_KINDS)
   const links = info.links
     .toSorted((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind))
     .slice(0, LINK_LIMIT)
   return (
     <>
-      <ul
-        style={{ listStyle: "none", padding: 0, display: "grid", gap: ".5rem" }}
-      >
+      <ul className="pf-links">
         {links.map((l, i) => (
           <Fragment key={l.edgeId}>
             {links[i - 1]?.kind !== l.kind && (
-              <li
-                style={{
-                  fontSize: ".75rem",
-                  fontWeight: 800,
-                  marginTop: i ? ".5rem" : 0,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: ".4rem",
-                }}
-              >
+              <li className="pf-kind">
                 <LineSample kind={l.kind} />
                 {EDGE_KINDS[l.kind].label}
               </li>
             )}
-            <li style={{ fontSize: ".875rem", paddingLeft: ".5rem" }}>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: ".4rem",
-                  flexWrap: "wrap",
-                }}
-              >
-                <span style={{ color: "var(--muted)", minWidth: "3em" }}>
-                  {l.label}
-                </span>
+            <li className="pf-link">
+              <div className="pf-row">
+                <span className="pf-muted pf-rel-label">{l.label}</span>
                 {renderOther(l)}
               </div>
-              <div
-                style={{
-                  display: "flex",
-                  gap: ".25rem",
-                  flexWrap: "wrap",
-                  marginLeft: "3.4rem",
-                }}
-              >
+              <div className="pf-row pf-indent">
                 <RelBadges link={l} />
-                {l.period && <Badge>在籍 {l.period}</Badge>}
+                {l.period && (
+                  <Badge>
+                    {l.kind === "tv" ? l.period : `在籍 ${l.period}`}
+                  </Badge>
+                )}
                 {l.rel && (l.rel.start_date || l.rel.end_date) && (
                   <Badge>{`${l.rel.start_date ?? "?"}〜${l.rel.end_date ?? ""}`}</Badge>
                 )}
               </div>
               {l.rel && (
-                <p style={{ marginLeft: "3.4rem", fontSize: ".8rem" }}>
-                  {l.rel.description}
-                </p>
+                <p className="pf-indent pf-small">{l.rel.description}</p>
               )}
             </li>
           </Fragment>
         ))}
       </ul>
       {info.links.length > LINK_LIMIT && (
-        <p
-          style={{
-            fontSize: ".8rem",
-            color: "var(--muted)",
-            marginTop: ".5rem",
-          }}
-        >
+        <p className="pf-muted pf-more">
           ほか {info.links.length - LINK_LIMIT}
           件。グラフで展開するとたどれます。
         </p>
@@ -341,7 +243,7 @@ export const Links: FC<{
 
 export const Results: FC<{ info: NodeInfo }> = ({ info }) =>
   info.results.length > 0 && (
-    <ul style={{ paddingLeft: "1.25rem", fontSize: ".875rem" }}>
+    <ul className="pf-list">
       {info.results.map((r) => (
         <li key={r.label}>
           {r.raceId ? (
@@ -355,7 +257,7 @@ export const Results: FC<{ info: NodeInfo }> = ({ info }) =>
   )
 
 export const Sources: FC<{ info: NodeInfo }> = ({ info }) => (
-  <ul style={{ paddingLeft: "1.25rem", fontSize: ".8rem" }}>
+  <ul className="pf-list pf-small">
     {info.sources.map((s) => (
       <li key={s.id}>
         {s.url ? (
@@ -365,7 +267,7 @@ export const Sources: FC<{ info: NodeInfo }> = ({ info }) => (
         ) : (
           s.name
         )}{" "}
-        <span style={{ color: "var(--muted)" }}>
+        <span className="pf-muted">
           {s.checked_at ? `確認日 ${s.checked_at}` : "未照合"}
           {s.notes && ` / ${s.notes}`}
         </span>
@@ -380,14 +282,14 @@ const subscribers = new Intl.NumberFormat("ja-JP", {
 })
 
 export const Youtube: FC<{ info: NodeInfo }> = ({ info }) => (
-  <ul style={{ paddingLeft: "1.25rem", fontSize: ".875rem" }}>
+  <ul className="pf-list">
     {info.youtube?.channels.map((c) => (
       <li key={c.url}>
         <a href={c.url} target="_blank" rel="noopener noreferrer">
           {c.title}
         </a>{" "}
         {c.subscribers !== null && (
-          <span style={{ color: "var(--muted)" }}>
+          <span className="pf-muted">
             登録者 {subscribers.format(c.subscribers)}人
           </span>
         )}
@@ -401,7 +303,7 @@ const PROGRAM_STATUS = { current: "出演中", past: "終了" }
 export const Programs: FC<{ info: NodeInfo }> = ({ info }) =>
   info.programs && (
     <>
-      <p style={{ fontSize: ".75rem", marginBottom: ".4rem" }}>
+      <p className="pf-small pf-programs-head">
         <Badge tone="warn">Wikipedia記載・出典未照合</Badge>{" "}
         <a
           href={`https://ja.wikipedia.org/wiki/${encodeURIComponent(info.programs.page)}`}
@@ -410,15 +312,16 @@ export const Programs: FC<{ info: NodeInfo }> = ({ info }) =>
         >
           Wikipedia「{info.programs.page}」
         </a>
-        <span style={{ color: "var(--muted)" }}>
-          {" "}
-          {info.programs.fetched_at}取得
-        </span>
+        <span className="pf-muted"> {info.programs.fetched_at}取得</span>
       </p>
-      <ul style={{ paddingLeft: "1.25rem", fontSize: ".85rem" }}>
+      <ul className="pf-list">
         {info.programs.items.map((p) => (
           <li key={p.title}>
-            {p.title}
+            {p.hasPage ? (
+              <Link href={nodeHref(programId(p.title))}>{p.title}</Link>
+            ) : (
+              p.title
+            )}
             {p.status && (
               <>
                 {" "}
@@ -427,12 +330,7 @@ export const Programs: FC<{ info: NodeInfo }> = ({ info }) =>
                 </Badge>
               </>
             )}
-            {p.note && (
-              <span style={{ color: "var(--muted)", fontSize: ".75rem" }}>
-                {" "}
-                {p.note}
-              </span>
-            )}
+            {p.note && <span className="pf-muted pf-small"> {p.note}</span>}
           </li>
         ))}
       </ul>
@@ -440,27 +338,17 @@ export const Programs: FC<{ info: NodeInfo }> = ({ info }) =>
   )
 
 export const History: FC<{ info: NodeInfo }> = ({ info }) => (
-  <ul style={{ paddingLeft: "1.25rem", fontSize: ".8rem" }}>
+  <ul className="pf-list pf-small">
     {info.history?.map((h) => (
       <li key={`${h.date}-${h.note}`}>
-        <span style={{ color: "var(--muted)" }}>{h.date}</span> {h.note}
+        <span className="pf-muted">{h.date}</span> {h.note}
       </li>
     ))}
   </ul>
 )
 
 export const SectionTitle: FC<{ children: ReactNode }> = ({ children }) => (
-  <h3
-    style={{
-      fontSize: ".9rem",
-      margin: "1.5rem 0 .6rem",
-      padding: ".15rem .6rem",
-      background: "var(--text)",
-      color: "var(--pop)",
-    }}
-  >
-    {children}
-  </h3>
+  <h3 className="pf-section">{children}</h3>
 )
 
 // 詳細パネル・詳細ページ共通の本文
@@ -477,7 +365,7 @@ export const Profile: FC<{
       <Stats info={info} />
       <Facts info={info} />
       {info.profileChecked !== undefined && (
-        <p style={{ marginTop: ".5rem" }}>
+        <p className="pf-checked">
           {info.profileChecked ? (
             <Badge tone="ok">
               プロフィール出典確認日 {info.profileChecked}

@@ -1,4 +1,4 @@
-import { db, nodeInfo, raceIds } from "@/lib/db"
+import { db, nodeInfo, programIds, raceIds } from "@/lib/db"
 import { NODE_SHARDS, nodeShard } from "@/lib/node-info"
 
 export const dynamic = "force-static"
@@ -8,6 +8,7 @@ const ids = [
   ...db.people.map((p) => `p:${p.id}`),
   ...db.groups.map((g) => `g:${g.id}`),
   ...raceIds,
+  ...programIds,
 ]
 
 // 詳細パネル用。ノード選択時に所属シャードをまとめて取得する

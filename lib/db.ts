@@ -11,6 +11,7 @@ import {
   buildGraph,
   indexEdges,
   parseRaceId,
+  programId,
   rankLabel,
   raceId,
   STATUS_LABEL,
@@ -28,7 +29,8 @@ export const db = mergeDebuts(
   ),
   debuts as DebutDump
 )
-export const graph = buildGraph(db, programs as ProgramsDump)
+const programDump = programs as ProgramsDump
+export const graph = buildGraph(db, programDump)
 export const edgeIndex = indexEdges(graph)
 
 export const personById = new Map(db.people.map((p) => [p.id, p]))
@@ -90,6 +92,46 @@ const careerOf = (
       }
     : null
 
+const sourceInfos = (ids: Iterable<string>): NodeInfo["sources"] =>
+  [...ids].flatMap((sid) => {
+    const s = sourceById.get(sid)
+    return s
+      ? [
+          {
+            id: s.id,
+            name: s.source_name,
+            url: s.source_url,
+            checked_at: s.checked_at,
+            ...(s.notes && { notes: s.notes }),
+          },
+        ]
+      : []
+  })
+
+// テレビ番組ごとの詳細。出演者と、各出演者の Wikipedia 記事に書かれた期間
+const programInfo = (nodeId: string): NodeInfo | null => {
+  const node = graph.nodes.get(nodeId)
+  if (node?.kind !== "program") return null
+  const links = linkInfos(graph, edgeIndex, nodeId).map((l) => {
+    const note = programDump.nodes[l.other]?.items.find(
+      (p) => p.title === node.label
+    )?.note
+    return note ? { ...l, period: note } : l
+  })
+  return {
+    id: nodeId,
+    name: node.label,
+    reading: "テレビ番組（Wikipedia記載・未照合）",
+    aliases: [],
+    status: null,
+    finals: null,
+    facts: [["登録芸人の出演", `${links.length}組`]],
+    links,
+    results: [],
+    sources: [],
+  }
+}
+
 // 賞レースの開催（大会×年）ごとの詳細。決勝出場を順位順に並べる
 const raceInfo = (nodeId: string): NodeInfo | null => {
   const parsed = parseRaceId(nodeId)
@@ -127,20 +169,7 @@ const raceInfo = (nodeId: string): NodeInfo | null => {
       rel: null,
     })),
     results: [],
-    sources: [...sourceIds].flatMap((sid) => {
-      const s = sourceById.get(sid)
-      return s
-        ? [
-            {
-              id: s.id,
-              name: s.source_name,
-              url: s.source_url,
-              checked_at: s.checked_at,
-              ...(s.notes && { notes: s.notes }),
-            },
-          ]
-        : []
-    }),
+    sources: sourceInfos(sourceIds),
   }
 }
 
@@ -155,7 +184,8 @@ export const raceIds = [
 
 export const nodeInfo = (nodeId: string): NodeInfo | null => {
   const [kind, id] = nodeId.split(":")
-  if (kind === "t" || kind === "v") return termInfo(graph, edgeIndex, nodeId)
+  if (kind === "t") return termInfo(graph, edgeIndex, nodeId)
+  if (kind === "v") return programInfo(nodeId)
   if (kind === "x") return raceInfo(nodeId)
   const person = kind === "p" ? personById.get(id) : undefined
   const group = kind === "g" ? groupById.get(id) : undefined
@@ -245,29 +275,25 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
       label: `${r.competition_name} ${r.year} ${r.stage}${r.rank ? ` ${r.rank === 1 ? "優勝" : `${r.rank}位`}` : ""}${r.entrant_id !== nodeId ? `（${graph.nodes.get(r.entrant_id)?.label}）` : ""}`,
       raceId: r.stage === "決勝" ? raceId(r.competition_name, r.year) : null,
     })),
-    sources: [...sourceIds].flatMap((sid) => {
-      const s = sourceById.get(sid)
-      return s
-        ? [
-            {
-              id: s.id,
-              name: s.source_name,
-              url: s.source_url,
-              checked_at: s.checked_at,
-              ...(s.notes && { notes: s.notes }),
-            },
-          ]
-        : []
-    }),
+    sources: sourceInfos(sourceIds),
     ...(channels.length && {
       youtube: { fetched_at: youtube.fetched_at, channels },
     }),
     ...(e.history?.length && { history: e.history }),
-    ...(nodeId in (programs as ProgramsDump).nodes && {
+    ...(nodeId in programDump.nodes && {
       programs: {
-        fetched_at: programs.fetched_at,
-        ...(programs as ProgramsDump).nodes[nodeId],
+        fetched_at: programDump.fetched_at,
+        page: programDump.nodes[nodeId].page,
+        items: programDump.nodes[nodeId].items.map((p) => ({
+          ...p,
+          hasPage: graph.nodes.has(programId(p.title)),
+        })),
       },
     }),
   }
 }
+
+// 番組ページを持つ番組（2組以上が出演）
+export const programIds = [...graph.nodes.values()]
+  .filter((n) => n.kind === "program")
+  .map((n) => n.id)

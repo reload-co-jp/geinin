@@ -269,6 +269,14 @@ export const parseRaceId = (id: string) => {
 // テレビ番組のノード。ID は「v:番組名」
 export const programId = (title: string) => `v:${title}`
 
+// 番組ページ /programs/{slug}/ のスラッグ。番組名は「/」「?」を含むことがあるので
+// 番組名の FNV-1a ハッシュを36進にする（衝突は lib/graph.test.ts で確認）
+export const programSlug = (title: string) => {
+  let h = 0x811c9dc5
+  for (const c of title) h = Math.imul(h ^ c.codePointAt(0)!, 0x01000193) >>> 0
+  return h.toString(36)
+}
+
 // 開催ページ /races/{slug}/{年}/ の大会スラッグ
 export const raceSlugs: Record<string, string> = {
   "M-1グランプリ": "m1",
@@ -661,11 +669,119 @@ export const searchNodes = (g: Graph, q: string) => {
 }
 
 // 静的JSONとして配信する形
-export type GraphJSON = { nodes: GNode[]; edges: GEdge[] }
+// 配信用の行形式。ノード約1万・線約3万を毎回キー付きで書くと重いので、
+// 配列にして既定値（ラベル・確度など）を省く
+const NODE_KINDS: GNode["kind"][] = [
+  "person",
+  "group",
+  "term",
+  "race",
+  "program",
+]
+const EDGE_KIND_LIST = Object.keys(EDGE_KINDS) as EdgeKind[]
+const PHOTO_PREFIXES = [
+  "/images/photos/",
+  "https://profile.yoshimoto.co.jp/assets/data/profile/",
+]
+type NodeRow = [
+  id: string,
+  kind: number,
+  label: string,
+  agencyId: string | null,
+  year: number | null,
+  status: ActivityStatus | null,
+  // 「接頭辞の番号:残り」。写真がなければ null
+  photo: string | null,
+  search: string,
+]
+// flags: d = 導出, v = 照合済み, m / l = 確度中 / 低（高は省略）
+type EdgeRow = [
+  id: string,
+  source: string,
+  target: string,
+  kind: number,
+  label?: string | 0,
+  flags?: string,
+  rank?: number | null,
+]
+export type GraphJSON = { nodes: NodeRow[]; edges: EdgeRow[] }
+
+const packPhoto = (url: string | null) => {
+  if (!url) return null
+  const i = PHOTO_PREFIXES.findIndex((p) => url.startsWith(p))
+  return i < 0 ? url : `${i}:${url.slice(PHOTO_PREFIXES[i].length)}`
+}
+const unpackPhoto = (s: string | null) => {
+  const m = s?.match(/^(\d+):(.*)$/)
+  return m ? PHOTO_PREFIXES[Number(m[1])] + m[2] : s
+}
+
+export const toJSON = (g: Graph): GraphJSON => ({
+  nodes: [...g.nodes.values()].map((n) => [
+    n.id,
+    NODE_KINDS.indexOf(n.kind),
+    n.label,
+    n.agencyId,
+    n.year,
+    n.status,
+    packPhoto(n.photo),
+    n.search,
+  ]),
+  edges: g.edges.map((e) => {
+    const flags =
+      (e.derived ? "d" : "") +
+      (e.verified ? "v" : "") +
+      (e.confidence === "high" ? "" : e.confidence[0])
+    const row: EdgeRow = [
+      e.id,
+      e.source,
+      e.target,
+      EDGE_KIND_LIST.indexOf(e.kind),
+      e.label === EDGE_KINDS[e.kind].label ? 0 : e.label,
+      flags,
+    ]
+    // 順位があるときは位置を保つ。なければ末尾の既定値を省く
+    if (e.rank !== undefined) row.push(e.rank)
+    else while (row.length > 4 && !row.at(-1)) row.pop()
+    return row
+  }),
+})
 
 export const fromJSON = (j: GraphJSON): Graph => ({
-  nodes: new Map(j.nodes.map((n) => [n.id, n])),
-  edges: j.edges,
+  nodes: new Map(
+    j.nodes.map(([id, kind, label, agencyId, year, status, photo, search]) => [
+      id,
+      {
+        id,
+        kind: NODE_KINDS[kind],
+        label,
+        agencyId,
+        year,
+        status,
+        photo: unpackPhoto(photo),
+        search,
+      },
+    ])
+  ),
+  edges: j.edges.map(([id, source, target, k, label, flags = "", rank]) => {
+    const kind = EDGE_KIND_LIST[k]
+    return {
+      id,
+      source,
+      target,
+      kind,
+      label: label || EDGE_KINDS[kind].label,
+      derived: flags.includes("d"),
+      confidence: flags.includes("m")
+        ? "medium"
+        : flags.includes("l")
+          ? "low"
+          : "high",
+      verified: flags.includes("v"),
+      refId: id.startsWith("r:") ? id.slice(2) : null,
+      ...(rank !== undefined && { rank }),
+    }
+  }),
 })
 
 export const graphHref = (nodeId: string, query = "") =>
@@ -681,9 +797,15 @@ export const nodeHref = (nodeId: string) => {
     ? `/people/${id}/`
     : kind === "g"
       ? `/groups/${id}/`
-      : slug
-        ? `/races/${slug}/${race.year}/`
-        : debut
-          ? `/doki/${debut}/`
-          : graphHref(nodeId)
+      : kind === "v"
+        ? `/programs/${programSlug(nodeId.slice(2))}/`
+        : slug
+          ? `/races/${slug}/${race.year}/`
+          : debut
+            ? `/doki/${debut}/`
+            : graphHref(nodeId)
 }
+
+// 個別ページがあるか（養成所の期などはグラフで見る）
+export const hasPage = (nodeId: string) =>
+  !nodeHref(nodeId).startsWith("/graph/")

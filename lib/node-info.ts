@@ -57,7 +57,12 @@ export type NodeInfo = {
   }[]
   youtube?: { fetched_at: string; channels: YoutubeChannel[] }
   // Wikipedia から集めたテレビ出演番組（未照合の二次情報）
-  programs?: { fetched_at: string; page: string; items: Program[] }
+  programs?: {
+    fetched_at: string
+    page: string
+    // hasPage: 2組以上が出演していて番組ページがある
+    items: (Program & { hasPage: boolean })[]
+  }
   history?: HistoryEntry[]
 }
 
@@ -93,7 +98,7 @@ export const linkInfos = (
     rel: null,
   }))
 
-// 期・番組ノードは個別データを持たないのでグラフだけから作る
+// 期ノードは個別データを持たないのでグラフだけから作る
 export const termInfo = (
   g: Graph,
   index: EdgeIndex,
@@ -101,11 +106,7 @@ export const termInfo = (
 ): NodeInfo => ({
   id: nodeId,
   name: g.nodes.get(nodeId)?.label ?? nodeId,
-  reading: nodeId.startsWith("v:")
-    ? "テレビ番組（Wikipedia記載・未照合）"
-    : nodeId.endsWith("デビュー")
-      ? "同年デビュー"
-      : "養成所の期",
+  reading: nodeId.endsWith("デビュー") ? "同年デビュー" : "養成所の期",
   aliases: [],
   facts: [],
   links: linkInfos(g, index, nodeId),

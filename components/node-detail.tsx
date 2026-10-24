@@ -13,11 +13,7 @@ const SITE = "https://geinin.reload.co.jp"
 export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
   const info = nodeInfo(nodeId)
   if (!info) notFound()
-  const noun = nodeId.startsWith("p:")
-    ? "芸人"
-    : nodeId.startsWith("x:")
-      ? "大会"
-      : "コンビ"
+  const noun = { p: "芸人", g: "コンビ", x: "大会", v: "番組" }[nodeId[0]]
   const homonyms = sameName(nodeId)
   const race = parseRaceId(nodeId)
   const crumbs: [string, string][] = [
@@ -27,7 +23,9 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
           ["賞レース", "/races/"],
           [race.competition, `/races/${raceSlugs[race.competition]}/`],
         ] as [string, string][])
-      : ([["一覧", "/list/"]] as [string, string][])),
+      : nodeId.startsWith("v:")
+        ? ([["テレビ番組", "/programs/"]] as [string, string][])
+        : ([["一覧", "/list/"]] as [string, string][])),
     [info.name, nodeHref(nodeId)],
   ]
   return (

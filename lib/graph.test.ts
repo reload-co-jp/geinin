@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest"
+import programs from "@/data/programs.json"
 import { db } from "@/lib/db"
 import {
   buildGraph,
   EDGE_KINDS,
+  fromJSON,
+  programSlug,
+  toJSON,
   termYear,
   visibleSubgraph,
   type EdgeKind,
@@ -203,5 +207,24 @@ describe("visibleSubgraph", () => {
     expect(visibleSubgraph(g, { ...view, depth: 9, limit: 3 }).nodes.size).toBe(
       3
     )
+  })
+})
+
+describe("toJSON / fromJSON", () => {
+  it("round-trips the graph through the compact rows", () => {
+    const back = fromJSON(JSON.parse(JSON.stringify(toJSON(g))))
+    expect(back.nodes).toEqual(g.nodes)
+    expect(back.edges).toEqual(g.edges)
+  })
+})
+
+describe("programSlug", () => {
+  it("gives every program a unique URL-safe slug", () => {
+    const titles = Object.values(programs.nodes).flatMap((n) =>
+      n.items.map((p) => p.title)
+    )
+    const slugs = new Map(titles.map((t) => [programSlug(t), t]))
+    expect(slugs.size).toBe(new Set(titles).size)
+    for (const s of slugs.keys()) expect(s).toMatch(/^[0-9a-z]+$/)
   })
 })

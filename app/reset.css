@@ -282,3 +282,140 @@ body > footer {
     white-space: nowrap;
   }
 }
+
+/* 詳細ページ・詳細パネル共通のプロフィール（components/profile.tsx） */
+.pf-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.6rem;
+  margin: 0.75rem 0 1rem;
+}
+.pf-stat {
+  border: 2px solid var(--text);
+  padding: 0.5rem 0.6rem;
+  box-shadow: 3px 3px 0 var(--text);
+}
+.pf-stat .num {
+  font-size: 2rem;
+}
+.pf-stat-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+.pf-stat-unit {
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+.pf-photo {
+  width: 120px;
+  height: auto;
+  margin-bottom: 0.5rem;
+}
+.pf-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+.pf-tilt {
+  transform: rotate(1.5deg);
+}
+.pf-muted {
+  color: var(--muted);
+}
+.pf-small {
+  font-size: 0.8rem;
+}
+.pf-reading {
+  font-size: 0.75rem;
+  margin-top: 0.4rem;
+}
+.pf-name {
+  line-height: 1.2;
+  background: none;
+}
+h1.pf-name {
+  font-size: clamp(2rem, 6vw, 3rem);
+}
+h2.pf-name {
+  font-size: 1.7rem;
+}
+.pf-facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 1rem;
+  font-size: 0.875rem;
+}
+.pf-facts > div {
+  display: contents;
+}
+.pf-facts dt {
+  color: var(--muted);
+}
+.pf-badge {
+  font-size: 0.7rem;
+  padding: 0 0.35rem;
+  border-radius: 4px;
+  white-space: nowrap;
+  border: 1px solid;
+  color: var(--muted);
+}
+.pf-badge[data-tone="warn"] {
+  color: #9a5b00;
+}
+.pf-badge[data-tone="ok"] {
+  color: #1e7a3c;
+}
+.pf-checked {
+  margin-top: 0.5rem;
+}
+.pf-text {
+  font-size: 0.875rem;
+}
+.pf-links {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+.pf-kind {
+  font-size: 0.75rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.pf-kind:not(:first-child) {
+  margin-top: 0.5rem;
+}
+.pf-link {
+  font-size: 0.875rem;
+  padding-left: 0.5rem;
+}
+.pf-rel-label {
+  min-width: 3em;
+}
+.pf-indent {
+  margin-left: 3.4rem;
+}
+.pf-more {
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+}
+.pf-list {
+  padding-left: 1.25rem;
+  font-size: 0.875rem;
+}
+.pf-list.pf-small {
+  font-size: 0.8rem;
+}
+.pf-programs-head {
+  margin-bottom: 0.4rem;
+}
+.pf-section {
+  font-size: 0.9rem;
+  margin: 1.5rem 0 0.6rem;
+  padding: 0.15rem 0.6rem;
+  background: var(--text);
+  color: var(--pop);
+}

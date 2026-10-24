@@ -11,6 +11,7 @@ import { Heading, Profile, RelBadges } from "@/components/profile"
 import { SearchBox } from "@/components/search-box"
 import {
   EDGE_KINDS,
+  hasPage,
   linksOf,
   MODES,
   nodeHref,
@@ -244,7 +245,7 @@ export const Explorer: FC = () => {
                 >
                   ＋グラフに追加
                 </button>
-                {!id.startsWith("t:") && !id.startsWith("v:") && (
+                {hasPage(id) && (
                   <Link className="chip" href={nodeHref(id)} onClick={close}>
                     詳細
                   </Link>
@@ -349,7 +350,7 @@ export const Explorer: FC = () => {
               ? "データ読み込み中…"
               : notice || (
                   <>
-                    {/^[tvx]:/.test(focus) ? (
+                    {!hasPage(focus) ? (
                       nodeName(focus)
                     ) : (
                       <Link href={nodeHref(focus)}>{nodeName(focus)}</Link>
@@ -459,7 +460,10 @@ export const Explorer: FC = () => {
                     </p>
                   )}
                   {edgeLink.period && (
-                    <p style={{ fontSize: ".8rem" }}>在籍 {edgeLink.period}</p>
+                    <p style={{ fontSize: ".8rem" }}>
+                      {edge.kind === "tv" ? "" : "在籍 "}
+                      {edgeLink.period}
+                    </p>
                   )}
                 </>
               ) : (
@@ -494,7 +498,7 @@ export const Explorer: FC = () => {
                 ×
               </button>
               <Heading info={info} />
-              {!/^[tvx]:/.test(selected) && (
+              {hasPage(selected) && (
                 <p className="ex-detail">
                   <Link className="chip" href={nodeHref(selected)}>
                     {info.name} の詳細ページ →
@@ -566,7 +570,7 @@ export const Explorer: FC = () => {
                     >
                       {l.otherName}
                     </button>
-                    {!/^[tv]:/.test(l.other) && (
+                    {hasPage(l.other) && (
                       <Link className="ex-rel-link" href={nodeHref(l.other)}>
                         詳細
                       </Link>

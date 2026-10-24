@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { render, screen } from "@testing-library/react"
+import { toJSON, type Graph } from "@/lib/graph"
 import { Explorer } from "./explorer"
 
 // グラフ描画は cytoscape に任せる（このテストはリンクの置き場所だけを見る）
@@ -12,7 +13,7 @@ vi.mock("next/navigation", () => ({
 
 let params = new URLSearchParams("focus=p:sanma&sel=p:sanma")
 
-const GRAPH = {
+const RAW = {
   nodes: [
     {
       id: "p:sanma",
@@ -70,6 +71,14 @@ const GRAPH = {
       rank: 1,
     },
   ],
+}
+
+// 配信形式（行形式）にして fetch に返す
+const GRAPH = {
+  ...toJSON({
+    nodes: new Map(RAW.nodes.map((n) => [n.id, n])),
+    edges: RAW.edges,
+  } as unknown as Graph),
   agencies: [],
 }
 

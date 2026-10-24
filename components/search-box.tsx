@@ -4,7 +4,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { FC, FormEvent, ReactNode, useState } from "react"
 import { useGraphData } from "@/components/graph/use-data"
-import { graphHref, linksOf, nodeHref, searchNodes } from "@/lib/graph"
+import { graphHref, hasPage, linksOf, nodeHref, searchNodes } from "@/lib/graph"
 
 const TYPES = [
   { id: "", label: "すべて" },
@@ -143,7 +143,7 @@ export const SearchBox: FC<{
                       >
                         グラフで開く
                       </Link>
-                      {!id.startsWith("t:") && !id.startsWith("v:") && (
+                      {hasPage(id) && (
                         <Link className="chip" href={nodeHref(id)}>
                           詳細
                         </Link>
