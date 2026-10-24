@@ -29,13 +29,13 @@ describe("youtubeIndex", () => {
     const own = { url: "own", title: "本人", subscribers: 1 }
     const shared = { url: "shared", title: "事務所", subscribers: 2 }
     const pages = Object.fromEntries(
-      [...Array(5)].map((_, i) => [`a:${i}`, ["shared"]])
+      [...Array(15)].map((_, i) => [`a:${i}`, ["shared"]])
     )
     const find = youtubeIndex({
       fetched_at: "2026-10-24",
-      pages: { ...pages, "a:0": ["own", "shared"], "a:9": ["own"] },
+      pages: { ...pages, "b:0": ["own", "shared"], "b:1": ["own"] },
       channels: { own, shared },
     })
-    expect(find(["a:0", "a:9", "wiki"])).toEqual([own])
+    expect(find(["b:0", "b:1", "wiki"])).toEqual([own])
   })
 })

@@ -66,7 +66,10 @@ for (const url of urls) {
   const html = await get(url)
   const id = html?.match(/"externalId":"(UC[\w-]{22})"/)?.[1]
   const title = html?.match(/<meta property="og:title" content="([^"]*)"/)?.[1]
-  const subs = html?.match(/チャンネル登録者数[^"]*/)?.[0]
+  // ページ上部の見出し。それより前に出る数値はおすすめチャンネルのもの
+  const subs = html?.match(
+    /"metadataParts":\[\{"text":\{"content":"(チャンネル登録者数[^"]*)"/
+  )?.[1]
   dump.channels[url] =
     id && title
       ? {

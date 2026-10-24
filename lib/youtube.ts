@@ -12,8 +12,9 @@ export type YoutubeDump = {
   channels: Record<string, YoutubeChannel | null>
 }
 
-// 事務所公式チャンネルのように多数のページに載るものは本人のチャンネルではない
-const SHARED_LIMIT = 5
+// 事務所公式チャンネルのように多数のページに載るものは本人のチャンネルではない。
+// ユニットのチャンネルはメンバー全員のページに載るので、その人数より大きくする
+const SHARED_LIMIT = 15
 
 // プロフィールページ中のチャンネル URL。動画・再生リストへのリンクは除く
 export const channelUrls = (html: string) => [
