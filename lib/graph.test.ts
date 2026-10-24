@@ -108,6 +108,33 @@ describe("buildGraph", () => {
     )
   })
 
+  it("derives 番組共演 as program nodes only for programs with 2+ casts", () => {
+    const pg = buildGraph(db, {
+      fetched_at: "",
+      none: [],
+      nodes: {
+        "p:sanma": {
+          page: "",
+          items: [
+            { title: "番組A", note: null, status: "current" },
+            { title: "ひとりだけ", note: null, status: null },
+          ],
+        },
+        "g:audrey": {
+          page: "",
+          items: [{ title: "番組A", note: null, status: "past" }],
+        },
+      },
+    })
+    const tv = pg.edges.filter((e) => e.kind === "tv")
+    expect(pg.nodes.get("v:番組A")?.kind).toBe("program")
+    expect(pg.nodes.has("v:ひとりだけ")).toBe(false)
+    expect(tv.map((e) => [e.source, e.target, e.label])).toEqual([
+      ["p:sanma", "v:番組A", "出演中"],
+      ["g:audrey", "v:番組A", "過去に出演"],
+    ])
+  })
+
   it("separates current and former members", () => {
     expect(g.edges.find((e) => e.id === "m:ariyoshi:saruganseki")?.kind).toBe(
       "former_member"
@@ -151,6 +178,25 @@ describe("visibleSubgraph", () => {
     expect(sub.nodes.has("p:sanma")).toBe(true)
     expect(sub.nodes.has("p:takeshi")).toBe(false)
     expect(sub.nodes.has("p:fukami")).toBe(false)
+  })
+
+  it("caps neighbours per node with fanout, preferring well-connected ones", () => {
+    const degree = (id: string) =>
+      new Set(
+        g.edges.flatMap((e) =>
+          e.source === id ? [e.target] : e.target === id ? [e.source] : []
+        )
+      )
+    // 隣接の多い期ノードを起点にする
+    const focus = [...g.nodes.keys()]
+      .filter((id) => id.startsWith("t:"))
+      .toSorted((a, b) => degree(b).size - degree(a).size)[0]
+    const sub = visibleSubgraph(g, { ...view, focus, depth: 1, fanout: 3 })
+    expect(sub.nodes.size).toBe(4)
+    const shown = [...sub.nodes.keys()].filter((id) => id !== focus)
+    const min = Math.min(...shown.map((id) => degree(id).size))
+    for (const id of degree(focus))
+      if (!sub.nodes.has(id)) expect(degree(id).size).toBeLessThanOrEqual(min)
   })
 
   it("caps node count", () => {

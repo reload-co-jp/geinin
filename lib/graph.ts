@@ -4,9 +4,10 @@ import type {
   Db,
   RelationshipType,
 } from "@/lib/types"
+import type { ProgramsDump, ProgramStatus } from "@/lib/programs"
 
 export type EdgeKind =
-  "member" | "former_member" | RelationshipType | "doki" | "competition"
+  "member" | "former_member" | RelationshipType | "doki" | "competition" | "tv"
 
 // 線種・太さ・矢印でも判別できるよう種類ごとに変える。色は色覚多様性に配慮した Okabe-Ito 系。
 // dash は SVG stroke-dasharray / cytoscape line-dash-pattern 共用
@@ -83,6 +84,13 @@ export const EDGE_KINDS: Record<
     dash: null,
     arrow: "tee",
   },
+  tv: {
+    label: "番組共演（Wikipedia記載）",
+    color: "#56b4e9",
+    width: 1.5,
+    dash: [4, 3],
+    arrow: null,
+  },
 }
 
 export const STATUS_LABEL: Record<ActivityStatus, string> = {
@@ -94,7 +102,8 @@ export const STATUS_LABEL: Record<ActivityStatus, string> = {
 }
 
 // 探索モード。関係の種類・距離・配置の初期値と説明の組
-export type ModeId = "all" | "lineage" | "doki" | "combi" | "race" | "costar"
+export type ModeId =
+  "all" | "lineage" | "doki" | "combi" | "race" | "costar" | "tv"
 export const MODES: Record<
   ModeId,
   {
@@ -103,13 +112,16 @@ export const MODES: Record<
     kinds: EdgeKind[]
     depth: number
     layout: "radial" | "tree"
+    // 1ノードから広げる数の上限。番組のように枝が多い中継点で図が広がりすぎないように
+    fanout?: number
   }
 > = {
   all: {
     label: "人物相関図",
     description:
       "すべての関係をまとめて表示。起点から距離ごとの同心円に並びます。",
-    kinds: Object.keys(EDGE_KINDS) as EdgeKind[],
+    // 番組共演は数が多く図が埋まるため専用モードで出す
+    kinds: (Object.keys(EDGE_KINDS) as EdgeKind[]).filter((k) => k !== "tv"),
     depth: 2,
     layout: "radial",
   },
@@ -150,12 +162,21 @@ export const MODES: Record<
     depth: 2,
     layout: "radial",
   },
+  tv: {
+    label: "番組共演",
+    description:
+      "同じテレビ番組に出演した芸人を、番組ごとにまとめてつなぎます（Wikipedia記載・未照合）。",
+    kinds: ["tv", "member"],
+    depth: 2,
+    layout: "radial",
+    fanout: 5,
+  },
 }
 
 export type GNode = {
   id: string
-  // race = 賞レースの開催（大会×年）を表す中継ノード
-  kind: "person" | "group" | "term" | "race"
+  // race = 賞レースの開催（大会×年）、program = テレビ番組を表す中継ノード
+  kind: "person" | "group" | "term" | "race" | "program"
   label: string
   agencyId: string | null
   year: number | null
@@ -245,6 +266,9 @@ export const parseRaceId = (id: string) => {
   return { competition: s.slice(0, i), year: Number(s.slice(i + 1)) }
 }
 
+// テレビ番組のノード。ID は「v:番組名」
+export const programId = (title: string) => `v:${title}`
+
 // 開催ページ /races/{slug}/{年}/ の大会スラッグ
 export const raceSlugs: Record<string, string> = {
   "M-1グランプリ": "m1",
@@ -267,7 +291,7 @@ export const normalize = (s: string) =>
     .toLowerCase()
     .replace(/[\s・]/g, "")
 
-export const buildGraph = (db: Db): Graph => {
+export const buildGraph = (db: Db, programs?: ProgramsDump): Graph => {
   const agency = new Map(db.agencies.map((a) => [a.id, a.name]))
   const search = (...xs: (string | null | undefined)[]) =>
     xs.filter(Boolean).map(normalize).join("\n")
@@ -450,6 +474,47 @@ export const buildGraph = (db: Db): Graph => {
       })
   }
 
+  // 番組共演: 2組以上が出演した番組だけを中継ノードにする（1組だけでは何もつながらない）
+  const casts = new Map<string, { nodeId: string; status: ProgramStatus }[]>()
+  for (const [nodeId, { items }] of Object.entries(programs?.nodes ?? {}))
+    if (nodes.has(nodeId))
+      for (const p of items)
+        casts.set(p.title, [
+          ...(casts.get(p.title) ?? []),
+          { nodeId, status: p.status },
+        ])
+  for (const [title, cast] of casts) {
+    if (cast.length < 2) continue
+    const id = programId(title)
+    nodes.set(id, {
+      id,
+      kind: "program",
+      label: title,
+      agencyId: null,
+      year: null,
+      status: null,
+      photo: null,
+      search: search(title),
+    })
+    for (const c of cast)
+      edges.push({
+        id: `tv:${c.nodeId}:${title}`,
+        source: c.nodeId,
+        target: id,
+        kind: "tv",
+        label:
+          c.status === "current"
+            ? "出演中"
+            : c.status === "past"
+              ? "過去に出演"
+              : "出演",
+        derived: true,
+        confidence: "medium",
+        verified: false,
+        refId: null,
+      })
+  }
+
   return { nodes, edges }
 }
 
@@ -461,12 +526,13 @@ export type View = {
   agencyId: string | null
   decade: number | null
   limit: number
+  fanout?: number
 }
 
 // 期ノードは同期をたどる中継点なので絞り込み対象外。
 // 開催ノードも事務所は无关で、年代（開催年）でのみ絞り込む
 const passes = (n: GNode, v: View) => {
-  if (n.kind === "term") return true
+  if (n.kind === "term" || n.kind === "program") return true
   const okAgency =
     n.kind === "race" ? true : !v.agencyId || n.agencyId === v.agencyId
   const okDecade =
@@ -501,12 +567,25 @@ export const visibleSubgraph = (g: Graph, v: View): Graph => {
     seen.add(start)
     for (let d = 0; d < depth && frontier.length; d++) {
       const next: string[] = []
-      for (const id of frontier)
-        for (const nb of adj.get(id) ?? [])
-          if (!seen.has(nb) && ok(nb) && seen.size < v.limit) {
+      for (const id of frontier) {
+        // 同じ相手と複数の関係があると重複するのでまとめる
+        const nbs = [...new Set(adj.get(id))].filter(
+          (nb) => !seen.has(nb) && ok(nb)
+        )
+        // 上限があるときはつながりの多い相手（共演者の多い番組など）を優先する
+        const picked = v.fanout
+          ? nbs
+              .toSorted(
+                (a, b) => (adj.get(b)?.length ?? 0) - (adj.get(a)?.length ?? 0)
+              )
+              .slice(0, v.fanout)
+          : nbs
+        for (const nb of picked)
+          if (!seen.has(nb) && seen.size < v.limit) {
             seen.add(nb)
             next.push(nb)
           }
+      }
       frontier = next
     }
   }

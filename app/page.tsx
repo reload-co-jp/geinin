@@ -22,7 +22,7 @@ const thisYear = new Date().getFullYear()
 // （導出される同期・賞レースを含めると大会名ばかりの図になる）
 const heroLinks = (id: string) =>
   linksOf(edgeIndex, id).filter(
-    (l) => l.edge.kind !== "doki" && l.edge.kind !== "competition"
+    (l) => !["doki", "competition", "tv"].includes(l.edge.kind)
   )
 const heroId = manual.people
   .map((p) => `p:${p.id}`)

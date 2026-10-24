@@ -28,7 +28,7 @@ export const db = mergeDebuts(
   ),
   debuts as DebutDump
 )
-export const graph = buildGraph(db)
+export const graph = buildGraph(db, programs as ProgramsDump)
 export const edgeIndex = indexEdges(graph)
 
 export const personById = new Map(db.people.map((p) => [p.id, p]))
@@ -155,7 +155,7 @@ export const raceIds = [
 
 export const nodeInfo = (nodeId: string): NodeInfo | null => {
   const [kind, id] = nodeId.split(":")
-  if (kind === "t") return termInfo(graph, edgeIndex, nodeId)
+  if (kind === "t" || kind === "v") return termInfo(graph, edgeIndex, nodeId)
   if (kind === "x") return raceInfo(nodeId)
   const person = kind === "p" ? personById.get(id) : undefined
   const group = kind === "g" ? groupById.get(id) : undefined

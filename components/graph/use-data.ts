@@ -50,7 +50,7 @@ export const useNodeInfo = (data: GraphData | null, nodeId: string | null) => {
     if (!infoCache.has(nodeId))
       infoCache.set(
         nodeId,
-        nodeId.startsWith("t:")
+        nodeId.startsWith("t:") || nodeId.startsWith("v:")
           ? Promise.resolve(termInfo(data.graph, data.index, nodeId))
           : loadShard(nodeShard(nodeId)).then((m) => m[nodeId])
       )

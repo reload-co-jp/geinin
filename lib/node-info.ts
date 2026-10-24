@@ -93,7 +93,7 @@ export const linkInfos = (
     rel: null,
   }))
 
-// 期ノードは個別データを持たないのでグラフだけから作る
+// 期・番組ノードは個別データを持たないのでグラフだけから作る
 export const termInfo = (
   g: Graph,
   index: EdgeIndex,
@@ -101,7 +101,11 @@ export const termInfo = (
 ): NodeInfo => ({
   id: nodeId,
   name: g.nodes.get(nodeId)?.label ?? nodeId,
-  reading: nodeId.endsWith("デビュー") ? "同年デビュー" : "養成所の期",
+  reading: nodeId.startsWith("v:")
+    ? "テレビ番組（Wikipedia記載・未照合）"
+    : nodeId.endsWith("デビュー")
+      ? "同年デビュー"
+      : "養成所の期",
   aliases: [],
   facts: [],
   links: linkInfos(g, index, nodeId),

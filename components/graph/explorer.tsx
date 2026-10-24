@@ -89,6 +89,7 @@ const nextSteps = (info: NodeInfo) => {
     doki: first((l) => l.kind === "doki"),
     former: info.links.some((l) => l.kind === "former_member"),
     race: info.links.some((l) => l.kind === "competition") || !!info.finals,
+    tv: info.links.some((l) => l.kind === "tv"),
   }
 }
 
@@ -157,8 +158,9 @@ export const Explorer: FC = () => {
         agencyId,
         decade,
         limit: 80,
+        fanout: MODES[mode].fanout,
       }),
-    [graph, focus, depth, kinds, expanded, agencyId, decade]
+    [graph, focus, depth, kinds, expanded, agencyId, decade, mode]
   )
   const info = useNodeInfo(data, selected)
   // 線の説明・根拠は始点ノードの詳細JSONに含まれる
@@ -204,6 +206,7 @@ export const Explorer: FC = () => {
     const links = linksOf(data.index, id)
     // 開催ノードは順位ごとの数より出場数を出したほうが分かりやすい
     if (id.startsWith("x:")) return `決勝出場 ${links.length}組`
+    if (id.startsWith("v:")) return `出演 ${links.length}組`
     const counts = new Map<string, number>()
     for (const l of links) counts.set(l.label, (counts.get(l.label) ?? 0) + 1)
     return [...counts]
@@ -241,7 +244,7 @@ export const Explorer: FC = () => {
                 >
                   ＋グラフに追加
                 </button>
-                {!id.startsWith("t:") && (
+                {!id.startsWith("t:") && !id.startsWith("v:") && (
                   <Link className="chip" href={nodeHref(id)} onClick={close}>
                     詳細
                   </Link>
@@ -333,7 +336,8 @@ export const Explorer: FC = () => {
             </button>
           </div>
           <p style={{ color: "var(--muted)", fontSize: ".75rem" }}>
-            ○個人 ▭コンビ・グループ ◇養成所の期 ⬡賞レースの決勝（開催）。
+            ○個人 ▭コンビ・グループ ◇養成所の期 ⬡賞レースの決勝（開催）
+            ▱テレビ番組。
             破線の枠は解散・引退など。ドラッグで移動、ホイール・ピンチで拡大縮小。線を選ぶと関係の詳細を表示。半透明の線は確度が中以下。
           </p>
         </details>
@@ -345,7 +349,7 @@ export const Explorer: FC = () => {
               ? "データ読み込み中…"
               : notice || (
                   <>
-                    {focus.startsWith("t:") || focus.startsWith("x:") ? (
+                    {/^[tvx]:/.test(focus) ? (
                       nodeName(focus)
                     ) : (
                       <Link href={nodeHref(focus)}>{nodeName(focus)}</Link>
@@ -490,7 +494,7 @@ export const Explorer: FC = () => {
                 ×
               </button>
               <Heading info={info} />
-              {!selected.startsWith("t:") && !selected.startsWith("x:") && (
+              {!/^[tvx]:/.test(selected) && (
                 <p className="ex-detail">
                   <Link className="chip" href={nodeHref(selected)}>
                     {info.name} の詳細ページ →
@@ -536,6 +540,13 @@ export const Explorer: FC = () => {
                       : "賞レースの競演"}
                   </button>
                 )}
+                {steps.tv && (
+                  <button onClick={() => setFocus(selected, "tv")}>
+                    {selected.startsWith("v:")
+                      ? "出演者を見る"
+                      : "番組共演を見る"}
+                  </button>
+                )}
                 {!expanded.includes(selected) && selected !== focus && (
                   <button
                     onClick={() => addToGraph(selected)}
@@ -555,7 +566,7 @@ export const Explorer: FC = () => {
                     >
                       {l.otherName}
                     </button>
-                    {!l.other.startsWith("t:") && (
+                    {!/^[tv]:/.test(l.other) && (
                       <Link className="ex-rel-link" href={nodeHref(l.other)}>
                         詳細
                       </Link>

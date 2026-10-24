@@ -12,6 +12,7 @@ const TYPES = [
   { id: "g:", label: "コンビ" },
   { id: "t:", label: "同期（期）" },
   { id: "x:", label: "賞レース" },
+  { id: "v:", label: "番組" },
 ] as const
 
 const css = `
@@ -142,7 +143,7 @@ export const SearchBox: FC<{
                       >
                         グラフで開く
                       </Link>
-                      {!id.startsWith("t:") && (
+                      {!id.startsWith("t:") && !id.startsWith("v:") && (
                         <Link className="chip" href={nodeHref(id)}>
                           詳細
                         </Link>

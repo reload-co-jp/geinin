@@ -17,12 +17,14 @@ const KIND_NAME: Record<string, string> = {
   g: "コンビ・グループ",
   t: "同期（養成所の期）",
   x: "賞レースの決勝",
+  v: "テレビ番組",
 }
 const KIND_TONE: Record<string, string | undefined> = {
   p: "red",
   g: undefined,
   t: "blue",
   x: "plain",
+  v: "blue",
 }
 // 関係が多い期ノードでもパネルが延々と伸びないように
 const LINK_LIMIT = 60
@@ -226,6 +228,7 @@ const Badge: FC<{ children: ReactNode; tone?: "warn" | "ok" }> = ({
 
 // 関係の確認状態・確度・根拠。詳細ページとグラフの線の詳細で共用
 export const RelBadges: FC<{ link: LinkInfo }> = ({ link: l }) => {
+  if (l.kind === "tv") return <Badge tone="warn">Wikipedia記載・未照合</Badge>
   if (l.derived) return <Badge>登録データから導出</Badge>
   if (!l.rel)
     return (
@@ -464,54 +467,64 @@ export const SectionTitle: FC<{ children: ReactNode }> = ({ children }) => (
 export const Profile: FC<{
   info: NodeInfo
   renderOther: (l: LinkInfo) => ReactNode
-}> = ({ info, renderOther }) => (
-  <>
-    <Stats info={info} />
-    <Facts info={info} />
-    {info.profileChecked !== undefined && (
-      <p style={{ marginTop: ".5rem" }}>
-        {info.profileChecked ? (
-          <Badge tone="ok">プロフィール出典確認日 {info.profileChecked}</Badge>
-        ) : (
-          <Badge tone="warn">
-            プロフィールは出典未照合（確定情報ではありません）
-          </Badge>
-        )}
-      </p>
-    )}
-    <SectionTitle>関係（{info.links.length}件）</SectionTitle>
-    <Links info={info} renderOther={renderOther} />
-    {info.youtube && (
-      <>
-        <SectionTitle>YouTube（{info.youtube.fetched_at}時点）</SectionTitle>
-        <Youtube info={info} />
-      </>
-    )}
-    {info.programs && (
-      <>
-        <SectionTitle>
-          テレビ出演番組（バラエティなど {info.programs.items.length}件）
-        </SectionTitle>
-        <Programs info={info} />
-      </>
-    )}
-    {info.results.length > 0 && (
-      <>
-        <SectionTitle>賞レース</SectionTitle>
-        <Results info={info} />
-      </>
-    )}
-    {info.sources.length > 0 && (
-      <>
-        <SectionTitle>出典</SectionTitle>
-        <Sources info={info} />
-      </>
-    )}
-    {info.history && (
-      <>
-        <SectionTitle>更新履歴</SectionTitle>
-        <History info={info} />
-      </>
-    )}
-  </>
-)
+}> = ({ info, renderOther }) => {
+  // 芸人・コンビの番組共演は下の「テレビ出演番組」に出すので関係の一覧からは外す
+  const rels = info.id.startsWith("v:")
+    ? info
+    : { ...info, links: info.links.filter((l) => l.kind !== "tv") }
+  return (
+    <>
+      <Stats info={info} />
+      <Facts info={info} />
+      {info.profileChecked !== undefined && (
+        <p style={{ marginTop: ".5rem" }}>
+          {info.profileChecked ? (
+            <Badge tone="ok">
+              プロフィール出典確認日 {info.profileChecked}
+            </Badge>
+          ) : (
+            <Badge tone="warn">
+              プロフィールは出典未照合（確定情報ではありません）
+            </Badge>
+          )}
+        </p>
+      )}
+      <SectionTitle>
+        {info.id.startsWith("v:") ? "出演者" : "関係"}（{rels.links.length}件）
+      </SectionTitle>
+      <Links info={rels} renderOther={renderOther} />
+      {info.youtube && (
+        <>
+          <SectionTitle>YouTube（{info.youtube.fetched_at}時点）</SectionTitle>
+          <Youtube info={info} />
+        </>
+      )}
+      {info.programs && (
+        <>
+          <SectionTitle>
+            テレビ出演番組（バラエティなど {info.programs.items.length}件）
+          </SectionTitle>
+          <Programs info={info} />
+        </>
+      )}
+      {info.results.length > 0 && (
+        <>
+          <SectionTitle>賞レース</SectionTitle>
+          <Results info={info} />
+        </>
+      )}
+      {info.sources.length > 0 && (
+        <>
+          <SectionTitle>出典</SectionTitle>
+          <Sources info={info} />
+        </>
+      )}
+      {info.history && (
+        <>
+          <SectionTitle>更新履歴</SectionTitle>
+          <History info={info} />
+        </>
+      )}
+    </>
+  )
+}

@@ -66,6 +66,18 @@ const style: cytoscape.StylesheetJson = [
       "text-wrap": "wrap",
     },
   },
+  // テレビ番組。番組共演のまとめ先
+  {
+    selector: "node[kind = 'program']",
+    style: {
+      shape: "tag",
+      "background-color": "#e3f3fc",
+      "border-color": "#2b8cc4",
+      "border-width": 2,
+      color: "#0b4f6c",
+      "font-size": 12,
+    },
+  },
   // 写真があれば顔を出し、名前は下に置く
   {
     selector: "node[?photo]",
@@ -213,7 +225,7 @@ const nodeData = (n: GNode, root: boolean) => {
       h: 2.4 * rem + 18,
     }
   }
-  if (n.kind !== "term") {
+  if (n.kind === "person" || n.kind === "group") {
     const size = root ? 76 : 56
     return {
       ...n,
