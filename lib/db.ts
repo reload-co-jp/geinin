@@ -3,6 +3,7 @@ import { db as manual } from "@/data/db"
 import agencies from "@/data/agencies.json"
 import debuts from "@/data/debuts.json"
 import yoshimoto from "@/data/yoshimoto.json"
+import programs from "@/data/programs.json"
 import youtube from "@/data/youtube.json"
 import { mergeAgencies, type AgencyDump } from "@/lib/agencies"
 import { mergeDebuts, type DebutDump } from "@/lib/debuts"
@@ -16,6 +17,7 @@ import {
 } from "@/lib/graph"
 import { linkInfos, termInfo, type NodeInfo } from "@/lib/node-info"
 import type { Confidence } from "@/lib/types"
+import type { ProgramsDump } from "@/lib/programs"
 import { mergeYoshimoto, type YoshimotoDump } from "@/lib/yoshimoto"
 import { youtubeIndex, type YoutubeDump } from "@/lib/youtube"
 
@@ -261,5 +263,11 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
       youtube: { fetched_at: youtube.fetched_at, channels },
     }),
     ...(e.history?.length && { history: e.history }),
+    ...(nodeId in (programs as ProgramsDump).nodes && {
+      programs: {
+        fetched_at: programs.fetched_at,
+        ...(programs as ProgramsDump).nodes[nodeId],
+      },
+    }),
   }
 }

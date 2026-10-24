@@ -393,6 +393,49 @@ export const Youtube: FC<{ info: NodeInfo }> = ({ info }) => (
   </ul>
 )
 
+const PROGRAM_STATUS = { current: "出演中", past: "終了" }
+
+export const Programs: FC<{ info: NodeInfo }> = ({ info }) =>
+  info.programs && (
+    <>
+      <p style={{ fontSize: ".75rem", marginBottom: ".4rem" }}>
+        <Badge tone="warn">Wikipedia記載・出典未照合</Badge>{" "}
+        <a
+          href={`https://ja.wikipedia.org/wiki/${encodeURIComponent(info.programs.page)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Wikipedia「{info.programs.page}」
+        </a>
+        <span style={{ color: "var(--muted)" }}>
+          {" "}
+          {info.programs.fetched_at}取得
+        </span>
+      </p>
+      <ul style={{ paddingLeft: "1.25rem", fontSize: ".85rem" }}>
+        {info.programs.items.map((p) => (
+          <li key={p.title}>
+            {p.title}
+            {p.status && (
+              <>
+                {" "}
+                <Badge tone={p.status === "current" ? "ok" : undefined}>
+                  {PROGRAM_STATUS[p.status]}
+                </Badge>
+              </>
+            )}
+            {p.note && (
+              <span style={{ color: "var(--muted)", fontSize: ".75rem" }}>
+                {" "}
+                {p.note}
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
+    </>
+  )
+
 export const History: FC<{ info: NodeInfo }> = ({ info }) => (
   <ul style={{ paddingLeft: "1.25rem", fontSize: ".8rem" }}>
     {info.history?.map((h) => (
@@ -442,6 +485,14 @@ export const Profile: FC<{
       <>
         <SectionTitle>YouTube（{info.youtube.fetched_at}時点）</SectionTitle>
         <Youtube info={info} />
+      </>
+    )}
+    {info.programs && (
+      <>
+        <SectionTitle>
+          テレビ出演番組（バラエティなど {info.programs.items.length}件）
+        </SectionTitle>
+        <Programs info={info} />
       </>
     )}
     {info.results.length > 0 && (

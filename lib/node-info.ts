@@ -4,6 +4,7 @@ import type {
   HistoryEntry,
   PartialDate,
 } from "@/lib/types"
+import type { Program } from "@/lib/programs"
 import type { YoutubeChannel } from "@/lib/youtube"
 import { linksOf, type EdgeIndex, type EdgeKind, type Graph } from "@/lib/graph"
 
@@ -55,6 +56,8 @@ export type NodeInfo = {
     notes?: string
   }[]
   youtube?: { fetched_at: string; channels: YoutubeChannel[] }
+  // Wikipedia から集めたテレビ出演番組（未照合の二次情報）
+  programs?: { fetched_at: string; page: string; items: Program[] }
   history?: HistoryEntry[]
 }
 
