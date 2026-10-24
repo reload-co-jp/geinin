@@ -140,6 +140,13 @@ export const FinalsTable: FC<{ race: Race }> = ({ race }) => {
 // 例年の目安（月単位）。年により前後する。from/to は 1〜12 の月
 const SCHEDULE = [
   {
+    name: "おもしろ荘",
+    spans: [
+      { label: "決勝", from: 1, to: 1 },
+      { label: "決勝", from: 12, to: 12 },
+    ],
+  },
+  {
     name: "R-1グランプリ",
     spans: [
       { label: "予選", from: 1, to: 2 },
@@ -153,6 +160,10 @@ const SCHEDULE = [
       { label: "予選", from: 2, to: 4 },
       { label: "決勝", from: 5, to: 5 },
     ],
+  },
+  {
+    name: "ツギクル芸人グランプリ",
+    spans: [{ label: "決勝", from: 6, to: 7 }],
   },
   {
     name: "ABCお笑いグランプリ",

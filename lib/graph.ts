@@ -253,6 +253,8 @@ export const raceSlugs: Record<string, string> = {
   "THE SECOND": "the-second",
   ABCお笑いグランプリ: "abc",
   ダブルインパクト: "double-impact",
+  ツギクル芸人グランプリ: "tsugikuru",
+  おもしろ荘: "omoshiroso",
 }
 
 // 順位のラベル。順位不明は空文字
