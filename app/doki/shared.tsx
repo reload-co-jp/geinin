@@ -20,18 +20,21 @@ const score = (id: string) => {
 
 export const SHOWN = 5
 export const ESTIMATED =
-  "デビュー年は養成所の入学年またはグループの結成年から推定"
+  "デビュー年は養成所の卒業年（入学の翌年）またはグループの結成年から推定"
 
 const groupsOf = Map.groupBy(db.memberships, (m) => m.person_id)
-// デビュー年が未登録なら、養成所の入学年→所属グループの最初の結成年で補う
+const thisYear = new Date().getFullYear()
+// デビュー年が未登録なら、養成所の卒業年（入学の翌年）→所属グループの最初の結成年で補う。
+// 在学中でまだ卒業していない期は推定しない
 const debut = (id: string) => {
   const p = personById.get(id.slice(2))!
-  const term =
+  const enrolled =
     p.training_school &&
     p.training_school_term &&
     (graph.nodes.get(`t:${p.training_school}${p.training_school_term}期`)
       ?.year ??
       termYear(p.training_school, p.training_school_term))
+  const term = enrolled && enrolled + 1 <= thisYear ? enrolled + 1 : null
   const formed = (groupsOf.get(p.id) ?? [])
     .map((m) => groupById.get(m.group_id)?.formation_date)
     .filter((d) => d != null)
@@ -101,4 +104,4 @@ export const Names: FC<{ ps: (typeof years)[number][1] }> = ({ ps }) => (
 )
 
 export const ESTIMATED_NOTE =
-  "*はデビュー年が未登録のため、養成所の入学年またはグループの結成年から推定しています。"
+  "*はデビュー年が未登録のため、養成所の卒業年（入学の翌年）またはグループの結成年から推定しています。"
