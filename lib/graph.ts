@@ -587,16 +587,19 @@ export const fromJSON = (j: GraphJSON): Graph => ({
 export const graphHref = (nodeId: string, query = "") =>
   `/graph/?focus=${encodeURIComponent(nodeId)}${query}`
 
-// 期ノードなど個別ページを持たないものはグラフへ
+// 養成所の期ノードなど個別ページを持たないものはグラフへ
 export const nodeHref = (nodeId: string) => {
   const [kind, id] = nodeId.split(":")
   const race = parseRaceId(nodeId)
   const slug = race && raceSlugs[race.competition]
+  const debut = nodeId.match(/^t:(\d{4})年デビュー$/)?.[1]
   return kind === "p"
     ? `/people/${id}/`
     : kind === "g"
       ? `/groups/${id}/`
       : slug
         ? `/races/${slug}/${race.year}/`
-        : graphHref(nodeId)
+        : debut
+          ? `/doki/${debut}/`
+          : graphHref(nodeId)
 }

@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next"
 import { OTHER, ROWS } from "@/app/list/shared"
+import { years } from "@/app/doki/shared"
 import { db, raceIds } from "@/lib/db"
 import { nodeHref } from "@/lib/graph"
 
@@ -20,6 +21,7 @@ const sitemap = (): MetadataRoute.Sitemap =>
     ...db.people.map((p) => `/people/${p.id}/`),
     ...db.groups.map((g) => `/groups/${g.id}/`),
     ...raceIds.map(nodeHref),
+    ...years.map(([y]) => `/doki/${y}/`),
   ].map((path) => ({ url: base + path }))
 
 export default sitemap
