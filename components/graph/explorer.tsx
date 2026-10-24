@@ -6,7 +6,8 @@ import { FC, useEffect, useMemo, useRef, useState } from "react"
 import { CyGraph } from "@/components/graph/cy-graph"
 import { Legend } from "@/components/graph/legend"
 import { useGraphData, useNodeInfo } from "@/components/graph/use-data"
-import { Heading, Profile } from "@/components/profile"
+import { LineSample } from "@/components/graph/legend"
+import { Heading, Profile, RelBadges } from "@/components/profile"
 import { SearchBox } from "@/components/search-box"
 import {
   EDGE_KINDS,
@@ -23,6 +24,7 @@ import type { NodeInfo } from "@/lib/node-info"
 const EMPTY: Graph = { nodes: new Map(), edges: [] }
 
 const DEFAULT_FOCUS = "p:sanma"
+const KIND_ORDER = Object.keys(EDGE_KINDS)
 const DECADES = [1970, 1980, 1990, 2000, 2010, 2020]
 
 const css = `
@@ -49,6 +51,11 @@ const css = `
 .ex-panel-actions button[data-tone="blue"] { background: var(--blue); color: #fff; }
 .ex-panel-actions button[data-tone="red"] { background: var(--accent); color: #fff; }
 .ex-close, .ex-grip { display: none; }
+.ex-list { position: absolute; inset: 0; overflow: auto; list-style: none; margin: 0; padding: .5rem .75rem 4rem; display: grid; align-content: start; gap: .3rem; font-size: .85rem; }
+.ex-list h3 { display: flex; align-items: center; gap: .4rem; font-size: .8rem; margin: .8rem 0 .3rem; }
+.ex-list button { font-size: .82rem; padding: .2rem .7rem; background: var(--surface); box-shadow: none; }
+.ex-list li > button + button { margin-left: .3rem; }
+.ex-list .ex-list-rel { border-style: dashed; color: var(--muted); }
 .zoom { width: 2.5rem; height: 2.5rem; padding: 0; font-size: 1.1rem; background: var(--surface); border-radius: 10px; }
 @media (max-width: 1100px) {
   .ex { grid-template-columns: 220px minmax(0, 1fr) 320px; }
@@ -123,6 +130,12 @@ export const Explorer: FC = () => {
   const agencyId = params.get("agency")
   const decade = params.get("decade") ? Number(params.get("decade")) : null
   const selected = params.get("sel")
+  const edgeParam = params.get("edge")
+  const edge = useMemo(
+    () => (edgeParam ? graph.edges.find((e) => e.id === edgeParam) : undefined),
+    [edgeParam, graph]
+  )
+  const listView = params.get("view") === "list"
 
   // URLが唯一の状態。history.replaceState は Next の useSearchParams に反映される
   const update = (patch: Record<string, string | null>) => {
@@ -148,6 +161,16 @@ export const Explorer: FC = () => {
     [graph, focus, depth, kinds, expanded, agencyId, decade]
   )
   const info = useNodeInfo(data, selected)
+  // 線の説明・根拠は始点ノードの詳細JSONに含まれる
+  const edgeInfo = useNodeInfo(data, edge?.source ?? null)
+  const edgeLink = edgeInfo?.links.find((l) => l.edgeId === edge?.id)
+  const listEdges = useMemo(
+    () =>
+      sub.edges.toSorted(
+        (a, b) => KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind)
+      ),
+    [sub]
+  )
   const roots = useMemo(() => [focus, ...expanded], [focus, expanded])
   const [notice, setNotice] = useState("")
 
@@ -156,11 +179,12 @@ export const Explorer: FC = () => {
       focus: id,
       ex: null,
       sel: id,
+      edge: null,
       ...(m && { mode: m === "all" ? null : m, kinds: null, depth: null }),
     })
   const addToGraph = (id: string) => {
-    if (sub.nodes.has(id)) return update({ sel: id })
-    update({ ex: [...expanded, id].join(","), sel: id })
+    if (sub.nodes.has(id)) return update({ sel: id, edge: null })
+    update({ ex: [...expanded, id].join(","), sel: id, edge: null })
   }
   const setMode = (m: ModeId) =>
     update({ mode: m === "all" ? null : m, kinds: null, depth: null })
@@ -236,6 +260,13 @@ export const Explorer: FC = () => {
               </button>
             ))}
           </div>
+          <button
+            aria-pressed={listView}
+            onClick={() => update({ view: listView ? null : "list" })}
+            style={{ fontSize: ".82rem", padding: ".3rem .8rem" }}
+          >
+            {listView ? "グラフで見る" : "一覧で見る"}
+          </button>
         </div>
 
         <details className="ex-side" ref={sideRef} open>
@@ -326,26 +357,130 @@ export const Explorer: FC = () => {
                 )}
           </p>
           <div className="ex-stage">
-            <CyGraph
-              graph={sub}
-              roots={roots}
-              layout={MODES[mode].layout}
-              selected={selected}
-              onSelect={(id) => update({ sel: id })}
-              summarize={summarize}
-              nodeName={nodeName}
-              showRanks={mode === "race"}
-            />
+            {listView ? (
+              // グラフを操作しにくい環境向けに、表示中の関係を同じ条件で一覧にする
+              <ul className="ex-list">
+                {listEdges.map((e, i) => (
+                  <li key={e.id}>
+                    {listEdges[i - 1]?.kind !== e.kind && (
+                      <h3>
+                        <LineSample kind={e.kind} />
+                        {EDGE_KINDS[e.kind].label}
+                      </h3>
+                    )}
+                    <button
+                      onClick={() => update({ sel: e.source, edge: null })}
+                    >
+                      {nodeName(e.source)}
+                    </button>
+                    <button
+                      className="ex-list-rel"
+                      onClick={() => update({ edge: e.id, sel: null })}
+                    >
+                      {e.label}
+                      {EDGE_KINDS[e.kind].arrow === "triangle" ? " →" : ""}
+                    </button>
+                    <button
+                      onClick={() => update({ sel: e.target, edge: null })}
+                    >
+                      {nodeName(e.target)}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <CyGraph
+                graph={sub}
+                roots={roots}
+                layout={MODES[mode].layout}
+                selected={selected}
+                onSelect={(id) => update({ sel: id, edge: null })}
+                onSelectEdge={(id) => update({ edge: id, sel: null })}
+                summarize={summarize}
+                nodeName={nodeName}
+                showRanks={mode === "race"}
+              />
+            )}
           </div>
         </div>
 
         <aside
           className="ex-panel"
-          data-open={selected ? "true" : "false"}
+          data-open={selected || edge ? "true" : "false"}
           aria-label="選択中の詳細"
         >
           <div className="ex-grip" aria-hidden="true" />
-          {selected && info && steps ? (
+          {edge && !selected ? (
+            <>
+              <button
+                className="ex-close"
+                onClick={() => update({ edge: null })}
+                aria-label="閉じる"
+              >
+                ×
+              </button>
+              <p className="sticker" data-tone="plain">
+                関係
+              </p>
+              <h2 style={{ fontSize: "1.3rem", background: "none" }}>
+                {nodeName(edge.source)}
+                {EDGE_KINDS[edge.kind].arrow === "triangle" ? " → " : " ― "}
+                {nodeName(edge.target)}
+              </h2>
+              <p
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: ".4rem",
+                  fontSize: ".85rem",
+                  fontWeight: 800,
+                  margin: ".5rem 0",
+                }}
+              >
+                <LineSample kind={edge.kind} />
+                {EDGE_KINDS[edge.kind].label}
+                {edge.label !== EDGE_KINDS[edge.kind].label &&
+                  `（${edge.label}）`}
+              </p>
+              {edgeLink ? (
+                <>
+                  <div
+                    style={{ display: "flex", gap: ".25rem", flexWrap: "wrap" }}
+                  >
+                    <RelBadges link={edgeLink} />
+                  </div>
+                  {edgeLink.rel?.description && (
+                    <p style={{ fontSize: ".875rem", marginTop: ".6rem" }}>
+                      {edgeLink.rel.description}
+                    </p>
+                  )}
+                  {edgeLink.period && (
+                    <p style={{ fontSize: ".8rem" }}>在籍 {edgeLink.period}</p>
+                  )}
+                </>
+              ) : (
+                <p style={{ fontSize: ".8rem", color: "var(--muted)" }}>
+                  {edge.derived ? "登録データから導出した関係" : "読み込み中…"}
+                </p>
+              )}
+              <div className="ex-panel-actions">
+                {[edge.source, edge.target].map((id) => (
+                  <button
+                    key={id}
+                    onClick={() => update({ sel: id, edge: null })}
+                  >
+                    {nodeName(id)}を見る
+                  </button>
+                ))}
+              </div>
+              {!edge.derived && (
+                <p style={{ fontSize: ".75rem", color: "var(--muted)" }}>
+                  出典は{nodeName(edge.source)}
+                  の詳細ページに掲載しています。
+                </p>
+              )}
+            </>
+          ) : selected && info && steps ? (
             <>
               <button
                 className="ex-close"

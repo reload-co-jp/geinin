@@ -34,7 +34,22 @@ export const groupById = new Map(db.groups.map((g) => [g.id, g]))
 const agencyById = new Map(db.agencies.map((a) => [a.id, a.name]))
 const sourceById = new Map(db.sources.map((s) => [s.id, s]))
 const relById = new Map(db.relationships.map((r) => [r.id, r]))
+const membershipById = new Map(
+  db.memberships.map((m) => [`m:${m.person_id}:${m.group_id}`, m])
+)
 const youtubeOf = youtubeIndex(youtube as YoutubeDump)
+
+// 同名の芸人・グループ（別人か重複登録かはデータからは判定しない）
+const byLabel = Map.groupBy(
+  [...graph.nodes.values()].filter(
+    (n) => n.kind === "person" || n.kind === "group"
+  ),
+  (n) => n.label
+)
+export const sameName = (nodeId: string) =>
+  (byLabel.get(graph.nodes.get(nodeId)?.label ?? "") ?? []).filter(
+    (n) => n.id !== nodeId
+  )
 
 export const agencyName = (id: string | null) =>
   (id && agencyById.get(id)) ?? null
@@ -147,6 +162,9 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
   const channels = youtubeOf(e.source_ids)
 
   const links = linkInfos(graph, edgeIndex, nodeId).map((l) => {
+    const m = membershipById.get(l.edgeId)
+    if (m && (m.start_date || m.end_date))
+      return { ...l, period: `${m.start_date ?? "?"}〜${m.end_date ?? ""}` }
     const r = l.edgeId.startsWith("r:") ? relById.get(l.edgeId.slice(2)) : null
     return r
       ? {
@@ -156,6 +174,7 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
             start_date: r.start_date,
             end_date: r.end_date,
             last_verified_at: r.last_verified_at,
+            evidence_type: r.evidence_type,
           },
         }
       : l
@@ -213,11 +232,17 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
         }
       : null,
     facts: facts.filter((f): f is [string, string] => !!f[1]),
+    profileChecked:
+      e.source_ids
+        .map((sid) => sourceById.get(sid)?.checked_at)
+        .filter((d): d is string => !!d)
+        .toSorted()
+        .at(-1) ?? null,
     links,
-    results: results.map(
-      (r) =>
-        `${r.competition_name} ${r.year} ${r.stage}${r.rank ? ` ${r.rank === 1 ? "優勝" : `${r.rank}位`}` : ""}${r.entrant_id !== nodeId ? `（${graph.nodes.get(r.entrant_id)?.label}）` : ""}`
-    ),
+    results: results.map((r) => ({
+      label: `${r.competition_name} ${r.year} ${r.stage}${r.rank ? ` ${r.rank === 1 ? "優勝" : `${r.rank}位`}` : ""}${r.entrant_id !== nodeId ? `（${graph.nodes.get(r.entrant_id)?.label}）` : ""}`,
+      raceId: r.stage === "決勝" ? raceId(r.competition_name, r.year) : null,
+    })),
     sources: [...sourceIds].flatMap((sid) => {
       const s = sourceById.get(sid)
       return s

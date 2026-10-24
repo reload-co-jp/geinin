@@ -18,6 +18,7 @@ export const generateMetadata = async ({ params }: Props) => {
   const { row } = await params
   return {
     title: `一覧（${rows.find((r) => r.slug === row)?.label}）`,
+    description: `読みが${rows.find((r) => r.slug === row)?.label}の芸人・コンビ・グループの一覧`,
     alternates: { canonical: `/list/${row}/` },
   }
 }

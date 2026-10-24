@@ -69,6 +69,15 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
           <p>
             掲載情報は公開情報の要約です。「出典未照合」の項目は確定情報ではありません。
           </p>
+          <p>
+            <a
+              href="https://github.com/reload-co-jp/geinin/issues/new?title=%E6%83%85%E5%A0%B1%E3%81%AE%E8%AA%A4%E3%82%8A"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              掲載情報の誤りを報告
+            </a>
+          </p>
         </Footer>
       </body>
     </html>

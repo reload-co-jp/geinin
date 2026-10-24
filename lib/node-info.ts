@@ -1,4 +1,9 @@
-import type { Confidence, HistoryEntry, PartialDate } from "@/lib/types"
+import type {
+  Confidence,
+  EvidenceType,
+  HistoryEntry,
+  PartialDate,
+} from "@/lib/types"
 import type { YoutubeChannel } from "@/lib/youtube"
 import { linksOf, type EdgeIndex, type EdgeKind, type Graph } from "@/lib/graph"
 
@@ -11,11 +16,14 @@ export type LinkInfo = {
   label: string
   derived: boolean
   confidence: Confidence
+  // コンビ在籍期間（メンバーの線のみ）
+  period?: string
   rel: {
     description: string
     start_date: PartialDate
     end_date: PartialDate
     last_verified_at: PartialDate
+    evidence_type: EvidenceType
   } | null
 }
 
@@ -34,8 +42,11 @@ export type NodeInfo = {
   } | null
   finals?: { count: number; best: number | null } | null
   facts: [string, string][]
+  // プロフィール本体の出典照合日。null = 未照合、undefined = 対象外（期・開催）
+  profileChecked?: PartialDate
   links: LinkInfo[]
-  results: string[]
+  // raceId は決勝のみ（開催ページがあるのは決勝だけ）
+  results: { label: string; raceId: string | null }[]
   sources: {
     id: string
     name: string
@@ -46,6 +57,22 @@ export type NodeInfo = {
   youtube?: { fetched_at: string; channels: YoutubeChannel[] }
   history?: HistoryEntry[]
 }
+
+export const EVIDENCE_LABEL: Record<EvidenceType, string> = {
+  official_profile: "公式プロフィール",
+  self_statement: "本人の発言",
+  competition_record: "大会記録",
+  broadcast_record: "放送記録",
+  media_report: "報道",
+  encyclopedia: "事典",
+}
+
+// 確認済み = 出典と照合済み / 推定 = 確度低 / それ以外は未確認
+export const verifyState = (
+  confidence: Confidence,
+  verifiedAt: PartialDate
+): "確認済み" | "未確認" | "推定" =>
+  verifiedAt ? "確認済み" : confidence === "low" ? "推定" : "未確認"
 
 export const linkInfos = (
   g: Graph,

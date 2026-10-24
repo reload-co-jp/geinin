@@ -7,6 +7,7 @@ export type Pick = {
   title: string
   kind: string
   description: string
+  unverified: boolean
   href: string
 }
 
@@ -27,6 +28,11 @@ export const WeeklyPick: FC<{ picks: Pick[] }> = ({ picks }) => {
       </span>
       <strong className="weekly-title">{p.title}</strong>
       <span className="weekly-desc">{p.description}</span>
+      {p.unverified && (
+        <span style={{ fontSize: ".75rem", color: "var(--muted)" }}>
+          ※出典未照合の情報です
+        </span>
+      )}
       <span className="weekly-go">グラフでたどる →</span>
     </Link>
   )

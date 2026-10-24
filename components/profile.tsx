@@ -1,7 +1,13 @@
+import Link from "next/link"
 import { FC, Fragment, ReactNode } from "react"
 import { LineSample } from "@/components/graph/legend"
-import { EDGE_KINDS } from "@/lib/graph"
-import type { LinkInfo, NodeInfo } from "@/lib/node-info"
+import { EDGE_KINDS, nodeHref } from "@/lib/graph"
+import {
+  EVIDENCE_LABEL,
+  verifyState,
+  type LinkInfo,
+  type NodeInfo,
+} from "@/lib/node-info"
 
 // 詳細パネル（クライアント）と詳細ページ（サーバー）で共用する。データ取得はせず NodeInfo を描くだけ
 
@@ -218,6 +224,32 @@ const Badge: FC<{ children: ReactNode; tone?: "warn" | "ok" }> = ({
   </span>
 )
 
+// 関係の確認状態・確度・根拠。詳細ページとグラフの線の詳細で共用
+export const RelBadges: FC<{ link: LinkInfo }> = ({ link: l }) => {
+  if (l.derived) return <Badge>登録データから導出</Badge>
+  if (!l.rel)
+    return (
+      l.kind !== "member" &&
+      l.kind !== "former_member" && (
+        <Badge>{CONFIDENCE_LABEL[l.confidence]}</Badge>
+      )
+    )
+  const state = verifyState(l.confidence, l.rel.last_verified_at)
+  return (
+    <>
+      <Badge tone={state === "確認済み" ? "ok" : "warn"}>
+        {state === "確認済み"
+          ? `確認済み ${l.rel.last_verified_at}`
+          : state === "推定"
+            ? "推定（出典未照合）"
+            : "未確認（出典未照合）"}
+      </Badge>
+      <Badge>{CONFIDENCE_LABEL[l.confidence]}</Badge>
+      <Badge>根拠: {EVIDENCE_LABEL[l.rel.evidence_type]}</Badge>
+    </>
+  )
+}
+
 // renderOther: 相手ノードの表示（パネルではボタン、詳細ページではリンク）
 export const Links: FC<{
   info: NodeInfo
@@ -273,20 +305,8 @@ export const Links: FC<{
                   marginLeft: "3.4rem",
                 }}
               >
-                {l.derived ? (
-                  <Badge>登録データから導出</Badge>
-                ) : (
-                  l.kind !== "member" &&
-                  l.kind !== "former_member" && (
-                    <Badge>{CONFIDENCE_LABEL[l.confidence]}</Badge>
-                  )
-                )}
-                {l.rel &&
-                  (l.rel.last_verified_at ? (
-                    <Badge tone="ok">確認日 {l.rel.last_verified_at}</Badge>
-                  ) : (
-                    <Badge tone="warn">出典未照合</Badge>
-                  ))}
+                <RelBadges link={l} />
+                {l.period && <Badge>在籍 {l.period}</Badge>}
                 {l.rel && (l.rel.start_date || l.rel.end_date) && (
                   <Badge>{`${l.rel.start_date ?? "?"}〜${l.rel.end_date ?? ""}`}</Badge>
                 )}
@@ -320,7 +340,13 @@ export const Results: FC<{ info: NodeInfo }> = ({ info }) =>
   info.results.length > 0 && (
     <ul style={{ paddingLeft: "1.25rem", fontSize: ".875rem" }}>
       {info.results.map((r) => (
-        <li key={r}>{r}</li>
+        <li key={r.label}>
+          {r.raceId ? (
+            <Link href={nodeHref(r.raceId)}>{r.label}</Link>
+          ) : (
+            r.label
+          )}
+        </li>
       ))}
     </ul>
   )
@@ -399,6 +425,17 @@ export const Profile: FC<{
   <>
     <Stats info={info} />
     <Facts info={info} />
+    {info.profileChecked !== undefined && (
+      <p style={{ marginTop: ".5rem" }}>
+        {info.profileChecked ? (
+          <Badge tone="ok">プロフィール出典確認日 {info.profileChecked}</Badge>
+        ) : (
+          <Badge tone="warn">
+            プロフィールは出典未照合（確定情報ではありません）
+          </Badge>
+        )}
+      </p>
+    )}
     <SectionTitle>関係（{info.links.length}件）</SectionTitle>
     <Links info={info} renderOther={renderOther} />
     {info.youtube && (

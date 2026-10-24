@@ -242,6 +242,7 @@ type Props = {
   layout: "radial" | "tree"
   selected: string | null
   onSelect: (id: string | null) => void
+  onSelectEdge: (id: string) => void
   // ホバー時に出す関係の概要
   summarize: (id: string) => string
   nodeName: (id: string) => string
@@ -255,6 +256,7 @@ export const CyGraph: FC<Props> = ({
   layout,
   selected,
   onSelect,
+  onSelectEdge,
   summarize,
   nodeName,
   showRanks,
@@ -262,9 +264,9 @@ export const CyGraph: FC<Props> = ({
   const ref = useRef<HTMLDivElement>(null)
   const cy = useRef<Core>(null)
   const [tip, setTip] = useState<Tip | null>(null)
-  const latest = useRef({ onSelect, summarize, nodeName })
+  const latest = useRef({ onSelect, onSelectEdge, summarize, nodeName })
   useEffect(() => {
-    latest.current = { onSelect, summarize, nodeName }
+    latest.current = { onSelect, onSelectEdge, summarize, nodeName }
   })
 
   useEffect(() => {
@@ -309,6 +311,7 @@ export const CyGraph: FC<Props> = ({
         title: `${nodeName(d.source)} ${EDGE_KINDS[d.kind].arrow === "triangle" ? "→" : "―"} ${nodeName(d.target)}`,
         body: `${EDGE_KINDS[d.kind].label}${d.label !== EDGE_KINDS[d.kind].label ? `：${d.label}` : ""}${d.derived ? "（登録データから導出）" : d.confidence !== "high" ? "（確度：中以下）" : ""}`,
       })
+      latest.current.onSelectEdge(d.id)
     })
     c.on("pan zoom", () => setTip(null))
     cy.current = c

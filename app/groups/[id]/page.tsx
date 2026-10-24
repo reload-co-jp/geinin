@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import { NodeDetail } from "@/components/node-detail"
 import { JsonLd } from "@/components/json-ld"
-import { agencyName, db, groupById, personById } from "@/lib/db"
+import { agencyName, db, groupById, personById, sameName } from "@/lib/db"
 
 type Props = { params: Promise<{ id: string }> }
 
@@ -12,8 +12,20 @@ export const generateMetadata = async ({ params }: Props) => {
   const g = groupById.get(id)
   return g
     ? {
-        title: `${g.name}（${g.reading}）`,
-        description: `${g.name}のメンバー・変遷・賞レース戦績と関係性`,
+        // 同名の登録があるときは事務所を添えて区別する
+        title: `${g.name}（${g.reading}）${sameName(`g:${id}`).length && agencyName(g.agency_id) ? ` - ${agencyName(g.agency_id)}` : ""}`,
+        description: [
+          `${g.name}（${g.reading}）`,
+          agencyName(g.agency_id),
+          g.formation_date && `${g.formation_date.slice(0, 4)}年結成`,
+          db.memberships
+            .filter((m) => m.group_id === id)
+            .map((m) => personById.get(m.person_id)?.name)
+            .join("・") || null,
+        ]
+          .filter(Boolean)
+          .join(" / ")
+          .concat("。メンバー変遷・賞レース戦績と関係性"),
         alternates: { canonical: `/groups/${id}/` },
       }
     : {}

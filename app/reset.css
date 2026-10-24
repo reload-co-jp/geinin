@@ -196,6 +196,24 @@ header nav a:nth-child(3n):hover {
   box-shadow: 2px 2px 0 var(--text);
 }
 
+/* 相関図へ送る主導線 */
+.cta {
+  display: inline-block;
+  padding: 0.6rem 1.2rem;
+  font-family: var(--display);
+  font-weight: 400;
+  text-decoration: none;
+  color: #fff;
+  background: var(--accent);
+  border: 3px solid var(--text);
+  box-shadow: var(--shadow);
+}
+
+.cta:hover {
+  background: var(--text);
+  color: var(--pop);
+}
+
 body > header {
   align-items: center;
   background-color: var(--surface);

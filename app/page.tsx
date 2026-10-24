@@ -18,9 +18,12 @@ import {
 const name = (nodeId: string) => graph.nodes.get(nodeId)?.label ?? nodeId
 const thisYear = new Date().getFullYear()
 
-// ヒーローの相関図: 同期以外の関係がいちばん多い人物を中心に据える
+// ヒーローの相関図: 同期・賞レース以外の関係がいちばん多い人物を中心に据える
+// （導出される同期・賞レースを含めると大会名ばかりの図になる）
 const heroLinks = (id: string) =>
-  linksOf(edgeIndex, id).filter((l) => l.edge.kind !== "doki")
+  linksOf(edgeIndex, id).filter(
+    (l) => l.edge.kind !== "doki" && l.edge.kind !== "competition"
+  )
 const heroId = manual.people
   .map((p) => `p:${p.id}`)
   .toSorted((a, b) => heroLinks(b).length - heroLinks(a).length)[0]
@@ -31,6 +34,7 @@ const picks: Pick[] = db.relationships.map((r) => ({
   title: `${personById.get(r.source_person_id)?.name} × ${personById.get(r.target_person_id)?.name}`,
   kind: EDGE_KINDS[r.relationship_type].label,
   description: r.description,
+  unverified: !r.last_verified_at,
   href: graphHref(`p:${r.source_person_id}`, `&sel=p:${r.target_person_id}`),
 }))
 
@@ -92,6 +96,10 @@ const combis = manual.groups
     return { id: g.id, name: g.name, from, to, former: former.length }
   })
   .toSorted((a, b) => a.from - b.from)
+// 元メンバーがいちばん多いコンビ（入口リンク用）
+const changed = combis
+  .filter((c) => c.former > 0)
+  .toSorted((a, b) => b.former - a.former)[0]
 const minYear = Math.min(...combis.map((c) => c.from))
 const span = thisYear - minYear
 
@@ -116,8 +124,9 @@ const races = [
 const counts = [
   { label: "芸人", value: db.people.length, unit: "人" },
   { label: "コンビ・グループ", value: db.groups.length, unit: "組" },
+  { label: "師弟・共演などの関係", value: db.relationships.length, unit: "件" },
   {
-    label: "つながり",
+    label: "グラフ上のつながり",
     value: graph.edges.length,
     unit: "本",
   },
@@ -136,6 +145,8 @@ const css = `
 .entries a:nth-child(1) { background: var(--accent); color: #fff; }
 .entries a:nth-child(2) { background: var(--blue); color: #fff; }
 .entries a:nth-child(3) { background: var(--pop); }
+.entries a:nth-child(4) { background: var(--text); color: var(--pop); }
+.more { font-size: .85rem; margin-left: auto; }
 .stage { position: relative; aspect-ratio: 1; border: 3px solid var(--text); border-radius: 50%; background: repeating-conic-gradient(from 0deg, #ffcf2455 0 6deg, transparent 6deg 15deg), radial-gradient(circle, #fff 0 35%, var(--bg) 70%); box-shadow: 8px 8px 0 var(--text); overflow: hidden; display: block; text-decoration: none; }
 .stage:hover { background: repeating-conic-gradient(from 4deg, #ffcf2477 0 6deg, transparent 6deg 15deg), radial-gradient(circle, #fff 0 35%, var(--bg) 70%); }
 .stage svg { width: 100%; height: 100%; display: block; }
@@ -184,7 +195,7 @@ const css = `
 .race li:first-child .num { color: var(--accent); }
 .race a { text-decoration: none; }
 .race h3 a { color: inherit; }
-.counts { display: grid; grid-template-columns: repeat(4, 1fr); border: 3px solid var(--text); background: var(--text); gap: 3px; }
+.counts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); border: 3px solid var(--text); background: var(--text); gap: 3px; }
 .counts div { background: var(--pop); padding: 1rem; display: grid; gap: .2rem; }
 .counts div:nth-child(2n) { background: var(--surface); }
 .counts .num { font-size: clamp(1.8rem, 4.5vw, 3rem); }
@@ -192,7 +203,6 @@ const css = `
   .top { gap: 2.5rem; }
   .hero, .two { grid-template-columns: 1fr; }
   .stage { max-width: 420px; width: 100%; margin: 0 auto; }
-  .counts { grid-template-columns: repeat(2, 1fr); }
   .tl-row { grid-template-columns: 6rem 1fr; }
   .tl-axis { margin-left: 6.6rem; }
   .weekly { padding: 1.25rem; }
@@ -292,15 +302,21 @@ const HeroGraph: FC = () => {
   )
 }
 
-const SecHead: FC<{ kicker: string; title: string; lead?: string }> = ({
-  kicker,
-  title,
-  lead,
-}) => (
+const SecHead: FC<{
+  kicker: string
+  title: string
+  lead?: string
+  more?: [string, string]
+}> = ({ kicker, title, lead, more }) => (
   <div className="sec-head">
     <span className="kicker">{kicker}</span>
     <h2>{title}</h2>
     {lead && <p>{lead}</p>}
+    {more && (
+      <Link className="more" href={more[1]}>
+        {more[0]} →
+      </Link>
+    )}
   </div>
 )
 
@@ -317,7 +333,7 @@ const Page: FC = () => (
           data-tone="red"
           style={{ width: "fit-content" }}
         >
-          お笑い人物相関図
+          芸人同士のつながりをたどる
         </span>
         <h2>
           その芸人、
@@ -331,22 +347,28 @@ const Page: FC = () => (
         </p>
         <SearchBox />
         <nav className="entries" aria-label="探し方">
-          <Link className="chip" href="/list/">
-            芸人から探す
-          </Link>
-          {terms[0] && (
-            <Link className="chip" href={graphHref(terms[0].id, "&mode=doki")}>
-              同期から探す
-            </Link>
-          )}
           {lineage && (
             <Link
               className="chip"
               href={graphHref(`p:${lineage[0]}`, "&mode=lineage")}
             >
-              師弟関係を探す
+              意外な師弟関係
             </Link>
           )}
+          <Link className="chip" href="/doki/">
+            同期芸人
+          </Link>
+          {changed && (
+            <Link
+              className="chip"
+              href={graphHref(`g:${changed.id}`, "&mode=combi")}
+            >
+              コンビの変遷
+            </Link>
+          )}
+          <Link className="chip" href="/races/">
+            賞レースのライバル
+          </Link>
           <Link className="chip" href="/graph/">
             相関図を自由に見る
           </Link>
@@ -372,6 +394,10 @@ const Page: FC = () => (
           kicker="系譜"
           title="芸人の系譜をたどる"
           lead={`師匠から弟子へ、${lineage.length}代にわたるつながり`}
+          more={[
+            "師弟系譜をグラフで見る",
+            graphHref(`p:${lineage[0]}`, "&mode=lineage"),
+          ]}
         />
         <div className="lineage">
           {lineage.map((id, i) => (
@@ -419,6 +445,7 @@ const Page: FC = () => (
             kicker="同期"
             title="同期芸人をまとめて見る"
             lead="登録の多い養成所の期"
+            more={["同期一覧", "/doki/"]}
           />
           <ol className="rank">
             {terms.map((t, i) => (
@@ -444,6 +471,7 @@ const Page: FC = () => (
             kicker="変遷"
             title="コンビの結成・解散"
             lead="結成年の分かるコンビの年表"
+            more={["芸人・コンビ一覧", "/list/"]}
           />
           <div className="timeline">
             {combis.map((g) => (
@@ -484,6 +512,7 @@ const Page: FC = () => (
           kicker="賞レース"
           title="賞レースから見るライバル関係"
           lead="同じ年の決勝を戦った芸人同士"
+          more={["賞レース一覧", "/races/"]}
         />
         <div className="races">
           {races.map((race) => (
