@@ -14,8 +14,6 @@ const sitemap = (): MetadataRoute.Sitemap =>
     "/",
     "/graph/",
     "/list/",
-    "/schedule/",
-    "/finals/",
     "/doki/",
     "/search/",
     ...[...ROWS, OTHER].map((r) => `/list/${r.slug}/`),
