@@ -304,6 +304,8 @@ const SecHead: FC<{ kicker: string; title: string; lead?: string }> = ({
   </div>
 )
 
+export const metadata = { alternates: { canonical: "/" } }
+
 const Page: FC = () => (
   <div className="top">
     <style>{css}</style>

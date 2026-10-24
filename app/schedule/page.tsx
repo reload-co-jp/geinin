@@ -1,6 +1,10 @@
 import { FC } from "react"
 
-export const metadata = { title: "賞レース開催時期" }
+export const metadata = {
+  title: "賞レース開催時期",
+  description: "M-1・キングオブコントなど主要お笑い賞レースの予選・決勝の開催時期",
+  alternates: { canonical: "/schedule/" },
+}
 
 // 例年の目安（月単位）。年により前後する。from/to は 1〜12 の月
 const SCHEDULE = [

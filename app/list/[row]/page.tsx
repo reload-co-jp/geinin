@@ -16,7 +16,10 @@ export const generateStaticParams = () => rows.map((r) => ({ row: r.slug }))
 
 export const generateMetadata = async ({ params }: Props) => {
   const { row } = await params
-  return { title: `一覧（${rows.find((r) => r.slug === row)?.label}）` }
+  return {
+    title: `一覧（${rows.find((r) => r.slug === row)?.label}）`,
+    alternates: { canonical: `/list/${row}/` },
+  }
 }
 
 const Page = async ({ params }: Props) => {

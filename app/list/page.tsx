@@ -4,7 +4,11 @@ import { CONFIDENCE_LABEL, db, personById } from "@/lib/db"
 import { EDGE_KINDS } from "@/lib/graph"
 import { OTHER, ROWS, rowOf, td, th } from "./shared"
 
-export const metadata = { title: "一覧" }
+export const metadata = {
+  title: "一覧",
+  description: "芸人・グループ・関係性を五十音順にまとめた一覧",
+  alternates: { canonical: "/list/" },
+}
 
 const name = (id: string) => personById.get(id)?.name
 const counts = new Map(

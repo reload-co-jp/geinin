@@ -4,7 +4,11 @@ import { db, graph } from "@/lib/db"
 import { nodeHref, raceId } from "@/lib/graph"
 import { FinalsView, YearData } from "@/components/finals-view"
 
-export const metadata = { title: "賞レース決勝進出の遍歴" }
+export const metadata = {
+  title: "賞レース決勝進出の遍歴",
+  description: "M-1・キングオブコント・R-1など賞レース決勝進出者の年別遍歴",
+  alternates: { canonical: "/finals/" },
+}
 
 const cell = {
   padding: ".35rem .5rem",

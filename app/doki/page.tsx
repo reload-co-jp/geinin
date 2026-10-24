@@ -3,7 +3,11 @@ import { FC } from "react"
 import { db, edgeIndex, graph, groupById, personById } from "@/lib/db"
 import { nodeHref, termYear } from "@/lib/graph"
 
-export const metadata = { title: "同期芸人一覧" }
+export const metadata = {
+  title: "同期芸人一覧",
+  description: "お笑い芸人をデビュー年ごとにまとめた同期一覧",
+  alternates: { canonical: "/doki/" },
+}
 
 const results = Map.groupBy(db.competitionResults, (r) => r.entrant_id)
 // 賞レース成績（本人とコンビ等の出場）と共演の数

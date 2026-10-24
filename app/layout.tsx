@@ -8,7 +8,7 @@ export const metadata = {
   description:
     "お笑い芸人の師弟・同期・コンビ変遷・共演・賞レースの関係をネットワークグラフでたどるデータベース",
   openGraph: { siteName: "芸人系譜DB", type: "website", locale: "ja_JP" },
-  twitter: { card: "summary" },
+  twitter: { card: "summary_large_image" },
 }
 
 const RootLayout = ({ children }: { children: React.ReactNode }) => {
