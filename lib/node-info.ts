@@ -1,4 +1,4 @@
-import type { Confidence, PartialDate } from "@/lib/types"
+import type { Confidence, HistoryEntry, PartialDate } from "@/lib/types"
 import { linksOf, type EdgeIndex, type EdgeKind, type Graph } from "@/lib/graph"
 
 // 詳細パネル・詳細ページの表示内容。サーバーで組み立て、パネルには静的JSONとして配信する
@@ -42,6 +42,7 @@ export type NodeInfo = {
     checked_at: PartialDate
     notes?: string
   }[]
+  history?: HistoryEntry[]
 }
 
 export const linkInfos = (

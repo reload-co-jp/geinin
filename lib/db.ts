@@ -228,5 +228,6 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
           ]
         : []
     }),
+    ...(e.history?.length && { history: e.history }),
   }
 }

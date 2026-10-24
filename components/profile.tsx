@@ -345,6 +345,16 @@ export const Sources: FC<{ info: NodeInfo }> = ({ info }) => (
   </ul>
 )
 
+export const History: FC<{ info: NodeInfo }> = ({ info }) => (
+  <ul style={{ paddingLeft: "1.25rem", fontSize: ".8rem" }}>
+    {info.history?.map((h) => (
+      <li key={`${h.date}-${h.note}`}>
+        <span style={{ color: "var(--muted)" }}>{h.date}</span> {h.note}
+      </li>
+    ))}
+  </ul>
+)
+
 export const SectionTitle: FC<{ children: ReactNode }> = ({ children }) => (
   <h3
     style={{
@@ -379,6 +389,12 @@ export const Profile: FC<{
       <>
         <SectionTitle>出典</SectionTitle>
         <Sources info={info} />
+      </>
+    )}
+    {info.history && (
+      <>
+        <SectionTitle>更新履歴</SectionTitle>
+        <History info={info} />
       </>
     )}
   </>

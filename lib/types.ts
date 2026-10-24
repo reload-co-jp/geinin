@@ -27,6 +27,9 @@ export type Source = {
 
 export type Agency = { id: string; name: string }
 
+// データの更新履歴。新しい順に並べる
+export type HistoryEntry = { date: string; note: string }
+
 export type Person = {
   id: string
   name: string
@@ -40,6 +43,7 @@ export type Person = {
   biography: string | null
   activity_status: ActivityStatus | null
   photo_url?: string | null
+  history?: HistoryEntry[]
   source_ids: string[]
 }
 
@@ -54,6 +58,7 @@ export type Group = {
   agency_id: string | null
   activity_status: ActivityStatus | null
   photo_url?: string | null
+  history?: HistoryEntry[]
   source_ids: string[]
 }
 
