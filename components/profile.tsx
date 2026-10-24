@@ -345,6 +345,28 @@ export const Sources: FC<{ info: NodeInfo }> = ({ info }) => (
   </ul>
 )
 
+const subscribers = new Intl.NumberFormat("ja-JP", {
+  notation: "compact",
+  maximumSignificantDigits: 3,
+})
+
+export const Youtube: FC<{ info: NodeInfo }> = ({ info }) => (
+  <ul style={{ paddingLeft: "1.25rem", fontSize: ".875rem" }}>
+    {info.youtube?.channels.map((c) => (
+      <li key={c.url}>
+        <a href={c.url} target="_blank" rel="noopener noreferrer">
+          {c.title}
+        </a>{" "}
+        {c.subscribers !== null && (
+          <span style={{ color: "var(--muted)" }}>
+            登録者 {subscribers.format(c.subscribers)}人
+          </span>
+        )}
+      </li>
+    ))}
+  </ul>
+)
+
 export const History: FC<{ info: NodeInfo }> = ({ info }) => (
   <ul style={{ paddingLeft: "1.25rem", fontSize: ".8rem" }}>
     {info.history?.map((h) => (
@@ -379,6 +401,12 @@ export const Profile: FC<{
     <Facts info={info} />
     <SectionTitle>関係（{info.links.length}件）</SectionTitle>
     <Links info={info} renderOther={renderOther} />
+    {info.youtube && (
+      <>
+        <SectionTitle>YouTube（{info.youtube.fetched_at}時点）</SectionTitle>
+        <Youtube info={info} />
+      </>
+    )}
     {info.results.length > 0 && (
       <>
         <SectionTitle>賞レース</SectionTitle>

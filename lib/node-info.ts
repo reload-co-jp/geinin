@@ -1,4 +1,5 @@
 import type { Confidence, HistoryEntry, PartialDate } from "@/lib/types"
+import type { YoutubeChannel } from "@/lib/youtube"
 import { linksOf, type EdgeIndex, type EdgeKind, type Graph } from "@/lib/graph"
 
 // 詳細パネル・詳細ページの表示内容。サーバーで組み立て、パネルには静的JSONとして配信する
@@ -42,6 +43,7 @@ export type NodeInfo = {
     checked_at: PartialDate
     notes?: string
   }[]
+  youtube?: { fetched_at: string; channels: YoutubeChannel[] }
   history?: HistoryEntry[]
 }
 

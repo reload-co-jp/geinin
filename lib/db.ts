@@ -3,6 +3,7 @@ import { db as manual } from "@/data/db"
 import agencies from "@/data/agencies.json"
 import debuts from "@/data/debuts.json"
 import yoshimoto from "@/data/yoshimoto.json"
+import youtube from "@/data/youtube.json"
 import { mergeAgencies, type AgencyDump } from "@/lib/agencies"
 import { mergeDebuts, type DebutDump } from "@/lib/debuts"
 import {
@@ -16,6 +17,7 @@ import {
 import { linkInfos, termInfo, type NodeInfo } from "@/lib/node-info"
 import type { Confidence } from "@/lib/types"
 import { mergeYoshimoto, type YoshimotoDump } from "@/lib/yoshimoto"
+import { youtubeIndex, type YoutubeDump } from "@/lib/youtube"
 
 export const db = mergeDebuts(
   mergeAgencies(
@@ -32,6 +34,7 @@ export const groupById = new Map(db.groups.map((g) => [g.id, g]))
 const agencyById = new Map(db.agencies.map((a) => [a.id, a.name]))
 const sourceById = new Map(db.sources.map((s) => [s.id, s]))
 const relById = new Map(db.relationships.map((r) => [r.id, r]))
+const youtubeOf = youtubeIndex(youtube as YoutubeDump)
 
 export const agencyName = (id: string | null) =>
   (id && agencyById.get(id)) ?? null
@@ -141,6 +144,7 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
   const group = kind === "g" ? groupById.get(id) : undefined
   const e = person ?? group
   if (!e) return null
+  const channels = youtubeOf(e.source_ids)
 
   const links = linkInfos(graph, edgeIndex, nodeId).map((l) => {
     const r = l.edgeId.startsWith("r:") ? relById.get(l.edgeId.slice(2)) : null
@@ -227,6 +231,9 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
             },
           ]
         : []
+    }),
+    ...(channels.length && {
+      youtube: { fetched_at: youtube.fetched_at, channels },
     }),
     ...(e.history?.length && { history: e.history }),
   }
