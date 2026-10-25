@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { FC } from "react"
 import { db, graph } from "@/lib/db"
+import { NextFinal } from "@/app/races/client"
 import { nodeHref, raceId, raceSlugs } from "@/lib/graph"
 
 // 大会ごとに、開催年を新しい順に並べ、優勝者と決勝進出組数を添える。
@@ -63,77 +64,62 @@ export const Years: FC<{ years: Race["years"] }> = ({ years }) => (
   </ul>
 )
 
-const cell = {
-  padding: ".35rem .5rem",
-  borderBottom: "1px solid var(--line)",
-  textAlign: "center",
-  whiteSpace: "nowrap",
-} as const
-
-// 縦横スクロール時も年と出場者名が見えるよう固定する
-const sticky = { position: "sticky", background: "var(--surface)" } as const
-const head = { ...cell, ...sticky, top: 0, zIndex: 1 }
-const nameCell = { ...cell, ...sticky, left: 0, textAlign: "left" } as const
-
-// 出場者×開催年の順位表
-export const FinalsTable: FC<{ race: Race }> = ({ race }) => {
-  const years = race.years.toReversed()
+// 決勝進出回数・優勝回数の上位。2回以上のみ
+export const Records: FC<{ race: Race }> = ({ race }) => {
+  const lists = [
+    {
+      title: "最多決勝進出",
+      unit: "回",
+      rows: race.rows.map((g) => ({ ...g, n: g.byYear.size })),
+    },
+    {
+      title: "複数回優勝",
+      unit: "回",
+      rows: race.rows.map((g) => ({
+        ...g,
+        n: [...g.byYear.values()].filter((r) => r === 1).length,
+      })),
+    },
+  ]
+    .map((l) => ({
+      ...l,
+      rows: l.rows
+        .filter((g) => g.n >= 2)
+        .sort((a, b) => b.n - a.n)
+        .slice(0, 10),
+    }))
+    .filter((l) => l.rows.length > 0)
+  if (lists.length === 0) return null
   return (
-    <div style={{ overflow: "auto", maxHeight: "70vh" }}>
-      <table
+    <>
+      <h3 style={{ fontSize: "1rem" }}>記録</h3>
+      <div
         style={{
-          borderCollapse: "collapse",
-          background: "var(--surface)",
-          fontSize: ".8rem",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(14rem, 1fr))",
+          gap: "1rem",
+          fontSize: ".875rem",
         }}
       >
-        <thead>
-          <tr>
-            <th style={{ ...head, ...nameCell, zIndex: 2 }}>出場者</th>
-            {years.map((y) => (
-              <th key={y.year} scope="col" style={head}>
-                <Link href={y.href}>{y.year}</Link>
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {race.rows.map((g) => (
-            <tr key={g.id}>
-              <th scope="row" style={nameCell}>
-                <Link href={g.href}>{g.name}</Link>
-              </th>
-              {years.map(({ year }) => {
-                const rank = g.byYear.get(year)
-                return (
-                  <td
-                    key={year}
-                    style={{
-                      ...cell,
-                      fontWeight: rank === 1 ? "bold" : undefined,
-                      background:
-                        rank === 1
-                          ? "var(--pop)"
-                          : rank !== undefined
-                            ? "color-mix(in srgb, var(--accent) 20%, transparent)"
-                            : undefined,
-                    }}
-                  >
-                    {rank === undefined
-                      ? ""
-                      : rank === null
-                        ? "●"
-                        : rank === 1
-                          ? "優勝"
-                          : `${rank}位`}
-                  </td>
-                )
-              })}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+        {lists.map((l) => (
+          <section key={l.title}>
+            <h4 style={{ fontSize: ".9rem" }}>{l.title}</h4>
+            <ol style={{ paddingLeft: "1.5em" }}>
+              {l.rows.map((g) => (
+                <li key={g.id}>
+                  <Link href={g.href}>{g.name}</Link>
+                  <span style={{ color: "var(--muted)" }}>
+                    {" "}
+                    {g.n}
+                    {l.unit}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </section>
+        ))}
+      </div>
+    </>
   )
 }
 
@@ -206,82 +192,95 @@ const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1)
 
 // 開催時期の月別チャート。大会名は大会ページへリンクする
 export const Schedule: FC = () => (
-  <div style={{ overflowX: "auto" }}>
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "10rem repeat(12, minmax(2.5rem, 1fr))",
-        minWidth: 640,
-        background: "var(--surface)",
-        fontSize: ".8rem",
-      }}
-    >
-      <div />
-      {MONTHS.map((m) => (
-        <div
-          key={m}
-          style={{
-            textAlign: "center",
-            padding: ".35rem 0",
-            borderBottom: "2px solid var(--line)",
-          }}
-        >
-          {m}月
-        </div>
-      ))}
-      {SCHEDULE.map((c, row) => (
-        <div key={c.name} style={{ display: "contents" }}>
+  <>
+    <NextFinal
+      finals={SCHEDULE.flatMap((c) =>
+        c.spans
+          .filter((s) => s.label === "決勝")
+          .map((s) => ({
+            name: c.name,
+            href: raceSlugs[c.name] && `/races/${raceSlugs[c.name]}/`,
+            month: s.from,
+          }))
+      )}
+    />
+    <div style={{ overflowX: "auto" }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "10rem repeat(12, minmax(2.5rem, 1fr))",
+          minWidth: 640,
+          background: "var(--surface)",
+          fontSize: ".8rem",
+        }}
+      >
+        <div />
+        {MONTHS.map((m) => (
           <div
+            key={m}
             style={{
-              gridRow: row + 2,
-              gridColumn: 1,
-              padding: ".5rem",
-              borderBottom: "1px solid var(--line)",
-              fontWeight: "bold",
+              textAlign: "center",
+              padding: ".35rem 0",
+              borderBottom: "2px solid var(--line)",
             }}
           >
-            {raceSlugs[c.name] ? (
-              <Link href={`/races/${raceSlugs[c.name]}/`}>{c.name}</Link>
-            ) : (
-              c.name
-            )}
+            {m}月
           </div>
-          {MONTHS.map((m) => (
+        ))}
+        {SCHEDULE.map((c, row) => (
+          <div key={c.name} style={{ display: "contents" }}>
             <div
-              key={m}
               style={{
                 gridRow: row + 2,
-                gridColumn: m + 1,
+                gridColumn: 1,
+                padding: ".5rem",
                 borderBottom: "1px solid var(--line)",
-                borderLeft: "1px solid var(--line)",
-              }}
-            />
-          ))}
-          {c.spans.map((s) => (
-            <div
-              key={`${s.label}-${s.from}`}
-              title={`${c.name} ${s.label} ${s.from}〜${s.to}月`}
-              style={{
-                gridRow: row + 2,
-                gridColumn: `${s.from + 1} / ${s.to + 2}`,
-                alignSelf: "center",
-                margin: "0 2px",
-                padding: ".15rem .35rem",
-                borderRadius: 4,
-                color: s.label === "決勝" ? "#fff" : "var(--text)",
-                background:
-                  s.label === "決勝"
-                    ? "var(--accent)"
-                    : "color-mix(in srgb, var(--accent) 25%, transparent)",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
+                fontWeight: "bold",
               }}
             >
-              {s.label}
+              {raceSlugs[c.name] ? (
+                <Link href={`/races/${raceSlugs[c.name]}/`}>{c.name}</Link>
+              ) : (
+                c.name
+              )}
             </div>
-          ))}
-        </div>
-      ))}
+            {MONTHS.map((m) => (
+              <div
+                key={m}
+                style={{
+                  gridRow: row + 2,
+                  gridColumn: m + 1,
+                  borderBottom: "1px solid var(--line)",
+                  borderLeft: "1px solid var(--line)",
+                }}
+              />
+            ))}
+            {c.spans.map((s) => (
+              <div
+                key={`${s.label}-${s.from}`}
+                title={`${c.name} ${s.label} ${s.from}〜${s.to}月`}
+                style={{
+                  gridRow: row + 2,
+                  gridColumn: `${s.from + 1} / ${s.to + 2}`,
+                  alignSelf: "center",
+                  margin: "0 2px",
+                  padding: ".15rem .35rem",
+                  borderRadius: 4,
+                  color: s.label === "決勝" ? "#fff" : "var(--text)",
+                  background:
+                    s.label === "決勝"
+                      ? "var(--accent)"
+                      : "color-mix(in srgb, var(--accent) 25%, transparent)",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                }}
+              >
+                {s.label}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
     </div>
-  </div>
+  </>
 )

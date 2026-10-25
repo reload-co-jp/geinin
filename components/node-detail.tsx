@@ -4,8 +4,14 @@ import { FC } from "react"
 import { JsonLd } from "@/components/json-ld"
 import { InArticleAd } from "@/components/in-article-ad"
 import { Heading, Profile } from "@/components/profile"
-import { agencyName, nodeInfo, sameName } from "@/lib/db"
-import { graphHref, nodeHref, parseRaceId, raceSlugs } from "@/lib/graph"
+import { agencyName, nodeInfo, raceIds, sameName } from "@/lib/db"
+import {
+  graphHref,
+  nodeHref,
+  parseRaceId,
+  raceId,
+  raceSlugs,
+} from "@/lib/graph"
 
 const SITE = "https://geinin.reload.co.jp"
 
@@ -16,6 +22,16 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
   const noun = { p: "芸人", g: "コンビ", x: "大会", v: "番組" }[nodeId[0]]
   const homonyms = sameName(nodeId)
   const race = parseRaceId(nodeId)
+  const raceYears = race
+    ? raceIds
+        .flatMap((id) => {
+          const r = parseRaceId(id)
+          return r?.competition === race.competition ? [r.year] : []
+        })
+        .sort((a, b) => a - b)
+    : []
+  const prevYear = race && raceYears.findLast((y) => y < race.year)
+  const nextYear = race && raceYears.find((y) => y > race.year)
   const crumbs: [string, string][] = [
     ["トップ", "/"],
     ...(race
@@ -60,6 +76,32 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
         ))}
       </nav>
       <Heading info={info} level={1} />
+      {race && (
+        <nav
+          aria-label="開催年"
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            fontSize: ".875rem",
+          }}
+        >
+          <span>
+            {prevYear && (
+              <Link href={nodeHref(raceId(race.competition, prevYear))}>
+                ← {prevYear}
+              </Link>
+            )}
+          </span>
+          <Link href={`/races/${raceSlugs[race.competition]}/`}>歴代決勝</Link>
+          <span>
+            {nextYear && (
+              <Link href={nodeHref(raceId(race.competition, nextYear))}>
+                {nextYear} →
+              </Link>
+            )}
+          </span>
+        </nav>
+      )}
       {homonyms.length > 0 && (
         <p style={{ fontSize: ".8rem", marginTop: ".5rem" }}>
           同名の登録:{" "}
