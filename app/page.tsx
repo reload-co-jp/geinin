@@ -152,7 +152,7 @@ const css = `
 .sec-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: .3rem 1rem; }
 .sec-head h2 { font-size: clamp(1.4rem, 3.4vw, 2rem); }
 .sec-head p { color: var(--muted); font-size: .85rem; }
-.kicker { width: 100%; font-weight: 800; color: var(--accent); font-size: .8rem; letter-spacing: .12em; }
+.kicker { width: 100%; font-weight: 800; color: var(--accent-text); font-size: .8rem; letter-spacing: .12em; }
 .weekly { display: grid; gap: .8rem; padding: 1.75rem 2rem; background: var(--surface); border: 1px solid var(--line); border-left: 6px solid var(--accent); border-radius: var(--radius); }
 .weekly-title { font-family: var(--display); font-weight: 400; font-size: clamp(1.4rem, 4vw, 2.2rem); line-height: 1.3; }
 .weekly-desc { font-size: .95rem; max-width: 46em; }

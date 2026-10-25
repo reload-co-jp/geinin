@@ -7,13 +7,15 @@
 }
 
 :root {
-  --bg: #171717;
-  --surface: #242424;
-  --surface-2: #2e2e2e;
+  --bg: #2d2d2d;
+  --surface: #393939;
+  --surface-2: #444444;
   --text: #f7f4ed;
-  --muted: #b8b2a7;
-  --line: #3d3a36;
+  --muted: #cdc7bc;
+  --line: #57524b;
   --accent: #e8483f;
+  /* 小さい文字に使う赤。--accent のままだと背景とのコントラストが足りない */
+  --accent-text: #ff6b62;
   --accent-soft: #e8483f26;
   --pop: #ffd54a;
   --blue: #6aa8ff;
@@ -600,7 +602,7 @@ h2.pf-name {
   font-size: 1.1rem;
 }
 .rc-rank li:first-child > .num {
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: 1.5rem;
 }
 .rc-rank b.num {
