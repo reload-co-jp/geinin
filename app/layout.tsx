@@ -5,10 +5,10 @@ import "./reset.css"
 
 export const metadata = {
   metadataBase: new URL("https://geinin.reload.co.jp"),
-  title: { default: "芸人系譜DB", template: "%s | 芸人系譜DB" },
+  title: { default: "芸人データベース", template: "%s | 芸人データベース" },
   description:
     "お笑い芸人の師弟・同期・コンビ変遷・共演・賞レースの関係をネットワークグラフでたどるデータベース",
-  openGraph: { siteName: "芸人系譜DB", type: "website", locale: "ja_JP" },
+  openGraph: { siteName: "芸人データベース", type: "website", locale: "ja_JP" },
   twitter: { card: "summary_large_image" },
 }
 
@@ -46,7 +46,7 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
           <Title style={{ fontSize: "1.3rem" }}>
             <Link href="/" className="logo">
               <img src="/icon.svg" alt="" width={29} height={29} />
-              芸人系譜DB
+              芸人データベース
             </Link>
           </Title>
           <nav aria-label="メイン">
