@@ -82,6 +82,7 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
           style={{
             display: "flex",
             justifyContent: "space-between",
+            marginTop: ".5rem",
             fontSize: ".875rem",
           }}
         >

@@ -419,3 +419,123 @@ h2.pf-name {
   background: var(--text);
   color: var(--pop);
 }
+
+/* 賞レース（app/races） */
+.rc-panel {
+  background: var(--surface);
+  border: 3px solid var(--text);
+  box-shadow: var(--shadow);
+  padding: 1rem;
+}
+.rc-race {
+  display: grid;
+  gap: 0.75rem;
+}
+.rc-race h4 {
+  font-size: 1.05rem;
+}
+.rc-more {
+  justify-self: end;
+  font-size: 0.85rem;
+}
+.rc-years {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 0.75rem;
+  font-size: 0.85rem;
+}
+.rc-card {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  padding: 0.5rem;
+  background: var(--surface);
+  border: 2px solid var(--text);
+  box-shadow: 3px 3px 0 var(--text);
+}
+.rc-card > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.8;
+}
+.rc-card .photo,
+.rc-champ .photo,
+.rc-rank .photo {
+  border: 2px solid var(--text);
+}
+.rc-year {
+  font-size: 1.3rem;
+  text-decoration: none;
+}
+.rc-hero {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: stretch;
+}
+.rc-champ {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: var(--pop);
+  border: 3px solid var(--text);
+  box-shadow: var(--shadow);
+  text-decoration: none;
+}
+.rc-champ > span {
+  display: grid;
+  gap: 0.35rem;
+  justify-items: start;
+}
+.rc-champ-name {
+  font-family: var(--display);
+  font-size: 1.4rem;
+  line-height: 1.2;
+}
+.rc-records {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1rem;
+  align-items: start;
+  font-size: 0.9rem;
+}
+.rc-rank {
+  list-style: none;
+  padding: 0;
+  margin-top: 0.75rem;
+  display: grid;
+  gap: 0.4rem;
+}
+.rc-rank li {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+.rc-rank li > .num {
+  min-width: 2.2rem;
+  text-align: right;
+  font-size: 1.1rem;
+}
+.rc-rank li:first-child > .num {
+  color: var(--accent);
+  font-size: 1.5rem;
+}
+.rc-rank b.num {
+  font-size: 1.1rem;
+  color: var(--text);
+}
+.rc-next {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  width: fit-content;
+  padding: 0.4rem 0.9rem;
+  background: var(--surface);
+  border: 2px solid var(--text);
+  box-shadow: 3px 3px 0 var(--text);
+  font-weight: 700;
+}

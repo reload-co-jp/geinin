@@ -2,6 +2,7 @@
 import Link from "next/link"
 import { FC, useState, useSyncExternalStore } from "react"
 import type { Race } from "@/app/races/shared"
+import { Photo } from "@/components/photo"
 
 const cell = {
   padding: ".35rem .5rem",
@@ -61,7 +62,16 @@ export const FinalsTable: FC<{ race: Race }> = ({ race }) => {
             {rows.map((g) => (
               <tr key={g.id}>
                 <th scope="row" style={nameCell}>
-                  <Link href={g.href}>{g.name}</Link>
+                  <span
+                    style={{
+                      display: "flex",
+                      gap: ".4rem",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Photo src={g.photo} size={24} />
+                    <Link href={g.href}>{g.name}</Link>
+                  </span>
                 </th>
                 {years.map(({ year }) => {
                   const rank = g.byYear.get(year)
@@ -114,8 +124,11 @@ export const NextFinal: FC<{
   const min = Math.min(...finals.map((f) => wait(f.month)))
   const next = finals.filter((f) => wait(f.month) === min)
   return (
-    <p style={{ fontSize: ".875rem" }}>
-      {min === 0 ? "今月" : `${next[0].month}月`}の決勝:{" "}
+    <p className="rc-next">
+      <span className="sticker" data-tone="red">
+        NEXT
+      </span>
+      {min === 0 ? "今月" : `${next[0].month}月`}の決勝{" "}
       {next.map((f, i) => (
         <span key={f.name}>
           {i > 0 && "、"}

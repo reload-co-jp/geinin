@@ -1,8 +1,15 @@
 "use client"
 import Link from "next/link"
 import { FC, ReactNode, useState } from "react"
+import { Photo } from "@/components/photo"
 
-type Entry = { id: string; name: string; href: string; rank: number | null }
+type Entry = {
+  id: string
+  name: string
+  href: string
+  photo: string | null
+  rank: number | null
+}
 export type YearData = {
   year: number
   races: { name: string; href: string; entries: Entry[] }[]
@@ -38,7 +45,7 @@ export const FinalsView: FC<{
       </label>
       {current
         ? current.races.map((r) => (
-            <section key={r.name} style={{ display: "grid", gap: ".5rem" }}>
+            <section key={r.name} className="rc-panel rc-race">
               <h3 style={{ fontSize: "1rem" }}>
                 <Link href={r.href}>
                   {r.name} {current.year}
@@ -51,15 +58,18 @@ export const FinalsView: FC<{
                   <li
                     key={e.id}
                     style={{
+                      display: "flex",
+                      gap: ".5rem",
+                      alignItems: "center",
                       padding: ".35rem .5rem",
-                      borderBottom: "1px solid var(--line)",
+                      borderBottom:
+                        "1px solid color-mix(in srgb, var(--line) 20%, transparent)",
                       fontWeight: e.rank === 1 ? "bold" : undefined,
                       background: e.rank === 1 ? "var(--pop)" : undefined,
                     }}
                   >
-                    <span style={{ display: "inline-block", minWidth: "5em" }}>
-                      {rankLabel(e.rank)}
-                    </span>
+                    <span style={{ minWidth: "5em" }}>{rankLabel(e.rank)}</span>
+                    <Photo src={e.photo} size={e.rank === 1 ? 56 : 32} />
                     <Link href={e.href}>{e.name}</Link>
                   </li>
                 ))}

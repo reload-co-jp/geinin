@@ -26,10 +26,11 @@ const byYear: YearData[] = [
               href: y.href,
               entries: r.rows
                 .filter((g) => g.byYear.has(year))
-                .map(({ id, name, href, byYear }) => ({
+                .map(({ id, name, href, photo, byYear }) => ({
                   id,
                   name,
                   href,
+                  photo,
                   rank: byYear.get(year) ?? null,
                 }))
                 .sort((a, b) => (a.rank ?? Infinity) - (b.rank ?? Infinity)),
@@ -52,15 +53,18 @@ const Page: FC = () => (
     <FinalsView
       years={byYear}
       byCompetition={races.map((r) => (
-        <section key={r.slug} style={{ display: "grid", gap: ".5rem" }}>
-          <h4 style={{ fontSize: "1rem" }}>
-            <Link href={`/races/${r.slug}/`}>{r.name}</Link>
-            <span style={{ color: "var(--muted)", fontWeight: "normal" }}>
-              {" "}
+        <section key={r.slug} className="rc-panel rc-race">
+          <h4>
+            <Link href={`/races/${r.slug}/`}>{r.name}</Link>{" "}
+            <span className="sticker" data-tone="plain">
               {r.years.length}回
             </span>
           </h4>
-          <Years years={r.years} />
+          {/* ponytail: 直近のみ。全年は大会ページで見る */}
+          <Years years={r.years.slice(0, 3)} />
+          <Link href={`/races/${r.slug}/`} className="rc-more">
+            歴代すべて・記録を見る →
+          </Link>
         </section>
       ))}
     />

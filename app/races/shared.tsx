@@ -2,6 +2,7 @@ import Link from "next/link"
 import { FC } from "react"
 import { db, graph } from "@/lib/db"
 import { NextFinal } from "@/app/races/client"
+import { Photo } from "@/components/photo"
 import { nodeHref, raceId, raceSlugs } from "@/lib/graph"
 
 // 大会ごとに、開催年を新しい順に並べ、優勝者と決勝進出組数を添える。
@@ -22,6 +23,7 @@ export const races = Object.entries(raceSlugs).map(([name, slug]) => {
         winner: winner && {
           name: graph.nodes.get(winner.entrant_id)?.label ?? winner.entrant_id,
           href: nodeHref(winner.entrant_id),
+          photo: graph.nodes.get(winner.entrant_id)?.photo ?? null,
         },
       }
     })
@@ -30,6 +32,7 @@ export const races = Object.entries(raceSlugs).map(([name, slug]) => {
       id,
       name: graph.nodes.get(id)?.label ?? id,
       href: nodeHref(id),
+      photo: graph.nodes.get(id)?.photo ?? null,
       byYear: new Map(rs.map((r) => [r.year, r.rank])),
       first: Math.min(...rs.map((r) => r.year)),
     }))
@@ -39,42 +42,73 @@ export const races = Object.entries(raceSlugs).map(([name, slug]) => {
 
 export type Race = (typeof races)[number]
 
+// 開催年ごとのカード。優勝者の写真を大きく見せる
 export const Years: FC<{ years: Race["years"] }> = ({ years }) => (
-  <ul
-    style={{
-      listStyle: "none",
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fill, minmax(14rem, 1fr))",
-      gap: ".25rem 1rem",
-      fontSize: ".875rem",
-    }}
-  >
+  <ul className="rc-years">
     {years.map((y) => (
-      <li key={y.year}>
-        <Link href={y.href}>{y.year}</Link>
-        <span style={{ color: "var(--muted)" }}> {y.count}組</span>
-        {y.winner && (
-          <>
-            {" "}
-            優勝 <Link href={y.winner.href}>{y.winner.name}</Link>
-          </>
-        )}
+      <li key={y.year} className="rc-card">
+        <Photo src={y.winner?.photo} size={56} />
+        <span>
+          <Link href={y.href} className="num rc-year">
+            {y.year}
+          </Link>
+          <span className="pf-muted"> {y.count}組</span>
+          {y.winner && (
+            <>
+              <br />
+              <span className="sticker">優勝</span>{" "}
+              <Link href={y.winner.href}>{y.winner.name}</Link>
+            </>
+          )}
+        </span>
       </li>
     ))}
   </ul>
 )
+
+// 大会ページ冒頭の数字と最新王者
+export const RaceStats: FC<{ race: Race }> = ({ race }) => {
+  const latest = race.years[0]
+  const stats: [string, number, string][] = [
+    ["開催", race.years.length, "回"],
+    ["決勝進出", race.rows.length, "組"],
+    ["最多進出", Math.max(...race.rows.map((g) => g.byYear.size)), "回"],
+  ]
+  return (
+    <div className="rc-hero">
+      {latest?.winner && (
+        <Link href={latest.winner.href} className="rc-champ">
+          <Photo src={latest.winner.photo} size={96} />
+          <span>
+            <span className="sticker" data-tone="red">
+              {latest.year} 王者
+            </span>
+            <span className="rc-champ-name">{latest.winner.name}</span>
+          </span>
+        </Link>
+      )}
+      <div className="pf-stats" style={{ margin: 0, flex: 1 }}>
+        {stats.map(([label, n, unit]) => (
+          <div key={label} className="pf-stat">
+            <div className="pf-stat-label">{label}</div>
+            <span className="num">{n}</span>
+            <span className="pf-stat-unit">{unit}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 // 決勝進出回数・優勝回数の上位。2回以上のみ
 export const Records: FC<{ race: Race }> = ({ race }) => {
   const lists = [
     {
       title: "最多決勝進出",
-      unit: "回",
       rows: race.rows.map((g) => ({ ...g, n: g.byYear.size })),
     },
     {
       title: "複数回優勝",
-      unit: "回",
       rows: race.rows.map((g) => ({
         ...g,
         n: [...g.byYear.values()].filter((r) => r === 1).length,
@@ -93,25 +127,20 @@ export const Records: FC<{ race: Race }> = ({ race }) => {
   return (
     <>
       <h3 style={{ fontSize: "1rem" }}>記録</h3>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(14rem, 1fr))",
-          gap: "1rem",
-          fontSize: ".875rem",
-        }}
-      >
+      <div className="rc-records">
         {lists.map((l) => (
-          <section key={l.title}>
-            <h4 style={{ fontSize: ".9rem" }}>{l.title}</h4>
-            <ol style={{ paddingLeft: "1.5em" }}>
-              {l.rows.map((g) => (
+          <section key={l.title} className="rc-panel">
+            <h4>
+              <span className="sticker">{l.title}</span>
+            </h4>
+            <ol className="rc-rank">
+              {l.rows.map((g, i) => (
                 <li key={g.id}>
+                  <span className="num">{i + 1}</span>
+                  <Photo src={g.photo} size={40} />
                   <Link href={g.href}>{g.name}</Link>
-                  <span style={{ color: "var(--muted)" }}>
-                    {" "}
-                    {g.n}
-                    {l.unit}
+                  <span className="pf-muted">
+                    <b className="num">{g.n}</b>回
                   </span>
                 </li>
               ))}
@@ -204,7 +233,7 @@ export const Schedule: FC = () => (
           }))
       )}
     />
-    <div style={{ overflowX: "auto" }}>
+    <div className="rc-panel" style={{ overflowX: "auto", padding: 0 }}>
       <div
         style={{
           display: "grid",
