@@ -12,6 +12,7 @@ import {
   raceId,
   type GEdge,
 } from "@/lib/graph"
+import { InArticleAd } from "@/components/in-article-ad"
 
 // トップの特集はすべて登録データから組み立てる。該当データがなければ節ごと出さない
 
@@ -389,6 +390,8 @@ const Page: FC = () => (
       </section>
     )}
 
+    <InArticleAd />
+
     {lineage && lineage.length > 1 && (
       <section className="sec">
         <SecHead
@@ -551,6 +554,8 @@ const Page: FC = () => (
         </div>
       </section>
     )}
+
+    <InArticleAd />
 
     <section className="sec">
       <SecHead kicker="DATA" title="登録データ" />

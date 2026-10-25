@@ -8,6 +8,7 @@ import {
   unknown,
   years,
 } from "@/app/doki/shared"
+import { InArticleAd } from "@/components/in-article-ad"
 
 export const metadata = {
   title: "同期芸人一覧",
@@ -25,6 +26,7 @@ const Page: FC = () => (
       {unknown > 0 &&
         `デビュー年を推定できない${unknown.toLocaleString()}人は載せていません。`}
     </p>
+    <InArticleAd />
     {years.map(([year, ps]) => (
       <section
         key={year}

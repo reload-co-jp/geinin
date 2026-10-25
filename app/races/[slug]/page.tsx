@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { FinalsTable } from "@/app/races/client"
 import { races, RaceStats, Records, Years } from "@/app/races/shared"
+import { InArticleAd } from "@/components/in-article-ad"
 
 type Props = { params: Promise<{ slug: string }> }
 
@@ -31,6 +32,7 @@ const Page = async ({ params }: Props) => {
       <Records race={race} />
       <h3 style={{ fontSize: "1rem" }}>歴代王者</h3>
       <Years years={race.years} />
+      <InArticleAd />
       <h3 style={{ fontSize: "1rem" }}>決勝進出の遍歴</h3>
       <p className="lead">数字は順位、●は順位不明です。</p>
       <FinalsTable race={race} />

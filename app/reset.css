@@ -304,6 +304,19 @@ body > footer {
   }
 }
 
+/* 共通の上部広告。高さを固定して小さく抑える（レスポンシブ広告は CSS の高さに合わせて配信される） */
+.ad-top {
+  width: 100%;
+  max-width: 970px;
+  height: 90px;
+  margin: 0 auto 1rem;
+}
+@media (max-width: 600px) {
+  .ad-top {
+    height: 60px;
+  }
+}
+
 /* 五十音ナビ（app/list/nav.tsx） */
 .kana {
   display: grid;

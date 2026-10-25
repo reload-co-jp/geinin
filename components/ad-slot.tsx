@@ -10,7 +10,7 @@ declare global {
 
 // AdSense 広告ユニット（ローダーは app/layout.tsx で読み込み済み）
 export const AdSlot: FC<ComponentProps<"ins"> & { "data-ad-slot": string }> = (
-  props,
+  props
 ) => {
   useEffect(() => {
     try {
@@ -21,9 +21,9 @@ export const AdSlot: FC<ComponentProps<"ins"> & { "data-ad-slot": string }> = (
   }, [])
   return (
     <ins
-      className="adsbygoogle"
       data-ad-client="ca-pub-6542845006087970"
       {...props}
+      className={`adsbygoogle ${props.className ?? ""}`}
       // 中の広告 iframe はインライン要素なので text-align で中央に寄せる
       style={{ display: "block", textAlign: "center", ...props.style }}
     />

@@ -4,6 +4,7 @@ import { CONFIDENCE_LABEL, db, personById } from "@/lib/db"
 import { EDGE_KINDS } from "@/lib/graph"
 import { KanaNav } from "./nav"
 import { td, th } from "./shared"
+import { InArticleAd } from "@/components/in-article-ad"
 
 export const metadata = {
   title: "芸人・コンビ一覧",
@@ -33,6 +34,7 @@ const Page: FC = () => (
         {db.groups.length.toLocaleString()}組を登録しています。
       </p>
     </section>
+    <InArticleAd />
     <section>
       <h2 className="section-title">関係性</h2>
       <p style={{ color: "var(--muted)", marginBottom: ".5rem" }}>

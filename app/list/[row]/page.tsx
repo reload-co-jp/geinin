@@ -4,6 +4,7 @@ import { agencyName, db, edgeIndex, graph } from "@/lib/db"
 import { linksOf } from "@/lib/graph"
 import { KanaNav } from "../nav"
 import { OTHER, ROWS, rowOf, td, th } from "../shared"
+import { InArticleAd } from "@/components/in-article-ad"
 
 type Props = { params: Promise<{ row: string }> }
 
@@ -67,6 +68,7 @@ const Page = async ({ params }: Props) => {
           ))}
         </ul>
       </section>
+      <InArticleAd />
       <section>
         <h2 className="section-title">
           芸人（{current.label}・{people.length}人）

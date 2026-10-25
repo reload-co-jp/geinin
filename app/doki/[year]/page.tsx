@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { css, ESTIMATED_NOTE, Names, years } from "@/app/doki/shared"
+import { InArticleAd } from "@/components/in-article-ad"
 
 type Props = { params: Promise<{ year: string }> }
 
@@ -45,6 +46,7 @@ const Page = async ({ params }: Props) => {
         賞レース成績や共演の多い順に並べています。名前の下は出身養成所と期です。
         {ESTIMATED_NOTE}
       </p>
+      <InArticleAd />
       <Names ps={ps} />
       <nav
         style={{

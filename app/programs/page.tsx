@@ -2,6 +2,7 @@ import Link from "next/link"
 import { FC } from "react"
 import { edgeIndex, graph, programIds } from "@/lib/db"
 import { nodeHref } from "@/lib/graph"
+import { InArticleAd } from "@/components/in-article-ad"
 
 export const metadata = {
   title: "テレビ番組から探す",
@@ -34,6 +35,7 @@ const Page: FC = () => (
       番組のうち）。出演情報は各芸人の Wikipedia
       記事から集めたもので、出典との照合はしていません。
     </p>
+    <InArticleAd />
     <ul
       style={{
         display: "flex",

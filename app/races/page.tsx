@@ -2,6 +2,7 @@ import Link from "next/link"
 import { FC } from "react"
 import { races, Schedule, Years } from "@/app/races/shared"
 import { FinalsView, YearData } from "@/components/finals-view"
+import { InArticleAd } from "@/components/in-article-ad"
 
 export const metadata = {
   title: "賞レース",
@@ -46,6 +47,7 @@ const Page: FC = () => (
     <h3 style={{ fontSize: "1rem" }}>開催時期</h3>
     <p className="lead">例年の目安です。年によって前後します。</p>
     <Schedule />
+    <InArticleAd />
     <h3 style={{ fontSize: "1rem" }}>歴代決勝</h3>
     <p className="lead">
       登録済みの決勝結果のみ表示しています。大会名から出場者ごとの遍歴表を開けます。
