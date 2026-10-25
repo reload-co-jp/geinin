@@ -24,7 +24,8 @@ export const AdSlot: FC<ComponentProps<"ins"> & { "data-ad-slot": string }> = (
       className="adsbygoogle"
       data-ad-client="ca-pub-6542845006087970"
       {...props}
-      style={{ display: "block", ...props.style }}
+      // 中の広告 iframe はインライン要素なので text-align で中央に寄せる
+      style={{ display: "block", textAlign: "center", ...props.style }}
     />
   )
 }
