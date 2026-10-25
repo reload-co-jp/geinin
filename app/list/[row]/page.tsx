@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { agencyName, db, edgeIndex, graph } from "@/lib/db"
 import { linksOf } from "@/lib/graph"
+import { KanaNav } from "../nav"
 import { OTHER, ROWS, rowOf, td, th } from "../shared"
 
 type Props = { params: Promise<{ row: string }> }
@@ -17,7 +18,7 @@ export const generateStaticParams = () => rows.map((r) => ({ row: r.slug }))
 export const generateMetadata = async ({ params }: Props) => {
   const { row } = await params
   return {
-    title: `一覧（${rows.find((r) => r.slug === row)?.label}）`,
+    title: `芸人・コンビ一覧（${rows.find((r) => r.slug === row)?.label}）`,
     description: `読みが${rows.find((r) => r.slug === row)?.label}の芸人・コンビ・グループの一覧`,
     alternates: { canonical: `/list/${row}/` },
   }
@@ -39,18 +40,8 @@ const Page = async ({ params }: Props) => {
         fontSize: ".875rem",
       }}
     >
-      <nav style={{ display: "flex", flexWrap: "wrap", gap: ".25rem 1rem" }}>
-        <Link href="/list/">一覧トップ</Link>
-        {rows.map((r) =>
-          r.slug === row ? (
-            <strong key={r.slug}>{r.label}</strong>
-          ) : (
-            <Link key={r.slug} href={`/list/${r.slug}/`}>
-              {r.label}
-            </Link>
-          )
-        )}
-      </nav>
+      <h2 className="page-title">芸人・コンビ一覧（{current.label}）</h2>
+      <KanaNav current={row} />
       <section>
         <h2 className="section-title">
           グループ（{current.label}・{groups.length}組）
@@ -82,6 +73,7 @@ const Page = async ({ params }: Props) => {
         </h2>
         <div style={{ overflowX: "auto" }}>
           <table
+            className="stack-table"
             style={{
               borderCollapse: "collapse",
               width: "100%",
@@ -99,10 +91,10 @@ const Page = async ({ params }: Props) => {
             <tbody>
               {people.map((p) => (
                 <tr key={p.id}>
-                  <td style={td}>
+                  <td style={td} data-label="芸名">
                     <Link href={`/people/${p.id}/`}>{p.name}</Link>
                   </td>
-                  <td style={td}>
+                  <td style={td} data-label="所属グループ">
                     {linksOf(edgeIndex, `p:${p.id}`)
                       .filter(
                         (l) =>
@@ -115,8 +107,10 @@ const Page = async ({ params }: Props) => {
                       )
                       .join("、")}
                   </td>
-                  <td style={td}>{agencyName(p.agency_id)}</td>
-                  <td style={td}>
+                  <td style={td} data-label="事務所">
+                    {agencyName(p.agency_id)}
+                  </td>
+                  <td style={td} data-label="養成所">
                     {p.training_school &&
                       `${p.training_school} ${p.training_school_term ?? "?"}期`}
                   </td>

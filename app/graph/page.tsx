@@ -12,7 +12,13 @@ export const metadata = {
 const Page = () => (
   <>
     <noscript>
-      <p style={{ padding: "1rem", border: "3px solid var(--line)" }}>
+      <p
+        style={{
+          padding: "1rem",
+          border: "1px solid var(--line)",
+          borderRadius: "var(--radius)",
+        }}
+      >
         関係性グラフの表示にはJavaScriptが必要です。同じ関係は
         <Link href="/list/">一覧</Link>
         と各芸人・コンビの詳細ページで確認できます。

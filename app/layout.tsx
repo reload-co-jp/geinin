@@ -45,14 +45,15 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
         <Header>
           <Title style={{ fontSize: "1.3rem" }}>
             <Link href="/" className="logo">
+              <img src="/icon.svg" alt="" width={29} height={29} />
               芸人系譜DB
             </Link>
           </Title>
-          <nav>
+          <nav aria-label="メイン">
             <Link href="/graph/">関係性グラフ</Link>
-            <Link href="/list/">一覧</Link>
-            <Link href="/races/">賞レース</Link>
+            <Link href="/list/">芸人一覧</Link>
             <Link href="/doki/">同期</Link>
+            <Link href="/races/">賞レース</Link>
             <Link href="/programs/">番組</Link>
             <Link href="/search/">検索</Link>
           </nav>

@@ -2,20 +2,16 @@ import Link from "next/link"
 import { FC } from "react"
 import { CONFIDENCE_LABEL, db, personById } from "@/lib/db"
 import { EDGE_KINDS } from "@/lib/graph"
-import { OTHER, ROWS, rowOf, td, th } from "./shared"
+import { KanaNav } from "./nav"
+import { td, th } from "./shared"
 
 export const metadata = {
-  title: "一覧",
+  title: "芸人・コンビ一覧",
   description: "芸人・グループ・関係性を五十音順にまとめた一覧",
   alternates: { canonical: "/list/" },
 }
 
 const name = (id: string) => personById.get(id)?.name
-const counts = new Map(
-  [...Map.groupBy([...db.people, ...db.groups], (x) => rowOf(x.reading))].map(
-    ([k, v]) => [k, v.length]
-  )
-)
 
 const Page: FC = () => (
   <div
@@ -27,27 +23,15 @@ const Page: FC = () => (
       fontSize: ".875rem",
     }}
   >
+    <h2 className="page-title">芸人・コンビ一覧</h2>
     <section>
-      <h2 className="section-title">芸人・グループ（読みの五十音順）</h2>
-      <ul
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: ".5rem 1.25rem",
-          listStyle: "none",
-          padding: 0,
-          fontSize: "1rem",
-        }}
-      >
-        {[...ROWS, OTHER].map((r) => (
-          <li key={r.slug}>
-            <Link href={`/list/${r.slug}/`}>{r.label}</Link>{" "}
-            <span style={{ color: "var(--muted)", fontSize: ".8rem" }}>
-              {counts.get(r.slug) ?? 0}
-            </span>
-          </li>
-        ))}
-      </ul>
+      <h2 className="section-title">読みの五十音から探す</h2>
+      <KanaNav />
+      <p className="lead" style={{ marginTop: ".75rem" }}>
+        名前で探すときは<Link href="/search/">検索</Link>
+        から。芸人 {db.people.length.toLocaleString()}人・コンビ/グループ{" "}
+        {db.groups.length.toLocaleString()}組を登録しています。
+      </p>
     </section>
     <section>
       <h2 className="section-title">関係性</h2>
@@ -56,6 +40,7 @@ const Page: FC = () => (
       </p>
       <div style={{ overflowX: "auto" }}>
         <table
+          className="stack-table"
           style={{
             borderCollapse: "collapse",
             width: "100%",
@@ -73,8 +58,10 @@ const Page: FC = () => (
           <tbody>
             {db.relationships.map((r) => (
               <tr key={r.id}>
-                <td style={td}>{EDGE_KINDS[r.relationship_type].label}</td>
-                <td style={td}>
+                <td style={td} data-label="種類">
+                  {EDGE_KINDS[r.relationship_type].label}
+                </td>
+                <td style={td} data-label="人物">
                   <Link href={`/people/${r.source_person_id}/`}>
                     {name(r.source_person_id)}
                   </Link>{" "}
@@ -83,12 +70,18 @@ const Page: FC = () => (
                     {name(r.target_person_id)}
                   </Link>
                 </td>
-                <td style={td}>{r.description}</td>
-                <td style={td}>
+                <td style={td} data-label="内容">
+                  {r.description}
+                </td>
+                <td style={td} data-label="確度・確認">
                   {CONFIDENCE_LABEL[r.confidence]} /{" "}
-                  {r.last_verified_at
-                    ? `確認日 ${r.last_verified_at}`
-                    : "出典未照合"}
+                  {r.last_verified_at ? (
+                    `確認日 ${r.last_verified_at}`
+                  ) : (
+                    <span className="pf-badge" data-tone="warn">
+                      出典未照合
+                    </span>
+                  )}
                 </td>
               </tr>
             ))}

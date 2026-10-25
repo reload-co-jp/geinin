@@ -9,6 +9,7 @@ export type Pick = {
   description: string
   unverified: boolean
   href: string
+  detail: string
 }
 
 const WEEK = 7 * 24 * 60 * 60 * 1000
@@ -22,18 +23,27 @@ export const WeeklyPick: FC<{ picks: Pick[] }> = ({ picks }) => {
   )
   const p = picks[i]
   return (
-    <Link href={p.href} className="weekly">
-      <span className="sticker" data-tone="blue">
-        {p.kind}
+    <article className="weekly">
+      <span className="pf-row">
+        <span className="sticker" data-tone="blue">
+          {p.kind}
+        </span>
+        {p.unverified && (
+          <span className="pf-badge" data-tone="warn">
+            出典未照合
+          </span>
+        )}
       </span>
       <strong className="weekly-title">{p.title}</strong>
       <span className="weekly-desc">{p.description}</span>
-      {p.unverified && (
-        <span style={{ fontSize: ".75rem", color: "var(--muted)" }}>
-          ※出典未照合の情報です
-        </span>
-      )}
-      <span className="weekly-go">グラフでたどる →</span>
-    </Link>
+      <span className="pf-row">
+        <Link className="cta" href={p.href}>
+          相関図でたどる →
+        </Link>
+        <Link className="chip" href={p.detail}>
+          人物の詳細を見る
+        </Link>
+      </span>
+    </article>
   )
 }

@@ -50,8 +50,9 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
         maxWidth: 760,
         margin: "0 auto",
         background: "var(--surface)",
-        border: "3px solid var(--line)",
-        boxShadow: "6px 6px 0 var(--accent)",
+        border: "1px solid var(--line)",
+        borderTop: "6px solid var(--accent)",
+        borderRadius: "var(--radius)",
         padding: "clamp(1rem, 4vw, 2rem)",
       }}
     >

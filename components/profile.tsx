@@ -35,7 +35,14 @@ const Stat: FC<{
   unit?: string
   tone?: string
 }> = ({ label, value, unit, tone = "var(--surface)" }) => (
-  <div className="pf-stat" style={{ background: tone }}>
+  <div
+    className="pf-stat"
+    // 明るい塗りのときは濃い文字にする
+    style={{
+      background: tone,
+      color: tone === "var(--pop)" ? "var(--ink)" : undefined,
+    }}
+  >
     <div className="pf-stat-label">{label}</div>
     <div>
       <span className="num">{value}</span>
@@ -124,7 +131,7 @@ export const Heading: FC<{ info: NodeInfo; level?: 1 | 2 }> = ({
           {KIND_NAME[info.id[0]]}
         </span>
         {info.status && (
-          <span className="sticker pf-tilt" data-tone="plain">
+          <span className="sticker" data-tone="plain">
             {info.status}
           </span>
         )}
@@ -351,6 +358,14 @@ export const SectionTitle: FC<{ children: ReactNode }> = ({ children }) => (
   <h3 className="pf-section">{children}</h3>
 )
 
+// 関係を種類ごとの節にまとめる。ここに無い種類は「関連する芸人」へ
+const LINK_SECTIONS: [string, string[]][] = [
+  ["コンビ・グループとメンバー", ["member", "former_member"]],
+  ["師弟関係", ["master"]],
+  ["同期・養成所", ["doki"]],
+  ["賞レースで競った芸人", ["competition"]],
+]
+
 // 詳細パネル・詳細ページ共通の本文
 export const Profile: FC<{
   info: NodeInfo
@@ -377,10 +392,39 @@ export const Profile: FC<{
           )}
         </p>
       )}
-      <SectionTitle>
-        {info.id.startsWith("v:") ? "出演者" : "関係"}（{rels.links.length}件）
-      </SectionTitle>
-      <Links info={rels} renderOther={renderOther} />
+      {info.id.startsWith("v:") ? (
+        <>
+          <SectionTitle>出演者（{rels.links.length}件）</SectionTitle>
+          <Links info={rels} renderOther={renderOther} />
+        </>
+      ) : rels.links.length === 0 ? (
+        <>
+          <SectionTitle>関係</SectionTitle>
+          <Links info={rels} renderOther={renderOther} />
+        </>
+      ) : (
+        [
+          ...LINK_SECTIONS,
+          [
+            "関連する芸人",
+            Object.keys(EDGE_KINDS).filter(
+              (k) => !LINK_SECTIONS.some(([, ks]) => ks.includes(k))
+            ),
+          ] as [string, string[]],
+        ].map(([title, kinds]) => {
+          const links = rels.links.filter((l) => kinds.includes(l.kind))
+          return (
+            links.length > 0 && (
+              <Fragment key={title}>
+                <SectionTitle>
+                  {title}（{links.length}件）
+                </SectionTitle>
+                <Links info={{ ...rels, links }} renderOther={renderOther} />
+              </Fragment>
+            )
+          )
+        })
+      )}
       {info.youtube && (
         <>
           <SectionTitle>YouTube（{info.youtube.fetched_at}時点）</SectionTitle>
@@ -401,10 +445,16 @@ export const Profile: FC<{
           <Results info={info} />
         </>
       )}
-      {info.sources.length > 0 && (
+      {(info.sources.length > 0 || /^[pg]:/.test(info.id)) && (
         <>
-          <SectionTitle>出典</SectionTitle>
-          <Sources info={info} />
+          <SectionTitle>出典・確認状況</SectionTitle>
+          {info.sources.length > 0 ? (
+            <Sources info={info} />
+          ) : (
+            <p className="pf-text pf-muted">
+              出典は未登録です。掲載内容は確定情報ではありません。
+            </p>
+          )}
         </>
       )}
       {info.history && (

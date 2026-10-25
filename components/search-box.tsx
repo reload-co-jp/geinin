@@ -6,35 +6,40 @@ import { FC, FormEvent, ReactNode, useState } from "react"
 import { useGraphData } from "@/components/graph/use-data"
 import { graphHref, hasPage, linksOf, nodeHref, searchNodes } from "@/lib/graph"
 
-const TYPES = [
+export const TYPES = [
   { id: "", label: "すべて" },
   { id: "p:", label: "芸人" },
   { id: "g:", label: "コンビ" },
   { id: "t:", label: "同期（期）" },
   { id: "x:", label: "賞レース" },
   { id: "v:", label: "番組" },
-] as const
+]
 
 const css = `
 .sb { position: relative; flex: 1 1 320px; min-width: 0; }
-.sb form { display: flex; align-items: stretch; border: 3px solid var(--text); border-radius: 999px; background: var(--surface); box-shadow: 4px 4px 0 var(--text); overflow: hidden; }
+.sb form { display: flex; align-items: stretch; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); overflow: hidden; }
 .sb input { flex: 1; min-width: 0; border: 0; padding: .7rem 1.1rem; font-size: 1.05rem; background: transparent; }
 .sb input:focus-visible { outline: none; }
-.sb form:focus-within { box-shadow: 4px 4px 0 var(--accent); }
-.sb form > button { border: 0; border-left: 3px solid var(--text); border-radius: 0; box-shadow: none; background: var(--accent); color: #fff; padding: 0 1.3rem; transform: none; }
+.sb form:focus-within { border-color: var(--pop); box-shadow: 0 0 0 2px var(--pop); }
+.sb form > button { border: 0; border-radius: 0; background: var(--accent); color: #fff; padding: 0 1.3rem; }
 .sb[data-compact] input { padding: .45rem .9rem; font-size: .95rem; }
-.sb[data-compact] form { box-shadow: 3px 3px 0 var(--text); }
 .sb-types { display: flex; gap: .3rem; margin-top: .5rem; flex-wrap: wrap; }
-.sb-types button { font-size: .75rem; padding: .1rem .7rem; background: var(--surface); box-shadow: none; border-width: 2px; }
-.sb-types button[aria-pressed="true"] { background: var(--text); color: var(--pop); }
-.sb-list { position: absolute; left: 0; right: 0; top: calc(100% + .4rem); z-index: 30; list-style: none; padding: 0; max-height: min(60dvh, 420px); overflow: auto; background: var(--surface); border: 3px solid var(--text); border-radius: 14px; box-shadow: 5px 5px 0 var(--text); }
-.sb-list li { padding: .55rem .8rem; border-top: 1px solid #1f1d1a22; display: flex; flex-wrap: wrap; gap: .2rem .6rem; align-items: center; }
+.sb-types button { font-size: .75rem; padding: .1rem .8rem; background: var(--surface); }
+.sb-types button[aria-pressed="true"] { background: var(--pop); border-color: var(--pop); color: var(--ink); }
+.sb-list { position: absolute; left: 0; right: 0; top: calc(100% + .4rem); z-index: 30; list-style: none; padding: 0; max-height: min(60dvh, 420px); overflow: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+.sb-list li { padding: .55rem .8rem; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: .2rem .6rem; align-items: center; }
 .sb-list li:first-child { border-top: 0; }
 .sb-list .sb-acts { margin-left: auto; display: flex; gap: .3rem; }
 .sb-list .sb-acts a, .sb-list .sb-acts button { font-size: .75rem; padding: .15rem .6rem; }
 `
 
-const KIND_TAG = { p: "芸人", g: "コンビ", t: "同期", x: "賞レース" } as const
+export const KIND_TAG: Record<string, string> = {
+  p: "芸人",
+  g: "コンビ",
+  t: "同期",
+  x: "賞レース",
+  v: "番組",
+}
 
 export const SearchBox: FC<{
   compact?: boolean
@@ -58,7 +63,10 @@ export const SearchBox: FC<{
     if (onSubmitHit) {
       if (!hits[0]) return
       onSubmitHit(hits[0])
-    } else if (q.trim()) router.push(`/search/?q=${encodeURIComponent(q)}`)
+    } else if (q.trim())
+      router.push(
+        `/search/?q=${encodeURIComponent(q)}${type && `&type=${type[0]}`}`
+      )
     else return
     setQ("")
   }
@@ -106,7 +114,7 @@ export const SearchBox: FC<{
             const rel = links.find(
               (l) => l.edge.kind !== "member" && l.edge.kind !== "former_member"
             )
-            const tag = KIND_TAG[id[0] as keyof typeof KIND_TAG]
+            const tag = KIND_TAG[id[0]]
             const isRace = id[0] === "x"
             return (
               <li key={id}>
@@ -129,7 +137,7 @@ export const SearchBox: FC<{
                 <span style={{ fontSize: ".78rem", color: "var(--muted)" }}>
                   {isRace
                     ? `決勝 ${links.length}組`
-                    : `${groups.join("・")}${rel && ` ${rel.label}: ${name(rel.other)}`}`}
+                    : `${groups.join("・")}${rel ? ` ${rel.label}: ${name(rel.other)}` : ""}`}
                 </span>
                 <span className="sb-acts">
                   {actions ? (

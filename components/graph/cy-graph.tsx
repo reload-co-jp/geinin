@@ -174,6 +174,11 @@ const style: cytoscape.StylesheetJson = [
     },
   })),
   { selector: "edge[confidence != 'high']", style: { opacity: 0.55 } },
+  // 出典未照合の手入力の関係は線上に文字で示す（色や透明度だけに頼らない）
+  {
+    selector: "edge[!verified][!derived]",
+    style: { label: "未照合", "font-size": 8, color: "#9a5b00" },
+  },
   // 順位を出すモードのときだけ競演の線に順位を載せる
   { selector: "edge.rank", style: { label: "data(rankLabel)" } },
   { selector: ".faded", style: { opacity: 0.12 } },
@@ -321,13 +326,23 @@ export const CyGraph: FC<Props> = ({
         x: p.x,
         y: p.y + 12,
         title: `${nodeName(d.source)} ${EDGE_KINDS[d.kind].arrow === "triangle" ? "→" : "―"} ${nodeName(d.target)}`,
-        body: `${EDGE_KINDS[d.kind].label}${d.label !== EDGE_KINDS[d.kind].label ? `：${d.label}` : ""}${d.derived ? "（登録データから導出）" : d.confidence !== "high" ? "（確度：中以下）" : ""}`,
+        body: `${EDGE_KINDS[d.kind].label}${d.label !== EDGE_KINDS[d.kind].label ? `：${d.label}` : ""}${d.derived ? "（登録データから導出）" : `${d.confidence !== "high" ? "（確度：中以下）" : ""}${d.verified ? "" : "（出典未照合）"}`}`,
       })
       latest.current.onSelectEdge(d.id)
     })
     c.on("pan zoom", () => setTip(null))
     cy.current = c
-    return () => c.destroy()
+    // スマホで絞り込み欄を畳むなど、ウィンドウ以外の理由で描画領域の大きさが変わったとき
+    // 高さがほぼ無い間にレイアウトされると最小ズームで止まるので、そのときは全体表示し直す
+    const ro = new ResizeObserver(() => {
+      c.resize()
+      if (c.zoom() <= c.minZoom()) c.fit(undefined, 40)
+    })
+    ro.observe(ref.current!)
+    return () => {
+      ro.disconnect()
+      c.destroy()
+    }
   }, [])
 
   // 要素の差分だけ入れ替え、既存ノードの位置は保つ
@@ -472,8 +487,8 @@ export const CyGraph: FC<Props> = ({
             transform: "translateX(-50%)",
             maxWidth: 260,
             padding: ".4rem .65rem",
-            background: "var(--text)",
-            color: "#fff",
+            background: "var(--ink)",
+            color: "var(--text)",
             fontSize: ".78rem",
             lineHeight: 1.5,
             borderRadius: 8,

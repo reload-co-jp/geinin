@@ -29,32 +29,34 @@ const KIND_ORDER = Object.keys(EDGE_KINDS)
 const DECADES = [1970, 1980, 1990, 2000, 2010, 2020]
 
 const css = `
-.ex { display: grid; grid-template-columns: 250px minmax(0, 1fr) 380px; grid-template-rows: auto minmax(0, 1fr); height: calc(100dvh - 6.5rem); min-height: 520px; border: 3px solid var(--line); background: var(--surface); box-shadow: var(--shadow); }
-.ex-bar { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; padding: .6rem .75rem; border-bottom: 3px solid var(--line); background: var(--pop); }
+.ex { display: grid; grid-template-columns: 250px minmax(0, 1fr) 380px; grid-template-rows: auto minmax(0, 1fr); height: calc(100dvh - 6.5rem); min-height: 520px; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
+.ex-bar { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; padding: .6rem .75rem; border-bottom: 1px solid var(--line); background: var(--bg); }
 .ex-modes { display: flex; gap: .35rem; overflow-x: auto; scrollbar-width: none; padding: 2px 4px 4px 2px; }
 .ex-modes button { flex-shrink: 0; font-size: .82rem; padding: .3rem .8rem; background: var(--surface); }
-.ex-modes button[aria-pressed="true"] { background: var(--text); color: var(--pop); }
-.ex-side { overflow: auto; border-right: 2px solid var(--line); padding: .75rem; display: grid; align-content: start; gap: .9rem; font-size: .82rem; }
-.ex-side select { width: 100%; padding: .35rem .5rem; border: 2px solid var(--line); border-radius: 8px; background: var(--surface); }
+.ex-modes button[aria-pressed="true"] { background: var(--pop); border-color: var(--pop); color: var(--ink); }
+.ex-side { overflow: auto; border-right: 1px solid var(--line); padding: .75rem; display: grid; align-content: start; gap: .9rem; font-size: .82rem; }
+.ex-side select { width: 100%; min-height: 2.25rem; padding: .35rem .5rem; border-radius: 8px; }
 .ex-side button, .ex-panel button { font-size: .82rem; padding: .3rem .8rem; }
 .ex-side summary { display: none; }
-.ex-canvas { display: flex; flex-direction: column; min-height: 0; overflow: hidden; background: radial-gradient(circle at 50% 45%, #fffdf6 0 30%, #fbf6ea 70%); }
+.ex-help { display: grid; gap: .15rem; color: var(--muted); font-size: .75rem; }
+.ex-help dt { font-weight: 800; color: var(--text); margin-top: .3rem; }
+.ex-help dd { margin: 0; }
+.ex-canvas { display: flex; flex-direction: column; min-height: 0; overflow: hidden; background: radial-gradient(circle at 50% 45%, #fff 0 30%, var(--paper) 70%); }
 .ex-stage { position: relative; flex: 1; min-height: 0; }
-.ex-bubble { position: relative; z-index: 1; margin: .6rem .75rem 0; align-self: flex-start; max-width: min(560px, calc(100% - 1.5rem)); padding: .5rem .8rem; background: var(--surface); border: 2px solid var(--line); border-radius: 14px; font-size: .78rem; line-height: 1.5; box-shadow: 3px 3px 0 var(--line); }
-.ex-bubble::after { content: ""; position: absolute; left: 22px; bottom: -9px; width: 14px; height: 14px; background: var(--surface); border-right: 2px solid var(--line); border-bottom: 2px solid var(--line); transform: rotate(45deg); }
-.ex-bubble strong { font-family: var(--display); font-weight: 400; color: var(--accent); }
-.ex-bubble a { color: var(--accent); }
+.ex-bubble { position: relative; z-index: 1; margin: .6rem .75rem 0; align-self: flex-start; max-width: min(560px, calc(100% - 1.5rem)); padding: .5rem .8rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); font-size: .78rem; line-height: 1.5; box-shadow: var(--shadow); }
+.ex-bubble::after { content: ""; position: absolute; left: 22px; bottom: -9px; width: 14px; height: 14px; background: var(--surface); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); transform: rotate(45deg); }
+.ex-bubble strong { font-family: var(--display); font-weight: 400; color: var(--pop); }
+.ex-bubble a { color: var(--pop); }
 .ex-detail { display: inline-flex; align-items: center; gap: .3rem; margin: .5rem 0 .25rem; }
-.ex-detail:hover { background: var(--pop); }
 .ex-rel-link { font-size: .8rem; white-space: nowrap; }
-.ex-panel { overflow: auto; border-left: 2px solid var(--line); padding: 1rem; overscroll-behavior: contain; }
+.ex-panel { overflow: auto; border-left: 1px solid var(--line); padding: 1rem; overscroll-behavior: contain; }
 .ex-panel-actions { display: flex; flex-wrap: wrap; gap: .35rem; margin: .75rem 0; }
-.ex-panel-actions button[data-tone="blue"] { background: var(--blue); color: #fff; }
-.ex-panel-actions button[data-tone="red"] { background: var(--accent); color: #fff; }
+.ex-panel-actions button[data-tone="blue"] { background: var(--blue); border-color: var(--blue); color: var(--ink); }
+.ex-panel-actions button[data-tone="red"] { background: var(--accent); border-color: var(--accent); color: #fff; }
 .ex-close, .ex-grip { display: none; }
-.ex-list { position: absolute; inset: 0; overflow: auto; list-style: none; margin: 0; padding: .5rem .75rem 4rem; display: grid; align-content: start; gap: .3rem; font-size: .85rem; }
+.ex-list { position: absolute; inset: 0; overflow: auto; list-style: none; margin: 0; padding: .5rem .75rem 4rem; display: grid; align-content: start; gap: .3rem; font-size: .85rem; background: var(--surface); }
 .ex-list h3 { display: flex; align-items: center; gap: .4rem; font-size: .8rem; margin: .8rem 0 .3rem; }
-.ex-list button { font-size: .82rem; padding: .2rem .7rem; background: var(--surface); box-shadow: none; }
+.ex-list button { font-size: .82rem; padding: .2rem .7rem; }
 .ex-list li > button + button { margin-left: .3rem; }
 .ex-list .ex-list-rel { border-style: dashed; color: var(--muted); }
 .zoom { width: 2.5rem; height: 2.5rem; padding: 0; font-size: 1.1rem; background: var(--surface); border-radius: 10px; }
@@ -62,16 +64,16 @@ const css = `
   .ex { grid-template-columns: 220px minmax(0, 1fr) 320px; }
 }
 @media (max-width: 860px) {
-  .ex { grid-template-columns: 1fr; grid-template-rows: auto auto minmax(0, 1fr); height: calc(100dvh - 5.5rem); margin: -1rem; border-width: 0; box-shadow: none; }
+  .ex { grid-template-columns: 1fr; grid-template-rows: auto auto minmax(0, 1fr); height: calc(100dvh - 5.5rem); margin: -1rem; border-width: 0; border-radius: 0; }
   .ex-bar { padding: .5rem; gap: .4rem; }
   .ex-bar > [role="search"] { width: 100%; }
   .ex-modes { width: 100%; }
-  .ex-side { display: block; border-right: 0; border-bottom: 2px solid var(--line); padding: .25rem .5rem; overflow: auto; }
+  .ex-side { display: block; border-right: 0; border-bottom: 1px solid var(--line); padding: .25rem .5rem; overflow: auto; }
   .ex-side[open] > * + * { margin-top: .6rem; }
   .ex-side summary { display: block; cursor: pointer; font-weight: 700; padding: .25rem 0; min-height: 2rem; }
   .ex-side:not([open]) > :not(summary) { display: none; }
   .ex-side[open] { max-height: 45dvh; }
-  .ex-panel { position: fixed; left: 0; right: 0; bottom: 0; max-height: 52dvh; border: 3px solid var(--line); border-bottom: 0; border-radius: 18px 18px 0 0; background: var(--surface); box-shadow: 0 -6px 0 var(--pop); z-index: 20; padding-top: .5rem; }
+  .ex-panel { position: fixed; left: 0; right: 0; bottom: 0; max-height: 52dvh; border: 1px solid var(--line); border-bottom: 0; border-radius: 18px 18px 0 0; background: var(--surface); box-shadow: 0 -8px 24px #0008; z-index: 20; padding-top: .5rem; }
   .ex-panel[data-open="false"] { display: none; }
   .ex-grip { display: block; width: 48px; height: 5px; border-radius: 3px; background: var(--muted); margin: 0 auto .5rem; }
   .ex-close { display: inline-flex; align-items: center; justify-content: center; float: right; width: 2.5rem; height: 2.5rem; padding: 0; }
@@ -275,6 +277,7 @@ export const Explorer: FC = () => {
 
         <details className="ex-side" ref={sideRef} open>
           <summary>絞り込み・凡例</summary>
+          <Legend kinds={kinds} onToggle={toggleKind} />
           <label style={{ display: "grid", gap: ".2rem" }}>
             起点からの距離
             <select
@@ -316,7 +319,6 @@ export const Explorer: FC = () => {
               ))}
             </select>
           </label>
-          <Legend kinds={kinds} onToggle={toggleKind} />
           <div style={{ display: "flex", flexWrap: "wrap", gap: ".35rem" }}>
             <button
               onClick={() =>
@@ -336,11 +338,21 @@ export const Explorer: FC = () => {
               URL共有
             </button>
           </div>
-          <p style={{ color: "var(--muted)", fontSize: ".75rem" }}>
-            ○個人 ▭コンビ・グループ ◇養成所の期 ⬡賞レースの決勝（開催）
-            ▱テレビ番組。
-            破線の枠は解散・引退など。ドラッグで移動、ホイール・ピンチで拡大縮小。線を選ぶと関係の詳細を表示。半透明の線は確度が中以下。
-          </p>
+          <dl className="ex-help">
+            <dt>記号</dt>
+            <dd>
+              ○個人 ▭コンビ・グループ ◇養成所の期 ⬡賞レースの決勝（開催）
+              ▱テレビ番組。破線の枠は解散・引退など。
+            </dd>
+            <dt>確度</dt>
+            <dd>
+              半透明の線は確度が中以下。線上の「未照合」は出典を照合できていない関係。
+            </dd>
+            <dt>操作</dt>
+            <dd>
+              ドラッグで移動、ホイール・ピンチで拡大縮小。名前を選ぶと人物の詳細、線を選ぶと関係の説明を表示。
+            </dd>
+          </dl>
         </details>
 
         <div className="ex-canvas">

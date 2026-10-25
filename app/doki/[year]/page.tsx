@@ -34,7 +34,7 @@ const Page = async ({ params }: Props) => {
       <p style={{ fontSize: ".85rem" }}>
         <Link href="/doki/">← 同期芸人一覧</Link>
       </p>
-      <h2 style={{ fontSize: "1.1rem" }}>
+      <h2 className="page-title">
         {y}年デビューの芸人
         <span style={{ color: "var(--muted)", fontWeight: "normal" }}>
           {" "}

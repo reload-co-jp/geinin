@@ -4,7 +4,15 @@ import { EDGE_KINDS, type EdgeKind } from "@/lib/graph"
 export const LineSample: FC<{ kind: EdgeKind }> = ({ kind }) => {
   const k = EDGE_KINDS[kind]
   return (
-    <svg width="36" height="12" aria-hidden="true" style={{ flexShrink: 0 }}>
+    <svg
+      width="40"
+      height="12"
+      viewBox="-2 0 40 12"
+      aria-hidden="true"
+      style={{ flexShrink: 0 }}
+    >
+      {/* 線の配色は相関図の明るい描画面に合わせてあるので同じ下地を敷く */}
+      <rect x="-2" y="0" width="40" height="12" rx="3" fill="#f7f4ed" />
       <line
         x1="0"
         y1="6"
