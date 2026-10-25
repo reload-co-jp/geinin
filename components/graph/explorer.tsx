@@ -35,7 +35,7 @@ const css = `
 .ex-modes button { flex-shrink: 0; font-size: .82rem; padding: .3rem .8rem; background: var(--surface); }
 .ex-modes button[aria-pressed="true"] { background: var(--pop); border-color: var(--pop); color: var(--ink); }
 .ex-side { overflow: auto; border-right: 1px solid var(--line); padding: .75rem; display: grid; align-content: start; gap: .9rem; font-size: .82rem; }
-.ex-side select { width: 100%; min-height: 2.25rem; padding: .35rem .5rem; border-radius: 8px; }
+.ex-side select { width: 100%; min-height: 2.25rem; padding: .35rem .5rem; border-radius: 2px; }
 .ex-side button, .ex-panel button { font-size: .82rem; padding: .3rem .8rem; }
 .ex-side summary { display: none; }
 .ex-help { display: grid; gap: .15rem; color: var(--muted); font-size: .75rem; }
@@ -59,7 +59,7 @@ const css = `
 .ex-list button { font-size: .82rem; padding: .2rem .7rem; }
 .ex-list li > button + button { margin-left: .3rem; }
 .ex-list .ex-list-rel { border-style: dashed; color: var(--muted); }
-.zoom { width: 2.5rem; height: 2.5rem; padding: 0; font-size: 1.1rem; background: var(--surface); border-radius: 10px; }
+.zoom { width: 2.5rem; height: 2.5rem; padding: 0; font-size: 1.1rem; background: var(--surface); border-radius: 2px; }
 @media (max-width: 1100px) {
   .ex { grid-template-columns: 220px minmax(0, 1fr) 320px; }
 }
@@ -73,9 +73,9 @@ const css = `
   .ex-side summary { display: block; cursor: pointer; font-weight: 700; padding: .25rem 0; min-height: 2rem; }
   .ex-side:not([open]) > :not(summary) { display: none; }
   .ex-side[open] { max-height: 45dvh; }
-  .ex-panel { position: fixed; left: 0; right: 0; bottom: 0; max-height: 52dvh; border: 1px solid var(--line); border-bottom: 0; border-radius: 18px 18px 0 0; background: var(--surface); box-shadow: 0 -8px 24px #0008; z-index: 20; padding-top: .5rem; }
+  .ex-panel { position: fixed; left: 0; right: 0; bottom: 0; max-height: 52dvh; border: 1px solid var(--line); border-bottom: 0; border-radius: 2px 2px 0 0; background: var(--surface); box-shadow: 0 -8px 24px #0008; z-index: 20; padding-top: .5rem; }
   .ex-panel[data-open="false"] { display: none; }
-  .ex-grip { display: block; width: 48px; height: 5px; border-radius: 3px; background: var(--muted); margin: 0 auto .5rem; }
+  .ex-grip { display: block; width: 48px; height: 5px; border-radius: 2px; background: var(--muted); margin: 0 auto .5rem; }
   .ex-close { display: inline-flex; align-items: center; justify-content: center; float: right; width: 2.5rem; height: 2.5rem; padding: 0; }
   .ex-bubble { font-size: .72rem; }
   .ex-desc { display: none; }

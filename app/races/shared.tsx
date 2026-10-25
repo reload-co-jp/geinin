@@ -294,7 +294,7 @@ export const Schedule: FC = () => (
                   alignSelf: "center",
                   margin: "0 2px",
                   padding: ".15rem .35rem",
-                  borderRadius: 4,
+                  borderRadius: 2,
                   color: s.label === "決勝" ? "#fff" : "var(--text)",
                   background:
                     s.label === "決勝"

@@ -12,7 +12,7 @@ export const LineSample: FC<{ kind: EdgeKind }> = ({ kind }) => {
       style={{ flexShrink: 0 }}
     >
       {/* 線の配色は相関図の明るい描画面に合わせてあるので同じ下地を敷く */}
-      <rect x="-2" y="0" width="40" height="12" rx="3" fill="#f7f4ed" />
+      <rect x="-2" y="0" width="40" height="12" rx="2" fill="#f7f4ed" />
       <line
         x1="0"
         y1="6"

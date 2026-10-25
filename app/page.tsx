@@ -174,7 +174,7 @@ const css = `
 .rank .count { font-family: var(--display); font-size: 1.5rem; color: var(--pop); }
 .timeline { display: grid; gap: .35rem; padding: 1rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
 .tl-legend { display: flex; gap: 1rem; font-size: .72rem; color: var(--muted); margin-bottom: .4rem; }
-.tl-legend i { display: inline-block; width: 1.4rem; height: .6rem; border-radius: 999px; margin-right: .3rem; vertical-align: middle; }
+.tl-legend i { display: inline-block; width: 1.4rem; height: .6rem; border-radius: 2px; margin-right: .3rem; vertical-align: middle; }
 .tl-row { display: grid; grid-template-columns: 8.5rem 1fr 9.5rem; grid-template-areas: "name track meta"; align-items: center; gap: .6rem; font-size: .82rem; }
 .tl-row > a { grid-area: name; }
 .tl-track { grid-area: track; }
@@ -182,7 +182,7 @@ const css = `
 .tl-row a { text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tl-track { position: relative; height: 1.4rem; }
 .tl-bar, .tl-legend i { background: var(--pop); }
-.tl-bar { position: absolute; top: .25rem; bottom: .25rem; border-radius: 999px; }
+.tl-bar { position: absolute; top: .25rem; bottom: .25rem; border-radius: 2px; }
 .tl-bar[data-ended], .tl-legend i[data-ended] { background: repeating-linear-gradient(45deg, #8a857c 0 4px, #5a5650 4px 8px); }
 .tl-axis { display: flex; justify-content: space-between; margin: 0 10.1rem 0 9.1rem; font-size: .7rem; color: var(--muted); font-weight: 800; }
 .races { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }

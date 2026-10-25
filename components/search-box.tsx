@@ -17,7 +17,7 @@ export const TYPES = [
 
 const css = `
 .sb { position: relative; flex: 1 1 320px; min-width: 0; }
-.sb form { display: flex; align-items: stretch; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); overflow: hidden; }
+.sb form { display: flex; align-items: stretch; border: 1px solid var(--line); border-radius: 2px; background: var(--surface); overflow: hidden; }
 .sb input { flex: 1; min-width: 0; border: 0; padding: .7rem 1.1rem; font-size: 1.05rem; background: transparent; }
 .sb input:focus-visible { outline: none; }
 .sb form:focus-within { border-color: var(--pop); box-shadow: 0 0 0 2px var(--pop); }

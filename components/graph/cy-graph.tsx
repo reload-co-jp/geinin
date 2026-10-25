@@ -491,7 +491,7 @@ export const CyGraph: FC<Props> = ({
             color: "var(--text)",
             fontSize: ".78rem",
             lineHeight: 1.5,
-            borderRadius: 8,
+            borderRadius: 2,
             pointerEvents: "none",
             zIndex: 2,
           }}

@@ -12,7 +12,7 @@ const LIMIT = 200
 
 const css = `
 .sr { max-width: 820px; }
-.sr form { display: flex; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); overflow: hidden; }
+.sr form { display: flex; border: 1px solid var(--line); border-radius: 2px; background: var(--surface); overflow: hidden; }
 .sr form:focus-within { border-color: var(--pop); box-shadow: 0 0 0 2px var(--pop); }
 .sr input { flex: 1; min-width: 0; border: 0; padding: .7rem 1.1rem; font-size: 1.05rem; background: transparent; }
 .sr input:focus-visible { outline: none; }
