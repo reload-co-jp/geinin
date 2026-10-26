@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { FC, Fragment, ReactNode } from "react"
 import { LineSample } from "@/components/graph/legend"
+import { Photo } from "@/components/photo"
 import { EDGE_KINDS, nodeHref, programId } from "@/lib/graph"
 import {
   EVIDENCE_LABEL,
@@ -76,6 +77,18 @@ export const Stats: FC<{ info: NodeInfo }> = ({ info }) => {
       />
     )
   }
+  if (info.birth_date) {
+    // 表示時点の年齢
+    const now = new Date()
+    const [y, m, d] = info.birth_date.split("-").map(Number)
+    const age =
+      now.getFullYear() -
+      y -
+      (now.getMonth() + 1 < m || (now.getMonth() + 1 === m && now.getDate() < d)
+        ? 1
+        : 0)
+    stats.push(<Stat key="age" label="年齢" value={age} unit="歳" />)
+  }
   if (finals) {
     stats.push(
       <Stat
@@ -117,7 +130,7 @@ export const Heading: FC<{ info: NodeInfo; level?: 1 | 2 }> = ({
 }) => {
   const H = `h${level}` as const
   return (
-    <div>
+    <div className="pf-hero">
       {info.photo_url && (
         <img
           src={info.photo_url}
@@ -126,21 +139,23 @@ export const Heading: FC<{ info: NodeInfo; level?: 1 | 2 }> = ({
           className="pf-photo"
         />
       )}
-      <p className="pf-row">
-        <span className="sticker" data-tone={KIND_TONE[info.id[0]]}>
-          {KIND_NAME[info.id[0]]}
-        </span>
-        {info.status && (
-          <span className="sticker" data-tone="plain">
-            {info.status}
+      <div>
+        <p className="pf-row">
+          <span className="sticker" data-tone={KIND_TONE[info.id[0]]}>
+            {KIND_NAME[info.id[0]]}
           </span>
+          {info.status && (
+            <span className="sticker" data-tone="plain">
+              {info.status}
+            </span>
+          )}
+        </p>
+        <p className="pf-muted pf-reading">{info.reading}</p>
+        <H className="pf-name">{info.name}</H>
+        {info.aliases.length > 0 && (
+          <p className="pf-muted">別名: {info.aliases.join("、")}</p>
         )}
-      </p>
-      <p className="pf-muted pf-reading">{info.reading}</p>
-      <H className="pf-name">{info.name}</H>
-      {info.aliases.length > 0 && (
-        <p className="pf-muted">別名: {info.aliases.join("、")}</p>
-      )}
+      </div>
     </div>
   )
 }
@@ -218,6 +233,7 @@ export const Links: FC<{
             <li className="pf-link">
               <div className="pf-row">
                 <span className="pf-muted pf-rel-label">{l.label}</span>
+                {l.otherPhoto && <Photo src={l.otherPhoto} size={28} />}
                 {renderOther(l)}
               </div>
               <div className="pf-row pf-indent">
@@ -250,17 +266,30 @@ export const Links: FC<{
 
 export const Results: FC<{ info: NodeInfo }> = ({ info }) =>
   info.results.length > 0 && (
-    <ul className="pf-list">
+    <ol className="pf-timeline">
       {info.results.map((r) => (
-        <li key={r.label}>
-          {r.raceId ? (
-            <Link href={nodeHref(r.raceId)}>{r.label}</Link>
-          ) : (
-            r.label
+        <li key={`${r.year}-${r.competition}-${r.stage}-${r.via}`}>
+          <span className="num pf-year">{r.year}</span>
+          <span>
+            {r.raceId ? (
+              <Link href={nodeHref(r.raceId)}>{r.competition}</Link>
+            ) : (
+              r.competition
+            )}{" "}
+            <span className="pf-muted pf-small">{r.stage}</span>
+            {r.via && <span className="pf-muted pf-small">（{r.via}）</span>}
+          </span>
+          {r.rank && (
+            <span
+              className="sticker"
+              data-tone={r.rank === 1 ? "red" : "plain"}
+            >
+              {r.rank === 1 ? "優勝" : `${r.rank}位`}
+            </span>
           )}
         </li>
       ))}
-    </ul>
+    </ol>
   )
 
 export const Sources: FC<{ info: NodeInfo }> = ({ info }) => (
@@ -370,14 +399,67 @@ const LINK_SECTIONS: [string, string[]][] = [
 export const Profile: FC<{
   info: NodeInfo
   renderOther: (l: LinkInfo) => ReactNode
-}> = ({ info, renderOther }) => {
+  // 詳細ページでは節への目次を出す
+  toc?: boolean
+}> = ({ info, renderOther, toc }) => {
   // 芸人・コンビの番組共演は下の「テレビ出演番組」に出すので関係の一覧からは外す
   const rels = info.id.startsWith("v:")
     ? info
     : { ...info, links: info.links.filter((l) => l.kind !== "tv") }
+  // [見出し, 本文]。目次と本文で共用する
+  const sections: [string, ReactNode][] = []
+  const linkSections: [string, LinkInfo[]][] = info.id.startsWith("v:")
+    ? [[`出演者（${rels.links.length}件）`, rels.links]]
+    : rels.links.length === 0
+      ? [["関係", rels.links]]
+      : [
+          ...LINK_SECTIONS,
+          [
+            "関連する芸人",
+            Object.keys(EDGE_KINDS).filter(
+              (k) => !LINK_SECTIONS.some(([, ks]) => ks.includes(k))
+            ),
+          ] as [string, string[]],
+        ].flatMap(([title, kinds]): [string, LinkInfo[]][] => {
+          const links = rels.links.filter((l) => kinds.includes(l.kind))
+          return links.length ? [[`${title}（${links.length}件）`, links]] : []
+        })
+  for (const [title, links] of linkSections)
+    sections.push([
+      title,
+      <Links key={title} info={{ ...rels, links }} renderOther={renderOther} />,
+    ])
+  if (info.results.length > 0)
+    sections.push([
+      `賞レース（${info.results.length}件）`,
+      <Results key="r" info={info} />,
+    ])
+  if (info.youtube)
+    sections.push([
+      `YouTube（${info.youtube.fetched_at}時点）`,
+      <Youtube key="y" info={info} />,
+    ])
+  if (info.programs)
+    sections.push([
+      `テレビ出演番組（バラエティなど ${info.programs.items.length}件）`,
+      <Programs key="v" info={info} />,
+    ])
+  if (info.sources.length > 0 || /^[pg]:/.test(info.id))
+    sections.push([
+      "出典・確認状況",
+      info.sources.length > 0 ? (
+        <Sources key="s" info={info} />
+      ) : (
+        <p key="s" className="pf-text pf-muted">
+          出典は未登録です。掲載内容は確定情報ではありません。
+        </p>
+      ),
+    ])
+  if (info.history) sections.push(["更新履歴", <History key="h" info={info} />])
   return (
     <>
       <Stats info={info} />
+      {info.biography && <p className="pf-lead">{info.biography}</p>}
       <Facts info={info} />
       {info.profileChecked !== undefined && (
         <p className="pf-checked">
@@ -392,77 +474,21 @@ export const Profile: FC<{
           )}
         </p>
       )}
-      {info.id.startsWith("v:") ? (
-        <>
-          <SectionTitle>出演者（{rels.links.length}件）</SectionTitle>
-          <Links info={rels} renderOther={renderOther} />
-        </>
-      ) : rels.links.length === 0 ? (
-        <>
-          <SectionTitle>関係</SectionTitle>
-          <Links info={rels} renderOther={renderOther} />
-        </>
-      ) : (
-        [
-          ...LINK_SECTIONS,
-          [
-            "関連する芸人",
-            Object.keys(EDGE_KINDS).filter(
-              (k) => !LINK_SECTIONS.some(([, ks]) => ks.includes(k))
-            ),
-          ] as [string, string[]],
-        ].map(([title, kinds]) => {
-          const links = rels.links.filter((l) => kinds.includes(l.kind))
-          return (
-            links.length > 0 && (
-              <Fragment key={title}>
-                <SectionTitle>
-                  {title}（{links.length}件）
-                </SectionTitle>
-                <Links info={{ ...rels, links }} renderOther={renderOther} />
-              </Fragment>
-            )
-          )
-        })
+      {toc && sections.length >= 3 && (
+        <nav aria-label="目次" className="pf-toc">
+          {sections.map(([title], i) => (
+            <a key={title} href={`#s${i}`}>
+              {title}
+            </a>
+          ))}
+        </nav>
       )}
-      {info.youtube && (
-        <>
-          <SectionTitle>YouTube（{info.youtube.fetched_at}時点）</SectionTitle>
-          <Youtube info={info} />
-        </>
-      )}
-      {info.programs && (
-        <>
-          <SectionTitle>
-            テレビ出演番組（バラエティなど {info.programs.items.length}件）
-          </SectionTitle>
-          <Programs info={info} />
-        </>
-      )}
-      {info.results.length > 0 && (
-        <>
-          <SectionTitle>賞レース</SectionTitle>
-          <Results info={info} />
-        </>
-      )}
-      {(info.sources.length > 0 || /^[pg]:/.test(info.id)) && (
-        <>
-          <SectionTitle>出典・確認状況</SectionTitle>
-          {info.sources.length > 0 ? (
-            <Sources info={info} />
-          ) : (
-            <p className="pf-text pf-muted">
-              出典は未登録です。掲載内容は確定情報ではありません。
-            </p>
-          )}
-        </>
-      )}
-      {info.history && (
-        <>
-          <SectionTitle>更新履歴</SectionTitle>
-          <History info={info} />
-        </>
-      )}
+      {sections.map(([title, body], i) => (
+        <section key={title} id={`s${i}`} className="pf-sec">
+          <SectionTitle>{title}</SectionTitle>
+          {body}
+        </section>
+      ))}
     </>
   )
 }

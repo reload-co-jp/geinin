@@ -14,6 +14,8 @@ export type LinkInfo = {
   kind: EdgeKind
   other: string
   otherName: string
+  // 相手の写真（芸人・コンビのみ）
+  otherPhoto?: string
   label: string
   derived: boolean
   confidence: Confidence
@@ -35,6 +37,9 @@ export type NodeInfo = {
   aliases: string[]
   photo_url?: string | null
   status?: string | null
+  biography?: string | null
+  // 年齢表示用。日付まで分かるときだけ
+  birth_date?: string | null
   // 数字で大きく見せる項目。芸歴は表示時点の年から数える
   career?: {
     kind: "デビュー" | "結成"
@@ -47,7 +52,15 @@ export type NodeInfo = {
   profileChecked?: PartialDate
   links: LinkInfo[]
   // raceId は決勝のみ（開催ページがあるのは決勝だけ）
-  results: { label: string; raceId: string | null }[]
+  // via: グループとして出場したときのグループ名
+  results: {
+    year: number
+    competition: string
+    stage: string
+    rank: number | null
+    via: string | null
+    raceId: string | null
+  }[]
   sources: {
     id: string
     name: string
@@ -92,6 +105,9 @@ export const linkInfos = (
     kind: edge.kind,
     other,
     otherName: g.nodes.get(other)?.label ?? other,
+    ...(g.nodes.get(other)?.photo && {
+      otherPhoto: g.nodes.get(other)!.photo!,
+    }),
     label,
     derived: edge.derived,
     confidence: edge.confidence,

@@ -250,7 +250,6 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
     ],
     ["結成", group?.formation_date],
     ["解散", group?.dissolution_date],
-    ["概要", person?.biography],
   ]
 
   return {
@@ -260,6 +259,12 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
     aliases: e.aliases,
     photo_url: e.photo_url,
     status: e.activity_status && STATUS_LABEL[e.activity_status],
+    biography: person?.biography,
+    birth_date:
+      e.activity_status !== "deceased" &&
+      /^\d{4}-\d{2}-\d{2}$/.test(person?.birth_date ?? "")
+        ? person!.birth_date
+        : null,
     career: careerOf(
       person?.debut_date ?? group?.formation_date ?? null,
       group?.dissolution_date ?? null,
@@ -283,7 +288,14 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
         .at(-1) ?? null,
     links,
     results: results.map((r) => ({
-      label: `${r.competition_name} ${r.year} ${r.stage}${r.rank ? ` ${r.rank === 1 ? "優勝" : `${r.rank}位`}` : ""}${r.entrant_id !== nodeId ? `（${graph.nodes.get(r.entrant_id)?.label}）` : ""}`,
+      year: r.year,
+      competition: r.competition_name,
+      stage: r.stage,
+      rank: r.rank,
+      via:
+        r.entrant_id !== nodeId
+          ? (graph.nodes.get(r.entrant_id)?.label ?? null)
+          : null,
       raceId: r.stage === "決勝" ? raceId(r.competition_name, r.year) : null,
     })),
     sources: sourceInfos(sourceIds),

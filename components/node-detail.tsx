@@ -127,6 +127,7 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
       </p>
       <Profile
         info={info}
+        toc
         renderOther={(l) => (
           <Link href={nodeHref(l.other)} style={{ fontWeight: "bold" }}>
             {l.otherName}

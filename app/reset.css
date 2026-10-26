@@ -404,10 +404,26 @@ body > footer {
   font-size: 0.8rem;
   font-weight: 800;
 }
+.pf-hero {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  margin-top: 0.75rem;
+}
 .pf-photo {
-  width: 120px;
+  /* 写真内の著作権表記が切れないよう元の比率のまま */
+  width: clamp(96px, 28vw, 160px);
   height: auto;
-  margin-bottom: 0.5rem;
+  flex-shrink: 0;
+  border: 1px solid var(--line);
+}
+.pf-lead {
+  font-size: 0.95rem;
+  line-height: 1.9;
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface-2);
+  border-radius: var(--radius);
 }
 .pf-row {
   display: flex;
@@ -506,6 +522,41 @@ h2.pf-name {
 }
 .pf-programs-head {
   margin-bottom: 0.4rem;
+}
+.pf-toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 1rem;
+  font-size: 0.75rem;
+}
+.pf-toc a {
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  text-decoration: none;
+}
+.pf-sec {
+  scroll-margin-top: 5rem;
+}
+.pf-timeline {
+  list-style: none;
+  padding: 0 0 0 0.5rem;
+  border-left: 2px solid var(--line);
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.875rem;
+}
+.pf-timeline li {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.pf-year {
+  font-size: 1.1rem;
+  min-width: 3em;
 }
 .pf-section {
   font-size: 0.9rem;
