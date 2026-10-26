@@ -7,29 +7,31 @@
 }
 
 :root {
-  --bg: #2d2d2d;
-  --surface: #393939;
-  --surface-2: #444444;
-  --text: #f7f4ed;
-  --muted: #cdc7bc;
-  --line: #57524b;
-  --accent: #e8483f;
+  --bg: #f7f1e1;
+  --surface: #fffaf0;
+  --surface-2: #efe6d2;
+  --text: #2d2d2d;
+  --muted: #6b645a;
+  --line: #d9cdb5;
+  --accent: #f5142e;
   /* 小さい文字に使う赤。--accent のままだと背景とのコントラストが足りない */
-  --accent-text: #ff6b62;
-  --accent-soft: #e8483f26;
+  --accent-text: #d10a22;
+  --accent-soft: #f5142e26;
   --pop: #ffd54a;
-  --blue: #6aa8ff;
-  --blue-soft: #6aa8ff26;
+  /* 明るい背景上の文字に使う黄。--pop のままだと読めない */
+  --pop-text: #9a6400;
+  --blue: #2f6fd6;
+  --blue-soft: #2f6fd61f;
   /* 明るい塗り（--pop など）の上に載せる文字色 */
   --ink: #171717;
   /* 相関図の描画面。線の配色は明るい背景前提 */
   --paper: #f7f4ed;
   --radius: 2px;
-  --shadow: 0 6px 20px #0006;
+  --shadow: 0 6px 20px #0000001f;
   --display: "Dela Gothic One", "Hiragino Sans", sans-serif;
   background-color: var(--bg);
   color: var(--text);
-  color-scheme: dark;
+  color-scheme: light;
   line-height: 1.7;
 }
 
@@ -71,7 +73,7 @@ a {
 }
 
 a:hover {
-  color: var(--pop);
+  color: var(--pop-text);
 }
 
 button,
@@ -116,7 +118,7 @@ table {
 
 th {
   background: var(--surface-2);
-  color: var(--pop);
+  color: var(--pop-text);
 }
 
 body > header {
@@ -191,7 +193,7 @@ header nav a:hover {
 
 .sticker[data-tone="blue"] {
   background: var(--blue);
-  color: var(--ink);
+  color: #fff;
 }
 
 .sticker[data-tone="plain"] {
@@ -223,7 +225,7 @@ header nav a:hover {
 
 .chip:hover {
   color: var(--text);
-  border-color: var(--pop);
+  border-color: var(--pop-text);
 }
 
 /* 相関図へ送る主導線 */
@@ -335,11 +337,11 @@ body > footer {
   border-radius: var(--radius);
 }
 .kana a:hover {
-  border-color: var(--pop);
+  border-color: var(--pop-text);
 }
 .kana a[aria-current="page"] {
   background: var(--pop);
-  border-color: var(--pop);
+  border-color: var(--pop-text);
   color: var(--ink);
 }
 .kana small {
@@ -454,10 +456,10 @@ h2.pf-name {
   color: var(--muted);
 }
 .pf-badge[data-tone="warn"] {
-  color: var(--pop);
+  color: var(--pop-text);
 }
 .pf-badge[data-tone="ok"] {
-  color: #6fd08c;
+  color: #2e8540;
 }
 .pf-checked {
   margin-top: 0.5rem;

@@ -15,6 +15,7 @@ import {
   linksOf,
   MODES,
   nodeHref,
+  STATUS_LABEL,
   visibleSubgraph,
   type EdgeKind,
   type Graph,
@@ -33,7 +34,7 @@ const css = `
 .ex-bar { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; padding: .6rem .75rem; border-bottom: 1px solid var(--line); background: var(--bg); }
 .ex-modes { display: flex; gap: .35rem; overflow-x: auto; scrollbar-width: none; padding: 2px 4px 4px 2px; }
 .ex-modes button { flex-shrink: 0; font-size: .82rem; padding: .3rem .8rem; background: var(--surface); }
-.ex-modes button[aria-pressed="true"] { background: var(--pop); border-color: var(--pop); color: var(--ink); }
+.ex-modes button[aria-pressed="true"] { background: var(--pop); border-color: var(--pop-text); color: var(--ink); }
 .ex-side { overflow: auto; border-right: 1px solid var(--line); padding: .75rem; display: grid; align-content: start; gap: .9rem; font-size: .82rem; }
 .ex-side select { width: 100%; min-height: 2.25rem; padding: .35rem .5rem; border-radius: 2px; }
 .ex-side button, .ex-panel button { font-size: .82rem; padding: .3rem .8rem; }
@@ -45,13 +46,13 @@ const css = `
 .ex-stage { position: relative; flex: 1; min-height: 0; }
 .ex-bubble { position: relative; z-index: 1; margin: .6rem .75rem 0; align-self: flex-start; max-width: min(560px, calc(100% - 1.5rem)); padding: .5rem .8rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); font-size: .78rem; line-height: 1.5; box-shadow: var(--shadow); }
 .ex-bubble::after { content: ""; position: absolute; left: 22px; bottom: -9px; width: 14px; height: 14px; background: var(--surface); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); transform: rotate(45deg); }
-.ex-bubble strong { font-family: var(--display); font-weight: 400; color: var(--pop); }
-.ex-bubble a { color: var(--pop); }
+.ex-bubble strong { font-family: var(--display); font-weight: 400; color: var(--pop-text); }
+.ex-bubble a { color: var(--pop-text); }
 .ex-detail { display: inline-flex; align-items: center; gap: .3rem; margin: .5rem 0 .25rem; }
 .ex-rel-link { font-size: .8rem; white-space: nowrap; }
 .ex-panel { overflow: auto; border-left: 1px solid var(--line); padding: 1rem; overscroll-behavior: contain; }
 .ex-panel-actions { display: flex; flex-wrap: wrap; gap: .35rem; margin: .75rem 0; }
-.ex-panel-actions button[data-tone="blue"] { background: var(--blue); border-color: var(--blue); color: var(--ink); }
+.ex-panel-actions button[data-tone="blue"] { background: var(--blue); border-color: var(--blue); color: #fff; }
 .ex-panel-actions button[data-tone="red"] { background: var(--accent); border-color: var(--accent); color: #fff; }
 .ex-close, .ex-grip { display: none; }
 .ex-list { position: absolute; inset: 0; overflow: auto; list-style: none; margin: 0; padding: .5rem .75rem 4rem; display: grid; align-content: start; gap: .3rem; font-size: .85rem; background: var(--surface); }
@@ -212,10 +213,26 @@ export const Explorer: FC = () => {
     if (id.startsWith("v:")) return `出演 ${links.length}組`
     const counts = new Map<string, number>()
     for (const l of links) counts.set(l.label, (counts.get(l.label) ?? 0) + 1)
-    return [...counts]
-      .slice(0, 5)
-      .map(([k, n]) => `${k} ${n}`)
-      .join(" / ")
+    const n = data.graph.nodes.get(id)
+    const profile = n && [
+      data.agencies.find((a) => a.id === n.agencyId)?.name,
+      n.year &&
+        (n.kind === "person"
+          ? `${n.year}年デビュー`
+          : n.kind === "group"
+            ? `${n.year}年結成`
+            : null),
+      n.status && STATUS_LABEL[n.status],
+    ]
+    return [
+      profile?.filter(Boolean).join(" / "),
+      [...counts]
+        .slice(0, 5)
+        .map(([k, n]) => `${k} ${n}`)
+        .join(" / "),
+    ]
+      .filter(Boolean)
+      .join("\n")
   }
 
   const steps = info && nextSteps(info)

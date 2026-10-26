@@ -140,7 +140,7 @@ const css = `
 .hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 2.5rem; align-items: center; }
 .hero-copy { display: grid; gap: 1.2rem; }
 .hero h2 { font-size: clamp(2.1rem, 5.4vw, 3.8rem); line-height: 1.2; letter-spacing: 0; }
-.hero h2 em { font-family: inherit; font-style: normal; color: var(--pop); white-space: nowrap; }
+.hero h2 em { font-family: inherit; font-style: normal; color: var(--pop-text); white-space: nowrap; }
 .hero-lead { color: var(--muted); font-size: .95rem; max-width: 34em; }
 .entries { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
 .entries-label { width: 100%; font-size: .75rem; font-weight: 800; color: var(--muted); }
@@ -159,7 +159,7 @@ const css = `
 .weekly-desc { font-size: .95rem; max-width: 46em; }
 .lineage { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
 .lineage a { text-decoration: none; display: grid; justify-items: center; min-width: 7rem; padding: .7rem 1.1rem; border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius); }
-.lineage a:hover { border-color: var(--pop); }
+.lineage a:hover { border-color: var(--pop-text); }
 .lineage a:first-child { background: var(--accent); border-color: var(--accent); color: #fff; }
 .lineage small { font-size: .7rem; font-weight: 800; color: inherit; opacity: .85; }
 .lineage b { font-size: 1.15rem; }
@@ -169,10 +169,10 @@ const css = `
 .rank { list-style: none; padding: 0; display: grid; gap: .5rem; }
 .rank li { display: grid; grid-template-columns: 3rem 1fr auto; gap: .2rem .9rem; align-items: center; padding: .8rem 1rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
 .rank .num { font-size: 2rem; color: var(--muted); }
-.rank li:first-child .num { color: var(--pop); }
+.rank li:first-child .num { color: var(--pop-text); }
 .rank a { text-decoration: none; font-size: 1.05rem; }
 .rank small { grid-column: 2 / -1; color: var(--muted); font-size: .78rem; font-weight: 400; }
-.rank .count { font-family: var(--display); font-size: 1.5rem; color: var(--pop); }
+.rank .count { font-family: var(--display); font-size: 1.5rem; color: var(--pop-text); }
 .timeline { display: grid; gap: .35rem; padding: 1rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
 .tl-legend { display: flex; gap: 1rem; font-size: .72rem; color: var(--muted); margin-bottom: .4rem; }
 .tl-legend i { display: inline-block; width: 1.4rem; height: .6rem; border-radius: 2px; margin-right: .3rem; vertical-align: middle; }
@@ -188,16 +188,16 @@ const css = `
 .tl-axis { display: flex; justify-content: space-between; margin: 0 10.1rem 0 9.1rem; font-size: .7rem; color: var(--muted); font-weight: 800; }
 .races { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
 .race { border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius); overflow: hidden; }
-.race h3 { font-size: 1.05rem; padding: .6rem 1rem; background: var(--surface-2); color: var(--pop); display: flex; justify-content: space-between; }
+.race h3 { font-size: 1.05rem; padding: .6rem 1rem; background: var(--surface-2); color: var(--pop-text); display: flex; justify-content: space-between; }
 .race ol { list-style: none; padding: .5rem 1rem .9rem; }
 .race li { display: flex; align-items: baseline; gap: .7rem; padding: .25rem 0; }
 .race .num { font-size: 1.5rem; min-width: 2.2rem; text-align: right; color: var(--muted); }
-.race li:first-child .num { color: var(--pop); }
+.race li:first-child .num { color: var(--pop-text); }
 .race a { text-decoration: none; }
 .race h3 a { color: inherit; }
 .counts { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .75rem; }
 .counts div { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem 1.1rem; display: grid; gap: .3rem; }
-.counts .num { font-size: clamp(1.8rem, 4.5vw, 2.6rem); color: var(--pop); }
+.counts .num { font-size: clamp(1.8rem, 4.5vw, 2.6rem); color: var(--pop-text); }
 .note { font-size: .8rem; color: var(--muted); }
 @media (max-width: 860px) {
   .top { gap: 3rem; }
@@ -285,7 +285,7 @@ const HeroGraph: FC = () => {
           cx={c}
           cy={c}
           r={52}
-          fill="#e8483f"
+          fill="#f5142e"
           stroke="#1f1d1a"
           strokeWidth={4}
         />
