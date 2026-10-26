@@ -29,7 +29,7 @@ const Page: FC = () => (
   <div
     style={{ maxWidth: 960, margin: "0 auto", display: "grid", gap: "1rem" }}
   >
-    <h2 className="section-title">テレビ番組から探す（{list.length}番組）</h2>
+    <h1 className="section-title">テレビ番組から探す（{list.length}番組）</h1>
     <p style={{ fontSize: ".85rem", color: "var(--muted)" }}>
       登録芸人の{MIN_CAST}組以上が出演した番組（全{programIds.length}
       番組のうち）。出演情報は各芸人の Wikipedia

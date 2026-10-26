@@ -43,7 +43,7 @@ const byYear: YearData[] = [
 
 const Page: FC = () => (
   <div className="page">
-    <h2 className="page-title">賞レース</h2>
+    <h1 className="page-title">賞レース</h1>
     <h3 style={{ fontSize: "1rem" }}>開催時期</h3>
     <p className="lead">例年の目安です。年によって前後します。</p>
     <Schedule />

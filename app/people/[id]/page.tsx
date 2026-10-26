@@ -1,7 +1,14 @@
 import { notFound } from "next/navigation"
 import { NodeDetail } from "@/components/node-detail"
 import { JsonLd } from "@/components/json-ld"
-import { agencyName, db, groupById, personById, sameName } from "@/lib/db"
+import {
+  agencyName,
+  db,
+  groupById,
+  ownUrls,
+  personById,
+  sameName,
+} from "@/lib/db"
 
 type Props = { params: Promise<{ id: string }> }
 
@@ -13,7 +20,7 @@ export const generateMetadata = async ({ params }: Props) => {
   return p
     ? {
         // 同名の登録があるときは事務所を添えて区別する
-        title: `${p.name}（${p.reading}）${sameName(`p:${id}`).length && agencyName(p.agency_id) ? ` - ${agencyName(p.agency_id)}` : ""}`,
+        title: `${p.name}（${p.reading}）のプロフィール・相方・同期${sameName(`p:${id}`).length && agencyName(p.agency_id) ? ` - ${agencyName(p.agency_id)}` : ""}`,
         description: [
           `${p.name}（${p.reading}）`,
           agencyName(p.agency_id),
@@ -43,6 +50,8 @@ const Page = async ({ params }: Props) => {
           "@type": "Person",
           name: p.name,
           alternateName: [p.reading, ...p.aliases],
+          jobTitle: "お笑い芸人",
+          sameAs: ownUrls(p.source_ids),
           url: `https://geinin.reload.co.jp/people/${id}/`,
           image: p.photo_url
             ? new URL(p.photo_url, "https://geinin.reload.co.jp").href

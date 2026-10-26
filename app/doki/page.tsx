@@ -19,7 +19,7 @@ export const metadata = {
 const Page: FC = () => (
   <div className="page">
     <style>{css}</style>
-    <h2 className="page-title">同期芸人一覧</h2>
+    <h1 className="page-title">同期芸人一覧</h1>
     <p className="lead">
       デビュー年が同じ芸人を、賞レース成績や共演の多い順に並べています。名前の下は出身養成所と期です。
       {ESTIMATED_NOTE}

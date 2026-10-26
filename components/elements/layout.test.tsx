@@ -8,11 +8,10 @@ describe("Title", () => {
     expect(screen.getByText("Page title")).toBeInTheDocument()
   })
 
-  it("renders as h1", () => {
+  // 各ページ本文の見出しを h1 にするため、サイト名は見出しにしない
+  it("does not render as a heading", () => {
     render(<Title>Page title</Title>)
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
-      "Page title"
-    )
+    expect(screen.queryByRole("heading")).toBeNull()
   })
 
   it("merges custom style with defaults", () => {

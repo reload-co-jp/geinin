@@ -55,6 +55,17 @@ export const sameName = (nodeId: string) =>
     (n) => n.id !== nodeId
   )
 
+// 本人専用の出典URL（公式プロフィール等）。複数の芸人で共有する総合ページは除く
+const sourceUses = Map.groupBy(
+  [...db.people, ...db.groups].flatMap((n) => n.source_ids),
+  (id) => sourceById.get(id)?.source_url
+)
+export const ownUrls = (sourceIds: string[]) =>
+  sourceIds.flatMap((id) => {
+    const url = sourceById.get(id)?.source_url
+    return url && sourceUses.get(url)?.length === 1 ? [url] : []
+  })
+
 export const agencyName = (id: string | null) =>
   (id && agencyById.get(id)) ?? null
 

@@ -41,7 +41,7 @@ const Page = async ({ params }: Props) => {
         fontSize: ".875rem",
       }}
     >
-      <h2 className="page-title">芸人・コンビ一覧（{current.label}）</h2>
+      <h1 className="page-title">芸人・コンビ一覧（{current.label}）</h1>
       <KanaNav current={row} />
       <section>
         <h2 className="section-title">

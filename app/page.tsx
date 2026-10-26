@@ -139,8 +139,8 @@ const css = `
 .top { max-width: 1120px; margin: 0 auto; display: grid; gap: 4rem; padding: 1rem 0 2rem; }
 .hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 2.5rem; align-items: center; }
 .hero-copy { display: grid; gap: 1.2rem; }
-.hero h2 { font-size: clamp(2.1rem, 5.4vw, 3.8rem); line-height: 1.2; letter-spacing: 0; }
-.hero h2 em { font-family: inherit; font-style: normal; color: var(--pop-text); white-space: nowrap; }
+.hero h1 { font-size: clamp(2.1rem, 5.4vw, 3.8rem); line-height: 1.2; letter-spacing: 0; }
+.hero h1 em { font-family: inherit; font-style: normal; color: var(--pop-text); white-space: nowrap; }
 .hero-lead { color: var(--muted); font-size: .95rem; max-width: 34em; }
 .entries { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
 .entries-label { width: 100%; font-size: .75rem; font-weight: 800; color: var(--muted); }
@@ -334,13 +334,13 @@ const Page: FC = () => (
     <section className="hero">
       <div className="hero-copy">
         <span className="kicker">芸人同士のつながりをたどる</span>
-        <h2>
+        <h1>
           その芸人、
           <br />
           あの芸人と
           <br />
           <em>どうつながってる？</em>
-        </h2>
+        </h1>
         <p className="hero-lead">
           師匠と弟子、養成所の同期、コンビの結成と解散、賞レースで競ったライバル。芸人から芸人へ、お笑い界のつながりをたどって探索できます。
         </p>

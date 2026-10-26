@@ -42,7 +42,7 @@ export const SearchResults: FC = () => {
   return (
     <div className="page sr">
       <style>{css}</style>
-      <h2 className="page-title">検索</h2>
+      <h1 className="page-title">検索</h1>
       {/* key で URL 変更時に入力値をリセット */}
       <form action="/search/" role="search" key={q}>
         <input

@@ -24,7 +24,7 @@ const Page: FC = () => (
       fontSize: ".875rem",
     }}
   >
-    <h2 className="page-title">芸人・コンビ一覧</h2>
+    <h1 className="page-title">芸人・コンビ一覧</h1>
     <section>
       <h2 className="section-title">読みの五十音から探す</h2>
       <KanaNav />

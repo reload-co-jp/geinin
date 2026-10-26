@@ -27,7 +27,7 @@ const Page = async ({ params }: Props) => {
   return (
     <div className="page">
       <Link href="/races/">← 賞レース</Link>
-      <h2 className="page-title">{race.name} 歴代決勝</h2>
+      <h1 className="page-title">{race.name} 歴代決勝</h1>
       <RaceStats race={race} />
       <Records race={race} />
       <h3 style={{ fontSize: "1rem" }}>歴代王者</h3>

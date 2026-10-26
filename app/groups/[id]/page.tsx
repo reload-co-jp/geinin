@@ -1,7 +1,14 @@
 import { notFound } from "next/navigation"
 import { NodeDetail } from "@/components/node-detail"
 import { JsonLd } from "@/components/json-ld"
-import { agencyName, db, groupById, personById, sameName } from "@/lib/db"
+import {
+  agencyName,
+  db,
+  groupById,
+  ownUrls,
+  personById,
+  sameName,
+} from "@/lib/db"
 
 type Props = { params: Promise<{ id: string }> }
 
@@ -13,7 +20,7 @@ export const generateMetadata = async ({ params }: Props) => {
   return g
     ? {
         // 同名の登録があるときは事務所を添えて区別する
-        title: `${g.name}（${g.reading}）${sameName(`g:${id}`).length && agencyName(g.agency_id) ? ` - ${agencyName(g.agency_id)}` : ""}`,
+        title: `${g.name}（${g.reading}）のメンバー・賞レース戦績${sameName(`g:${id}`).length && agencyName(g.agency_id) ? ` - ${agencyName(g.agency_id)}` : ""}`,
         description: [
           `${g.name}（${g.reading}）`,
           agencyName(g.agency_id),
@@ -44,6 +51,7 @@ const Page = async ({ params }: Props) => {
           "@type": "PerformingGroup",
           name: g.name,
           alternateName: [g.reading, ...g.aliases],
+          sameAs: ownUrls(g.source_ids),
           url: `https://geinin.reload.co.jp/groups/${id}/`,
           image: g.photo_url
             ? new URL(g.photo_url, "https://geinin.reload.co.jp").href
