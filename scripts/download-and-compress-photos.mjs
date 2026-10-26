@@ -3,7 +3,13 @@
 // 規約: 画像は各事務所の公式サイトから取得し、WebP に圧縮してローカル保存する。
 //   node scripts/download-and-compress-photos.mjs          未保存分のみ処理
 //   node scripts/download-and-compress-photos.mjs --all    全件をやり直す
-import { existsSync, readFileSync, writeFileSync, mkdirSync, unlink } from "node:fs"
+import {
+  existsSync,
+  readFileSync,
+  writeFileSync,
+  mkdirSync,
+  unlink,
+} from "node:fs"
 import { Buffer } from "node:buffer"
 import { fileURLToPath } from "node:url"
 import { execFile } from "node:child_process"
@@ -74,7 +80,16 @@ const downloadAndConvert = async (url) => {
   try {
     await execFileAsync(
       "cwebp",
-      ["-q", String(WEBP_QUALITY), "-resize", String(MAX_DIM), String(MAX_DIM), tmpWithExt, "-o", outFsPath],
+      [
+        "-q",
+        String(WEBP_QUALITY),
+        "-resize",
+        String(MAX_DIM),
+        String(MAX_DIM),
+        tmpWithExt,
+        "-o",
+        outFsPath,
+      ],
       { timeout: 30000 }
     )
     return `/images/photos/${outName}`
@@ -99,13 +114,15 @@ const main = async () => {
   const data = [...raw.talents]
 
   // 未保存分のみ：photo が絶対URL（http で始まる）のもの
-  const unprocessed = data.filter(
-    (t) => t.photo && String(t.photo).startsWith("http")
-  ).slice(0, limit)
+  const unprocessed = data
+    .filter((t) => t.photo && String(t.photo).startsWith("http"))
+    .slice(0, limit)
   const alreadySaved = data.filter(
     (t) => t.photo && String(t.photo).startsWith("/images/photos/")
   )
-  console.log(`すでに保存済み: ${alreadySaved.length}件 / 未保存: ${unprocessed.length}件`)
+  console.log(
+    `すでに保存済み: ${alreadySaved.length}件 / 未保存: ${unprocessed.length}件`
+  )
 
   if (unprocessed.length === 0) {
     console.log("すべて保存済みです")
@@ -149,7 +166,9 @@ const main = async () => {
     }
     if (n % 25 === 0) {
       save()
-      console.log(`[${n}/${unprocessed.length}] 保存済 ${saved}件 / 失敗 ${failed}件`)
+      console.log(
+        `[${n}/${unprocessed.length}] 保存済 ${saved}件 / 失敗 ${failed}件`
+      )
     }
     await sleep(WAIT_MS)
   }

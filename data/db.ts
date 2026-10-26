@@ -369,9 +369,17 @@ export const db: Db = {
     person("koide", "こいで", "こいで"),
     person("takamatsunana", "たかまつなな", "たかまつ なな"),
     person("hatahideyuki", "畑英之", "はた ひでゆき"),
-    person("kanasashi", "4000年に一度咲く金指", "よんせんねんにいちどさく かなさし"),
+    person(
+      "kanasashi",
+      "4000年に一度咲く金指",
+      "よんせんねんにいちどさく かなさし"
+    ),
     person("tokuhararyoko", "徳原旅行", "とくはら りょこう"),
-    person("kanazawatkc", "金澤TKCファクトリー", "かなざわてぃーけーしーふぁくとりー"),
+    person(
+      "kanazawatkc",
+      "金澤TKCファクトリー",
+      "かなざわてぃーけーしーふぁくとりー"
+    ),
     person("higa2000", "ヒガ2000", "ひがにせん"),
     person("analogtaro", "アナログタロウ", "あなろぐたろう"),
     person("yumeyamasaru", "夢屋まさる", "ゆめや まさる"),
@@ -606,7 +614,9 @@ export const db: Db = {
     group("potatocollege", "ポテトカレッジ", "ぽてとかれっじ"),
     group("salbase", "サルベース", "さるべーす", { group_type: "trio" }),
     group("franz", "フランツ", "ふらんつ"),
-    group("newcrepe", "にゅ〜くれ〜ぷ", "にゅーくれーぷ", { aliases: ["ポラロイドマガジン"] }),
+    group("newcrepe", "にゅ〜くれ〜ぷ", "にゅーくれーぷ", {
+      aliases: ["ポラロイドマガジン"],
+    }),
     group("eightbridge", "エイトブリッジ", "えいとぶりっじ"),
     group("kitsuitokoike", "橘井と小池", "きついとこいけ"),
     group("niche", "ニッチェ", "にっちぇ"),
@@ -1599,7 +1609,12 @@ export const db: Db = {
     result("ツギクル芸人グランプリ", 2023, "g:y8976", null),
     result("ツギクル芸人グランプリ", 2023, "g:sandaru", null),
     result("ツギクル芸人グランプリ", 2023, "g:ohtapro-sasurairaby", null),
-    result("ツギクル芸人グランプリ", 2023, "g:shochiku-mikaduki-manhattan", null),
+    result(
+      "ツギクル芸人グランプリ",
+      2023,
+      "g:shochiku-mikaduki-manhattan",
+      null
+    ),
     result("ツギクル芸人グランプリ", 2023, "g:gunjodanchi", null),
     result("ツギクル芸人グランプリ", 2023, "g:grape-tc-klaxon", null),
     result("ツギクル芸人グランプリ", 2023, "g:firethunder", null),

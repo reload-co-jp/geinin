@@ -3,11 +3,7 @@
 //   npx tsx scripts/collect-youtube.ts
 import { existsSync, readFileSync, writeFileSync } from "node:fs"
 import { db } from "@/lib/db"
-import {
-  channelUrls,
-  parseSubscribers,
-  type YoutubeDump,
-} from "@/lib/youtube"
+import { channelUrls, parseSubscribers, type YoutubeDump } from "@/lib/youtube"
 
 const OUT = new URL("../data/youtube.json", import.meta.url)
 const WAIT_MS = 1000
@@ -40,9 +36,7 @@ const get = async (url: string) => {
   return null
 }
 
-const used = new Set(
-  [...db.people, ...db.groups].flatMap((e) => e.source_ids)
-)
+const used = new Set([...db.people, ...db.groups].flatMap((e) => e.source_ids))
 const todo = db.sources.filter(
   (s) =>
     s.source_type === "official" &&

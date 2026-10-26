@@ -73,13 +73,13 @@ export const metadata: Metadata = {
 
 ## スクリプト
 
-| コマンド | 説明 |
-|---------|------|
-| `pnpm dev` | 開発サーバーを起動 |
-| `pnpm build` | 静的サイトをビルド（`/out` に出力） |
-| `pnpm lint` | ESLint を実行 |
-| `pnpm format` | Prettier でコードをフォーマット |
-| `pnpm typecheck` | TypeScript の型チェック |
+| コマンド         | 説明                                |
+| ---------------- | ----------------------------------- |
+| `pnpm dev`       | 開発サーバーを起動                  |
+| `pnpm build`     | 静的サイトをビルド（`/out` に出力） |
+| `pnpm lint`      | ESLint を実行                       |
+| `pnpm format`    | Prettier でコードをフォーマット     |
+| `pnpm typecheck` | TypeScript の型チェック             |
 
 ## 機能
 

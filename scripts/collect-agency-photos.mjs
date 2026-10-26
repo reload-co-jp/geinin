@@ -66,7 +66,10 @@ const detailExtractors = {
     const mSlug = url.match(new RegExp("talent/profile/([^/]+)/?$"))
     const slug = mSlug ? mSlug[1] : null
     if (!slug) return null
-    const re = new RegExp("wp-content/uploads/" + escapeRegExp(slug) + "\\.jpg", "i")
+    const re = new RegExp(
+      "wp-content/uploads/" + escapeRegExp(slug) + "\\.jpg",
+      "i"
+    )
     const matches = [...html.matchAll(/(?:src|href)=["']([^"']*)["']/gi)]
     const candidates = matches.map((x) => x[1])
     const exact = candidates.find((u) => re.test(u))
@@ -88,7 +91,10 @@ const detailExtractors = {
     const mSlug = url.match(new RegExp("talent/([^/]+)/?$"))
     const slug = mSlug ? mSlug[1] : null
     if (!slug) return null
-    const re = new RegExp("talent/img/" + escapeRegExp(slug) + "_mypage\\.jpg", "i")
+    const re = new RegExp(
+      "talent/img/" + escapeRegExp(slug) + "_mypage\\.jpg",
+      "i"
+    )
     const matches = [...html.matchAll(/(?:src|href)=["']([^"']*)["']/gi)]
     const candidates = matches.map((x) => x[1])
     const exact = candidates.find((u) => re.test(u))
@@ -99,7 +105,10 @@ const detailExtractors = {
     const mId = url.match(/[?&]talent_id=(\d+)/)
     const id = mId ? mId[1] : null
     if (!id) return null
-    const re = new RegExp("talent_images/profile_image_" + escapeRegExp(id) + "_.*\\.JPG", "i")
+    const re = new RegExp(
+      "talent_images/profile_image_" + escapeRegExp(id) + "_.*\\.JPG",
+      "i"
+    )
     const matches = [...html.matchAll(/(?:src|href)=["']([^"']*)["']/gi)]
     const candidates = matches.map((x) => x[1])
     const exact = candidates.find((u) => re.test(u))
@@ -107,7 +116,11 @@ const detailExtractors = {
   },
 
   sma: (html, url) => {
-    const matches = [...html.matchAll(/(?:src|href)=["']([^"']*\/images\/15\/[^"']*-\d+\.[^"']*)["']/gi)]
+    const matches = [
+      ...html.matchAll(
+        /(?:src|href)=["']([^"']*\/images\/15\/[^"']*-\d+\.[^"']*)["']/gi
+      ),
+    ]
     const candidates = matches.map((x) => x[1])
     const exact = candidates.find((u) => /-01\.(jpg|jpeg|png)$/i.test(u))
     return exact ? toAbsolute(exact, url) : null
@@ -134,7 +147,8 @@ const listExtractors = {
     const result = new Map()
     // <li data-talent-gender=...> 各エントリ: <a href="..."> + 画像 + <p class="name">名前</p>
     // data-talent-gender を持つ li のみを対象にし、ヘッダー/フッターの偽陽性を除外
-    const re = /<li[^>]*data-talent-gender[^>]*>[\s\S]*?<a href="([^"]+)">[\s\S]*?<img[^>]*src="([^"]+)"[\s\S]*?<p class="name">([^<]+)<\/p>[\s\S]*?<\/a>[\s\S]*?<\/li>/g
+    const re =
+      /<li[^>]*data-talent-gender[^>]*>[\s\S]*?<a href="([^"]+)">[\s\S]*?<img[^>]*src="([^"]+)"[\s\S]*?<p class="name">([^<]+)<\/p>[\s\S]*?<\/a>[\s\S]*?<\/li>/g
     let m
     while ((m = re.exec(html)) !== null) {
       const [, imgUrl, name] = m
@@ -151,7 +165,8 @@ const listExtractors = {
   titan: (html, listUrl) => {
     const result = new Map()
     // <li> 各エントリ: <a href="https://www.titan-net.co.jp/talent/<slug>/"> + 画像
-    const re = /<li[\s\S]*?<a href="([^"]+)">[\s\S]*?<img[^>]*src="([^"]+)"[\s\S]*?<\/a>[\s\S]*?<\/li>/g
+    const re =
+      /<li[\s\S]*?<a href="([^"]+)">[\s\S]*?<img[^>]*src="([^"]+)"[\s\S]*?<\/a>[\s\S]*?<\/li>/g
     let m
     while ((m = re.exec(html)) !== null) {
       const [, detailUrl, imgUrl] = m
@@ -194,7 +209,9 @@ const main = async () => {
   const targets = process.argv.slice(2).filter((a) => !a.startsWith("--"))
   const agency = targets.length ? targets[0] : null
   if (!agency && !all) {
-    console.log("使い方: node scripts/collect-agency-photos.mjs <事務所id>  (例: ohtapro)")
+    console.log(
+      "使い方: node scripts/collect-agency-photos.mjs <事務所id>  (例: ohtapro)"
+    )
     console.log("       node scripts/collect-agency-photos.mjs --all")
     console.log("対応:", SUPPORTED.join(", "))
     return
