@@ -4,6 +4,8 @@ import { FC } from "react"
 import { JsonLd } from "@/components/json-ld"
 import { InArticleAd } from "@/components/in-article-ad"
 import { Heading, Profile } from "@/components/profile"
+import { years } from "@/app/doki/shared"
+import { OTHER, ROWS, rowOf } from "@/app/list/shared"
 import { agencyName, nodeInfo, raceIds, sameName } from "@/lib/db"
 import {
   graphHref,
@@ -32,6 +34,14 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
     : []
   const prevYear = race && raceYears.findLast((y) => y < race.year)
   const nextYear = race && raceYears.find((y) => y > race.year)
+  // 一覧・同期ページへの導線は芸人・グループのみ
+  const listed = /^[pg]:/.test(nodeId)
+  const row = listed
+    ? [...ROWS, OTHER].find((r) => r.slug === rowOf(info.reading))
+    : undefined
+  const dokiYear = nodeId.startsWith("p:")
+    ? years.find(([, ps]) => ps.some((p) => p.id === nodeId))?.[0]
+    : undefined
   const crumbs: [string, string][] = [
     ["トップ", "/"],
     ...(race
@@ -41,7 +51,10 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
         ] as [string, string][])
       : nodeId.startsWith("v:")
         ? ([["テレビ番組", "/programs/"]] as [string, string][])
-        : ([["一覧", "/list/"]] as [string, string][])),
+        : ([
+            ["一覧", "/list/"],
+            ...(row ? [[row.label, `/list/${row.slug}/`]] : []),
+          ] as [string, string][])),
     [info.name, nodeHref(nodeId)],
   ]
   return (
@@ -124,6 +137,14 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
         <Link href={graphHref(nodeId)} className="cta">
           この{noun}の相関図を見る →
         </Link>
+        {dokiYear && (
+          <Link
+            href={`/doki/${dokiYear}/`}
+            style={{ marginLeft: "1rem", fontSize: ".875rem" }}
+          >
+            {dokiYear}年デビューの同期芸人 →
+          </Link>
+        )}
       </p>
       <Profile
         info={info}

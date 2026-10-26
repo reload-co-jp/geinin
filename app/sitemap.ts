@@ -25,6 +25,8 @@ const sitemap = (): MetadataRoute.Sitemap =>
     ...years.map(([y]) => `/doki/${y}/`),
     "/programs/",
     ...programIds.map(nodeHref),
+    "/agencies/",
+    ...db.agencies.map((a) => `/agencies/${a.id}/`),
   ].map((path) => ({ url: base + path }))
 
 export default sitemap

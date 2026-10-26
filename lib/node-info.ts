@@ -48,6 +48,8 @@ export type NodeInfo = {
   } | null
   finals?: { count: number; best: number | null } | null
   facts: [string, string][]
+  // 「所属事務所」を事務所ページへリンクするため
+  agencyId?: string | null
   // プロフィール本体の出典照合日。null = 未照合、undefined = 対象外（期・開催）
   profileChecked?: PartialDate
   links: LinkInfo[]

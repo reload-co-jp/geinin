@@ -166,7 +166,13 @@ export const Facts: FC<{ info: NodeInfo }> = ({ info }) =>
       {info.facts.map(([term, value]) => (
         <div key={term}>
           <dt>{term}</dt>
-          <dd>{value}</dd>
+          <dd>
+            {term === "所属事務所" && info.agencyId ? (
+              <Link href={`/agencies/${info.agencyId}/`}>{value}</Link>
+            ) : (
+              value
+            )}
+          </dd>
         </div>
       ))}
     </dl>

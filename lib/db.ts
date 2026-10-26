@@ -280,6 +280,7 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
         }
       : null,
     facts: facts.filter((f): f is [string, string] => !!f[1]),
+    agencyId: e.agency_id,
     profileChecked:
       e.source_ids
         .map((sid) => sourceById.get(sid)?.checked_at)
