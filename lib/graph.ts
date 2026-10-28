@@ -784,8 +784,9 @@ export const fromJSON = (j: GraphJSON): Graph => ({
   }),
 })
 
+// 中心の人物の詳細も開いた状態で表示する（sel 指定があればそちらを優先）
 export const graphHref = (nodeId: string, query = "") =>
-  `/graph/?focus=${encodeURIComponent(nodeId)}${query}`
+  `/graph/?focus=${encodeURIComponent(nodeId)}${query.includes("sel=") ? "" : `&sel=${encodeURIComponent(nodeId)}`}${query}`
 
 // 養成所の期ノードなど個別ページを持たないものはグラフへ
 export const nodeHref = (nodeId: string) => {
