@@ -144,16 +144,17 @@ export const SearchBox: FC<{
                     actions(id, () => setQ(""))
                   ) : (
                     <>
-                      <Link
-                        className="chip"
-                        href={graphHref(id)}
-                        onClick={() => setQ("")}
-                      >
-                        グラフで開く
-                      </Link>
-                      {hasPage(id) && (
+                      {hasPage(id) ? (
                         <Link className="chip" href={nodeHref(id)}>
                           詳細
+                        </Link>
+                      ) : (
+                        <Link
+                          className="chip"
+                          href={graphHref(id)}
+                          onClick={() => setQ("")}
+                        >
+                          相関図
                         </Link>
                       )}
                     </>

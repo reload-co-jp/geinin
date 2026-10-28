@@ -21,7 +21,6 @@ const SITE = "https://geinin.reload.co.jp"
 export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
   const info = nodeInfo(nodeId)
   if (!info) notFound()
-  const noun = { p: "芸人", g: "コンビ", x: "大会", v: "番組" }[nodeId[0]]
   const homonyms = sameName(nodeId)
   const race = parseRaceId(nodeId)
   const raceYears = race
@@ -125,8 +124,8 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
         </p>
       )}
       <p style={{ margin: "1rem 0" }}>
-        <Link href={graphHref(nodeId)} className="cta">
-          この{noun}の相関図を見る →
+        <Link href={graphHref(nodeId)} style={{ fontSize: ".875rem" }}>
+          相関図で見る →
         </Link>
         {dokiYear && (
           <Link

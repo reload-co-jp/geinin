@@ -118,12 +118,13 @@ export const SearchResults: FC = () => {
                   : groups.join("・") || `つながり ${links.length}件`}
               </span>
               <span className="sr-acts">
-                <Link className="chip" href={graphHref(id)}>
-                  グラフで開く
-                </Link>
-                {hasPage(id) && (
+                {hasPage(id) ? (
                   <Link className="chip" href={nodeHref(id)}>
                     詳細
+                  </Link>
+                ) : (
+                  <Link className="chip" href={graphHref(id)}>
+                    相関図
                   </Link>
                 )}
               </span>

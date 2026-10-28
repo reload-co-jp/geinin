@@ -225,9 +225,9 @@ const HeroGraph: FC = () => {
   const line = (e: GEdge) => EDGE_KINDS[e.kind]
   return (
     <Link
-      href={graphHref(heroId)}
+      href={nodeHref(heroId)}
       className="stage"
-      aria-label={`${name(heroId)}を中心に関係性グラフを開く`}
+      aria-label={`${name(heroId)}の関係を見る`}
     >
       <svg viewBox="0 0 400 400" role="img" aria-hidden="true">
         {nodes.map((n) => (
@@ -301,7 +301,7 @@ const HeroGraph: FC = () => {
         </text>
       </svg>
       <span className="sticker stage-cap" data-tone="plain">
-        タップして相関図を開く
+        タップして関係を見る
       </span>
     </Link>
   )
@@ -348,10 +348,7 @@ const Page: FC = () => (
         <nav className="entries" aria-label="探し方">
           <span className="entries-label">関係からたどる</span>
           {lineage && (
-            <Link
-              className="chip"
-              href={graphHref(`p:${lineage[0]}`, "&mode=lineage")}
-            >
+            <Link className="chip" href="#lineage">
               意外な師弟関係
             </Link>
           )}
@@ -359,10 +356,7 @@ const Page: FC = () => (
             同期芸人
           </Link>
           {changed && (
-            <Link
-              className="chip"
-              href={graphHref(`g:${changed.id}`, "&mode=combi")}
-            >
+            <Link className="chip" href={nodeHref(`g:${changed.id}`)}>
               コンビの変遷
             </Link>
           )}
@@ -370,11 +364,6 @@ const Page: FC = () => (
             賞レースのライバル
           </Link>
         </nav>
-        <p>
-          <Link className="cta" href="/graph/">
-            関係性グラフを開く →
-          </Link>
-        </p>
       </div>
       {hero.length > 0 && <HeroGraph />}
     </section>
@@ -393,7 +382,7 @@ const Page: FC = () => (
     <InArticleAd />
 
     {lineage && lineage.length > 1 && (
-      <section className="sec">
+      <section className="sec" id="lineage">
         <SecHead
           kicker="系譜"
           title="芸人の系譜をたどる"
@@ -427,10 +416,7 @@ const Page: FC = () => (
               <Link
                 key={r.id}
                 className="chip"
-                href={graphHref(
-                  `p:${r.source_person_id}`,
-                  `&mode=lineage&sel=p:${r.target_person_id}`
-                )}
+                href={nodeHref(`p:${r.target_person_id}`)}
               >
                 {personById.get(r.source_person_id)?.name}
                 <span style={{ color: "var(--accent)" }}>▶</span>
@@ -538,7 +524,7 @@ const Page: FC = () => (
                 {race.rs.map((r) => (
                   <li key={r.id}>
                     <span className="num">{r.rank ?? "-"}</span>
-                    <Link href={graphHref(r.entrant_id, "&mode=race")}>
+                    <Link href={nodeHref(r.entrant_id)}>
                       {graph.nodes.get(r.entrant_id)?.label}
                     </Link>
                     {r.rank === 1 && (

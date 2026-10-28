@@ -50,13 +50,13 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
             </Link>
           </Title>
           <nav aria-label="メイン">
-            <Link href="/graph/">関係性グラフ</Link>
             <Link href="/list/">芸人一覧</Link>
             <Link href="/doki/">同期</Link>
             <Link href="/races/">賞レース</Link>
             <Link href="/programs/">番組</Link>
             <Link href="/agencies/">事務所</Link>
             <Link href="/search/">検索</Link>
+            <Link href="/graph/">相関図</Link>
           </nav>
         </Header>
         <Main>

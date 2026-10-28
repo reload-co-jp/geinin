@@ -37,11 +37,11 @@ export const WeeklyPick: FC<{ picks: Pick[] }> = ({ picks }) => {
       <strong className="weekly-title">{p.title}</strong>
       <span className="weekly-desc">{p.description}</span>
       <span className="pf-row">
-        <Link className="cta" href={p.href}>
-          相関図でたどる →
+        <Link className="cta" href={p.detail}>
+          人物の詳細を見る →
         </Link>
-        <Link className="chip" href={p.detail}>
-          人物の詳細を見る
+        <Link className="chip" href={p.href}>
+          相関図でたどる
         </Link>
       </span>
     </article>
