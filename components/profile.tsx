@@ -414,6 +414,27 @@ export const Profile: FC<{
     : { ...info, links: info.links.filter((l) => l.kind !== "tv") }
   // [見出し, 本文]。目次と本文で共用する
   const sections: [string, ReactNode][] = []
+  if (info.biography || info.facts.length > 0)
+    sections.push([
+      "経歴・プロフィール",
+      <div key="b">
+        {info.biography && <p className="pf-lead">{info.biography}</p>}
+        <Facts info={info} />
+        {info.profileChecked !== undefined && (
+          <p className="pf-checked">
+            {info.profileChecked ? (
+              <Badge tone="ok">
+                プロフィール出典確認日 {info.profileChecked}
+              </Badge>
+            ) : (
+              <Badge tone="warn">
+                プロフィールは出典未照合（確定情報ではありません）
+              </Badge>
+            )}
+          </p>
+        )}
+      </div>,
+    ])
   const linkSections: [string, LinkInfo[]][] = info.id.startsWith("v:")
     ? [[`出演者（${rels.links.length}件）`, rels.links]]
     : rels.links.length === 0
@@ -465,21 +486,6 @@ export const Profile: FC<{
   return (
     <>
       <Stats info={info} />
-      {info.biography && <p className="pf-lead">{info.biography}</p>}
-      <Facts info={info} />
-      {info.profileChecked !== undefined && (
-        <p className="pf-checked">
-          {info.profileChecked ? (
-            <Badge tone="ok">
-              プロフィール出典確認日 {info.profileChecked}
-            </Badge>
-          ) : (
-            <Badge tone="warn">
-              プロフィールは出典未照合（確定情報ではありません）
-            </Badge>
-          )}
-        </p>
-      )}
       {toc && sections.length >= 3 && (
         <nav aria-label="目次" className="pf-toc">
           {sections.map(([title], i) => (

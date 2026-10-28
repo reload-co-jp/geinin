@@ -152,6 +152,7 @@ export const mergeYoshimoto = (base: Db, dump: YoshimotoDump): Db => {
     const existing = peopleByName.get(key(t.name)) ?? manualMemberOf(t)
     if (existing) {
       existing.birth_date ??= t.birth
+      existing.career_note ??= t.origin
       existing.photo_url ??= t.photo
       existing.training_school ??= o.school
       existing.training_school_term ??= o.term
@@ -172,6 +173,7 @@ export const mergeYoshimoto = (base: Db, dump: YoshimotoDump): Db => {
       training_school: o.school,
       training_school_term: o.term,
       biography: null,
+      career_note: t.origin,
       activity_status: null,
       photo_url: t.photo,
       source_ids: [src],

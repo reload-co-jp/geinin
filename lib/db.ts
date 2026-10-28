@@ -103,6 +103,15 @@ const careerOf = (
       }
     : null
 
+// "1982-04-01" → "1982年4月1日"。部分日付はある分だけ
+const jaDate = (d: string) =>
+  /^\d{4}(-\d{2}){0,2}$/.test(d)
+    ? d
+        .split("-")
+        .map((n, i) => `${Number(n)}${"年月日"[i]}`)
+        .join("")
+    : d
+
 const sourceInfos = (ids: Iterable<string>): NodeInfo["sources"] =>
   [...ids].flatMap((sid) => {
     const s = sourceById.get(sid)
@@ -250,7 +259,38 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
     ],
     ["結成", group?.formation_date],
     ["解散", group?.dissolution_date],
+    ["経歴", person?.career_note],
   ]
+  const kindLabel = facts[0][1]
+  const agency = agencyName(e.agency_id)
+  const others = (label: string) =>
+    links
+      .filter((l) => l.label === label)
+      .map((l) => l.otherName)
+      .join("・")
+  const finals = results.filter((r) => r.stage === "決勝")
+  const best = finals
+    .filter((r) => r.rank)
+    .toSorted((a, b) => a.rank! - b.rank!)[0]
+  // biography が未登録のときに登録データから組み立てる紹介文
+  const summary = [
+    `${e.name}は、${agency ? `${agency}所属の` : ""}お笑い${person ? "芸人" : kindLabel}。`,
+    person?.birth_date && `${jaDate(person.birth_date)}生まれ。`,
+    person?.training_school &&
+      `${person.training_school}${person.training_school_term ? `${person.training_school_term}期` : ""}出身。`,
+    person?.debut_date && `${jaDate(person.debut_date)}デビュー。`,
+    group?.formation_date && `${jaDate(group.formation_date)}結成。`,
+    group?.dissolution_date && `${jaDate(group.dissolution_date)}解散。`,
+    others("メンバー") && `メンバーは${others("メンバー")}。`,
+    others("元メンバー") && `元メンバーは${others("元メンバー")}。`,
+    others("所属コンビ") && `${others("所属コンビ")}のメンバー。`,
+    others("元コンビ") && `過去に${others("元コンビ")}で活動。`,
+    others("師匠") && `師匠は${others("師匠")}。`,
+    finals.length > 0 &&
+      `賞レース決勝に${finals.length}回進出${best ? `（最高成績は${best.year}年${best.competition_name}${rankLabel(best.rank)}）` : ""}。`,
+  ]
+    .filter(Boolean)
+    .join("")
 
   return {
     id: nodeId,
@@ -259,7 +299,7 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
     aliases: e.aliases,
     photo_url: e.photo_url,
     status: e.activity_status && STATUS_LABEL[e.activity_status],
-    biography: person?.biography,
+    biography: person?.biography ?? summary,
     birth_date:
       e.activity_status !== "deceased" &&
       /^\d{4}-\d{2}-\d{2}$/.test(person?.birth_date ?? "")

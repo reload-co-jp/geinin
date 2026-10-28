@@ -41,6 +41,8 @@ export type Person = {
   training_school: string | null
   training_school_term: number | null
   biography: string | null
+  // 公式プロフィールの経歴欄（原文）
+  career_note?: string | null
   activity_status: ActivityStatus | null
   photo_url?: string | null
   history?: HistoryEntry[]

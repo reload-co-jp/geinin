@@ -5,6 +5,7 @@ import {
   agencyName,
   db,
   groupById,
+  nodeInfo,
   ownUrls,
   personById,
   sameName,
@@ -56,7 +57,7 @@ const Page = async ({ params }: Props) => {
           image: p.photo_url
             ? new URL(p.photo_url, "https://geinin.reload.co.jp").href
             : undefined,
-          description: p.biography ?? undefined,
+          description: nodeInfo(`p:${id}`)?.biography ?? undefined,
           worksFor: agency
             ? { "@type": "Organization", name: agency }
             : undefined,
