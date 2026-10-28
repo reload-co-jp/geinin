@@ -97,6 +97,46 @@ export const verifyState = (
 ): "確認済み" | "未確認" | "推定" =>
   verifiedAt ? "確認済み" : confidence === "low" ? "推定" : "未確認"
 
+// 関係の要約文。相手側から見たラベルごとに一文。同期・賞レース・番組は別の節に出すので除く
+const RELATION_SENTENCES: Record<string, (names: string) => string> = {
+  所属コンビ: (n) => `${n}のメンバー`,
+  元コンビ: (n) => `元${n}のメンバー`,
+  メンバー: (n) => `メンバーは${n}`,
+  元メンバー: (n) => `元メンバーは${n}`,
+  師匠: (n) => `${n}の弟子`,
+  弟子: (n) => `弟子は${n}`,
+  先輩: (n) => `${n}の後輩`,
+  後輩: (n) => `後輩は${n}`,
+  "兄弟・親族": (n) => `${n}とは兄弟・親族`,
+  共演: (n) => `${n}とは共演関係`,
+  "ライバル（本人公言）": (n) => `${n}をライバルと公言`,
+}
+const NAMES_LIMIT = 5
+
+// 出典未照合の関係は「とされる」で言い切らない
+export const relationSummary = (info: NodeInfo) =>
+  Object.entries(RELATION_SENTENCES)
+    .flatMap(([label, sentence]) =>
+      [false, true].flatMap((unsure) => {
+        const names = info.links
+          .filter(
+            (l) =>
+              l.label === label &&
+              (l.rel
+                ? verifyState(l.confidence, l.rel.last_verified_at) !==
+                  "確認済み"
+                : l.confidence !== "high") === unsure
+          )
+          .map((l) => l.otherName)
+        if (!names.length) return []
+        const list =
+          names.slice(0, NAMES_LIMIT).join("・") +
+          (names.length > NAMES_LIMIT ? "ほか" : "")
+        return [sentence(list) + (unsure ? "とされる。" : "。")]
+      })
+    )
+    .join("")
+
 export const linkInfos = (
   g: Graph,
   index: EdgeIndex,

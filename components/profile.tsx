@@ -5,6 +5,7 @@ import { Photo } from "@/components/photo"
 import { EDGE_KINDS, nodeHref, programId } from "@/lib/graph"
 import {
   EVIDENCE_LABEL,
+  relationSummary,
   verifyState,
   type LinkInfo,
   type NodeInfo,
@@ -419,6 +420,9 @@ export const Profile: FC<{
       "経歴・プロフィール",
       <div key="b">
         {info.biography && <p className="pf-lead">{info.biography}</p>}
+        {relationSummary(info) && (
+          <p className="pf-lead">{relationSummary(info)}</p>
+        )}
         <Facts info={info} />
         {info.profileChecked !== undefined && (
           <p className="pf-checked">
