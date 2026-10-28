@@ -58,17 +58,8 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
     [info.name, nodeHref(nodeId)],
   ]
   return (
-    <article
-      style={{
-        maxWidth: 760,
-        margin: "0 auto",
-        background: "var(--surface)",
-        border: "1px solid var(--line)",
-        borderTop: "6px solid var(--accent)",
-        borderRadius: "var(--radius)",
-        padding: "clamp(1rem, 4vw, 2rem)",
-      }}
-    >
+    // 見た目は app/reset.css の .nd（詳細パネルとは分ける）
+    <article className="nd">
       <JsonLd
         data={{
           "@context": "https://schema.org",

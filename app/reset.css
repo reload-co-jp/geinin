@@ -565,6 +565,96 @@ h2.pf-name {
   border-left: 4px solid var(--accent);
 }
 
+/* 詳細ページ（components/node-detail.tsx）。詳細パネルには効かせない */
+.nd {
+  max-width: 1160px;
+  margin: 0 auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-top: 6px solid var(--accent);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: clamp(1rem, 4vw, 2.5rem);
+}
+.nd .pf-hero {
+  position: relative;
+  align-items: center;
+  gap: clamp(1rem, 4vw, 2rem);
+  margin: 1rem calc(-1 * clamp(1rem, 4vw, 2.5rem)) 0;
+  padding: clamp(1.25rem, 4vw, 2.5rem) clamp(1rem, 4vw, 2.5rem);
+  background:
+    radial-gradient(var(--accent-soft) 1.5px, transparent 1.5px) 0 0 / 14px
+      14px,
+    linear-gradient(120deg, var(--pop) 0 38%, var(--paper) 38%);
+  border-block: 1px solid var(--line);
+}
+.nd .pf-photo {
+  width: clamp(120px, 28vw, 240px);
+  background: var(--surface);
+  border: 4px solid var(--surface);
+  box-shadow: var(--shadow);
+  transform: rotate(-2deg);
+}
+.nd h1.pf-name {
+  font-size: clamp(2.2rem, 7vw, 4rem);
+  text-shadow: 3px 3px 0 var(--surface);
+}
+.nd .pf-reading {
+  font-size: 0.85rem;
+}
+.nd .pf-stats {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+.nd .pf-stat {
+  padding: 0.75rem 1rem;
+  border-width: 2px;
+  border-color: var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.nd .pf-stat .num {
+  font-size: 2.6rem;
+}
+.nd .pf-lead {
+  font-size: 1rem;
+  border-left: 4px solid var(--pop);
+}
+.nd .pf-toc {
+  position: sticky;
+  top: 0.5rem;
+  z-index: 1;
+  margin-top: 1.5rem;
+  padding: 0.5rem;
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.nd .pf-toc a:hover {
+  background: var(--pop);
+  color: var(--ink);
+}
+/* 広い画面では節を2段組みのカードに */
+.nd .pf-secs {
+  columns: 2 440px;
+  column-gap: 1.25rem;
+  margin-top: 1.25rem;
+}
+.nd .pf-sec {
+  break-inside: avoid;
+  /* 段の先頭で margin-top が消えて左右の頭がずれるので下側に取る */
+  margin-bottom: 1.25rem;
+  padding: 0.25rem 1.25rem 1.25rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.nd .pf-section {
+  font-size: 1.05rem;
+  margin-top: 1rem;
+}
+
 /* 賞レース（app/races） */
 .rc-panel {
   background: var(--surface);

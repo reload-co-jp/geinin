@@ -489,12 +489,14 @@ export const Profile: FC<{
           ))}
         </nav>
       )}
-      {sections.map(([title, body], i) => (
-        <section key={title} id={`s${i}`} className="pf-sec">
-          <SectionTitle>{title}</SectionTitle>
-          {body}
-        </section>
-      ))}
+      <div className="pf-secs">
+        {sections.map(([title, body], i) => (
+          <section key={title} id={`s${i}`} className="pf-sec">
+            <SectionTitle>{title}</SectionTitle>
+            {body}
+          </section>
+        ))}
+      </div>
     </>
   )
 }
