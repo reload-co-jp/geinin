@@ -132,11 +132,11 @@ export const Heading: FC<{ info: NodeInfo; level?: 1 | 2 }> = ({
   return (
     <div className="pf-hero">
       {info.photo_url && (
-        <img
-          src={info.photo_url}
-          alt={info.name}
-          loading="lazy"
+        <div
+          role="img"
+          aria-label={info.name}
           className="pf-photo"
+          style={{ backgroundImage: `url(${JSON.stringify(info.photo_url)})` }}
         />
       )}
       <div>
