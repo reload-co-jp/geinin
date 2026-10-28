@@ -1,4 +1,5 @@
 import { Suspense } from "react"
+import { InArticleAd } from "@/components/in-article-ad"
 import { SearchResults } from "@/components/search-results"
 
 export const metadata = {
@@ -8,9 +9,12 @@ export const metadata = {
 }
 
 const Page = () => (
-  <Suspense>
-    <SearchResults />
-  </Suspense>
+  <>
+    <Suspense>
+      <SearchResults />
+    </Suspense>
+    <InArticleAd />
+  </>
 )
 
 export default Page
