@@ -18,7 +18,7 @@ import {
 } from "@/lib/graph"
 import { linkInfos, termInfo, type NodeInfo } from "@/lib/node-info"
 import type { Confidence } from "@/lib/types"
-import type { ProgramsDump } from "@/lib/programs"
+import { programDescription, type ProgramsDump } from "@/lib/programs"
 import { mergeYoshimoto, type YoshimotoDump } from "@/lib/yoshimoto"
 import { youtubeIndex, type YoutubeDump } from "@/lib/youtube"
 
@@ -144,6 +144,7 @@ const programInfo = (nodeId: string): NodeInfo | null => {
     reading: "テレビ番組（Wikipedia記載・未照合）",
     aliases: [],
     status: null,
+    biography: programDescription(node.label, links),
     finals: null,
     facts: [["登録芸人の出演", `${links.length}組`]],
     links,

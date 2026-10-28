@@ -16,6 +16,67 @@ export type ProgramsDump = {
 // 1ノードあたりの上限。長寿芸人は数百件あるため
 export const PROGRAM_LIMIT = 60
 
+// 出演者ごとの注記に書かれた放送局。長い名前を先に照合する（「BS-TBS」を「TBS」にしない）
+const STATION_NAMES = [
+  "BS-TBS",
+  "BSフジ",
+  "BS日テレ",
+  "BS朝日",
+  "BSテレ東",
+  "NHK BS",
+  "NHK Eテレ",
+  "NHK総合",
+  "NHK",
+  "日本テレビ",
+  "TBS",
+  "フジテレビ",
+  "テレビ朝日",
+  "テレビ東京",
+  "関西テレビ",
+  "毎日放送",
+  "朝日放送",
+  "読売テレビ",
+  "中京テレビ",
+  "東海テレビ",
+  "CBCテレビ",
+  "メ〜テレ",
+  "ABEMA",
+  "AbemaTV",
+]
+
+// 番組の説明文。番組そのものの記事は持たないので、出演者側の記載（局・時期・出演状況）から組み立てる
+export const programDescription = (
+  title: string,
+  cast: { label: string; otherName: string; period?: string }[]
+) => {
+  const notes = cast.flatMap((c) => (c.period ? [c.period] : []))
+  const station = Map.groupBy(
+    notes.flatMap((n) => STATION_NAMES.find((s) => n.includes(s)) ?? []),
+    (s) => s
+  )
+    .entries()
+    .toArray()
+    .toSorted((a, b) => b[1].length - a[1].length)[0]?.[0]
+  const years = notes
+    .flatMap((n) => [...n.matchAll(/(?:19|20)\d{2}(?=年)/g)])
+    .map(Number)
+  const from = Math.min(...years)
+  const to = Math.max(...years)
+  const current = cast.filter((c) => c.label === "出演中")
+  const pool = current.length ? current : cast
+  const main = pool.slice(0, 3).map((c) => c.otherName)
+  return [
+    `${title}は${station ? `主に${station}で放送${current.length ? "されている" : "された"}` : ""}テレビ番組。`,
+    `登録している芸人・コンビのうち${cast.length}組の出演がWikipediaに記載されている${current.length ? `（うち現在も出演中は${current.length}組）` : ""}。`,
+    years.length > 0 &&
+      `記載のある出演時期は${from === to ? `${from}年` : `${from}年〜${to}年`}。`,
+    main.length > 0 &&
+      `${current.length ? "現在の主な出演者" : "主な出演者"}は${main.join("・")}${pool.length > main.length ? "など" : ""}。`,
+  ]
+    .filter(Boolean)
+    .join("")
+}
+
 // 拾う節: テレビ・バラエティ系。ドラマ・ラジオなどは除く
 const TV = /テレビ|バラエティ|レギュラー|特番|特別番組|出演番組|ゲスト/
 const NOT_TV =

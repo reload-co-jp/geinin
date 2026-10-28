@@ -215,6 +215,41 @@ export const RelBadges: FC<{ link: LinkInfo }> = ({ link: l }) => {
   )
 }
 
+// 番組の出演者。写真つきのカードを出演状況ごとに並べる
+const CAST_ORDER = ["出演中", "出演", "過去に出演"]
+const Cast: FC<{
+  links: LinkInfo[]
+  renderOther: (l: LinkInfo) => ReactNode
+}> = ({ links, renderOther }) =>
+  Map.groupBy(links, (l) => l.label)
+    .entries()
+    .toArray()
+    .toSorted(([a], [b]) => CAST_ORDER.indexOf(a) - CAST_ORDER.indexOf(b))
+    .map(([label, ls]) => (
+      <Fragment key={label}>
+        <h4 className="pf-kind">
+          {label}（{ls.length}組）
+        </h4>
+        <ul className="pf-cast">
+          {ls.map((l) => (
+            <li key={l.edgeId}>
+              <Photo src={l.otherPhoto} size={64} />
+              <span className="pf-cast-body">
+                <span className="pf-muted pf-small">
+                  {l.other.startsWith("g:") ? "コンビ・グループ" : "芸人"}
+                </span>
+                {renderOther(l)}
+                {/* 局名だけの注記は説明文と重なるので時期を含むものだけ */}
+                {l.period && /\d/.test(l.period) && (
+                  <span className="pf-muted pf-small">{l.period}</span>
+                )}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </Fragment>
+    ))
+
 // renderOther: 相手ノードの表示（パネルではボタン、詳細ページではリンク）
 export const Links: FC<{
   info: NodeInfo
@@ -417,7 +452,7 @@ export const Profile: FC<{
   const sections: [string, ReactNode][] = []
   if (info.biography || info.facts.length > 0)
     sections.push([
-      "経歴・プロフィール",
+      info.id.startsWith("v:") ? "番組について" : "経歴・プロフィール",
       <div key="b">
         {info.biography && <p className="pf-lead">{info.biography}</p>}
         {relationSummary(info) && (
@@ -458,7 +493,15 @@ export const Profile: FC<{
   for (const [title, links] of linkSections)
     sections.push([
       title,
-      <Links key={title} info={{ ...rels, links }} renderOther={renderOther} />,
+      info.id.startsWith("v:") ? (
+        <Cast key={title} links={links} renderOther={renderOther} />
+      ) : (
+        <Links
+          key={title}
+          info={{ ...rels, links }}
+          renderOther={renderOther}
+        />
+      ),
     ])
   if (info.results.length > 0)
     sections.push([

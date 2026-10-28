@@ -1,5 +1,9 @@
 import { expect, test } from "vitest"
-import { cleanWikitext, extractPrograms } from "@/lib/programs"
+import {
+  cleanWikitext,
+  extractPrograms,
+  programDescription,
+} from "@/lib/programs"
 
 const wikitext = `== 出演 ==
 === テレビ番組 ===
@@ -42,4 +46,20 @@ test("局名だけの行は除き、局名を含む番組名は残す", () => {
   expect(
     extractPrograms("=== テレビ ===\n* TBS\n* [[24時間テレビ]]（日本テレビ）")
   ).toEqual([{ title: "24時間テレビ", note: "日本テレビ", status: null }])
+})
+
+test("番組の説明文は出演者の注記から局・時期を拾う", () => {
+  expect(
+    programDescription("番組X", [
+      {
+        label: "出演中",
+        otherName: "A",
+        period: "2016年12月7日 - 、TBSテレビ",
+      },
+      { label: "過去に出演", otherName: "B", period: "BS-TBS、2014年" },
+      { label: "過去に出演", otherName: "C", period: "TBS" },
+    ])
+  ).toBe(
+    "番組Xは主にTBSで放送されているテレビ番組。登録している芸人・コンビのうち3組の出演がWikipediaに記載されている（うち現在も出演中は1組）。記載のある出演時期は2014年〜2016年。現在の主な出演者はA。"
+  )
 })
