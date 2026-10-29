@@ -545,6 +545,15 @@ h2.pf-name {
 .pf-list.pf-small {
   font-size: 0.8rem;
 }
+.pf-x {
+  margin-top: 1rem;
+}
+.pf-x blockquote {
+  margin: 0.4rem 0;
+  padding-left: 0.75rem;
+  border-left: 3px solid var(--line);
+  white-space: pre-line;
+}
 .pf-programs-head {
   margin-bottom: 0.4rem;
 }

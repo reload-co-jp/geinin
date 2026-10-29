@@ -1,11 +1,13 @@
 import { notFound } from "next/navigation"
 import { NodeDetail } from "@/components/node-detail"
 import { JsonLd } from "@/components/json-ld"
+import { xUrl } from "@/lib/x"
 import {
   agencyName,
   db,
   groupById,
   ownUrls,
+  xOf,
   personById,
   sameName,
 } from "@/lib/db"
@@ -51,7 +53,10 @@ const Page = async ({ params }: Props) => {
           "@type": "PerformingGroup",
           name: g.name,
           alternateName: [g.reading, ...g.aliases],
-          sameAs: ownUrls(g.source_ids),
+          sameAs: [
+            ...ownUrls(g.source_ids),
+            ...xOf(g.source_ids, false).map((a) => xUrl(a.handle)),
+          ],
           url: `https://geinin.reload.co.jp/groups/${id}/`,
           image: g.photo_url
             ? new URL(g.photo_url, "https://geinin.reload.co.jp").href

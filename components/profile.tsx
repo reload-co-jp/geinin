@@ -3,6 +3,7 @@ import { FC, Fragment, ReactNode } from "react"
 import { LineSample } from "@/components/graph/legend"
 import { Photo } from "@/components/photo"
 import { EDGE_KINDS, nodeHref, programId } from "@/lib/graph"
+import { xUrl } from "@/lib/x"
 import {
   EVIDENCE_LABEL,
   relationSummary,
@@ -376,6 +377,53 @@ export const Youtube: FC<{ info: NodeInfo }> = ({ info }) => (
   </ul>
 )
 
+// 本人の自己紹介（X のプロフィール欄）は出典として扱わず、引用として見せる
+export const XAccounts: FC<{ info: NodeInfo }> = ({ info }) =>
+  info.x && (
+    <ul className="pf-list pf-x">
+      {info.x.accounts.map((a) => (
+        <li key={a.handle}>
+          <a href={xUrl(a.handle)} target="_blank" rel="noopener noreferrer">
+            X（旧Twitter） @{a.handle}
+          </a>
+          {a.name && <span className="pf-muted"> {a.name}</span>}
+          {a.followers !== undefined && (
+            <span className="pf-muted">
+              {" "}
+              フォロワー {subscribers.format(a.followers)}人
+            </span>
+          )}
+          {a.description && (
+            <blockquote className="pf-small">{a.description}</blockquote>
+          )}
+          {(a.location || a.url || a.created_at) && (
+            <p className="pf-muted pf-small">
+              {[
+                a.location && `場所: ${a.location}`,
+                a.created_at && `${a.created_at.slice(0, 7)}から利用`,
+              ]
+                .filter(Boolean)
+                .join(" / ")}
+              {a.url && (
+                <>
+                  {" "}
+                  <a href={a.url} target="_blank" rel="noopener noreferrer">
+                    {a.url.replace(/^https?:\/\//, "")}
+                  </a>
+                </>
+              )}
+            </p>
+          )}
+        </li>
+      ))}
+      {info.x.accounts.some((a) => a.description) && (
+        <li className="pf-muted pf-small">
+          X のプロフィール欄（{info.x.fetched_at}時点）より
+        </li>
+      )}
+    </ul>
+  )
+
 const PROGRAM_STATUS = { current: "出演中", past: "終了" }
 
 export const Programs: FC<{ info: NodeInfo }> = ({ info }) =>
@@ -450,7 +498,7 @@ export const Profile: FC<{
     : { ...info, links: info.links.filter((l) => l.kind !== "tv") }
   // [見出し, 本文]。目次と本文で共用する
   const sections: [string, ReactNode][] = []
-  if (info.biography || info.facts.length > 0)
+  if (info.biography || info.facts.length > 0 || info.x)
     sections.push([
       info.id.startsWith("v:") ? "番組について" : "経歴・プロフィール",
       <div key="b">
@@ -459,6 +507,7 @@ export const Profile: FC<{
           <p className="pf-lead">{relationSummary(info)}</p>
         )}
         <Facts info={info} />
+        <XAccounts info={info} />
         {info.profileChecked !== undefined && (
           <p className="pf-checked">
             {info.profileChecked ? (

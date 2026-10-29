@@ -5,6 +5,7 @@ import debuts from "@/data/debuts.json"
 import yoshimoto from "@/data/yoshimoto.json"
 import programs from "@/data/programs.json"
 import youtube from "@/data/youtube.json"
+import xDump from "@/data/x.json"
 import { mergeAgencies, type AgencyDump } from "@/lib/agencies"
 import { mergeDebuts, type DebutDump } from "@/lib/debuts"
 import {
@@ -21,6 +22,7 @@ import type { Confidence } from "@/lib/types"
 import { programDescription, type ProgramsDump } from "@/lib/programs"
 import { mergeYoshimoto, type YoshimotoDump } from "@/lib/yoshimoto"
 import { youtubeIndex, type YoutubeDump } from "@/lib/youtube"
+import { xIndex, type XDump } from "@/lib/x"
 
 export const db = mergeDebuts(
   mergeAgencies(
@@ -42,6 +44,7 @@ const membershipById = new Map(
   db.memberships.map((m) => [`m:${m.person_id}:${m.group_id}`, m])
 )
 const youtubeOf = youtubeIndex(youtube as YoutubeDump)
+const xIndexed = xIndex(xDump as XDump)
 
 // 同名の芸人・グループ（別人か重複登録かはデータからは判定しない）
 const byLabel = Map.groupBy(
@@ -65,6 +68,17 @@ export const ownUrls = (sourceIds: string[]) =>
     const url = sourceById.get(id)?.source_url
     return url && sourceUses.get(url)?.length === 1 ? [url] : []
   })
+
+// 個人には本人専用の出典ページ（コンビで共有しないもの）に載るアカウントだけを付ける
+export const xOf = (sourceIds: string[], personal: boolean) =>
+  xIndexed(
+    personal
+      ? sourceIds.filter(
+          (id) => sourceUses.get(sourceById.get(id)?.source_url)?.length === 1
+        )
+      : sourceIds,
+    personal
+  )
 
 export const agencyName = (id: string | null) =>
   (id && agencyById.get(id)) ?? null
@@ -213,6 +227,7 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
   const e = person ?? group
   if (!e) return null
   const channels = youtubeOf(e.source_ids)
+  const xAccounts = xOf(e.source_ids, !!person)
 
   const links = linkInfos(graph, edgeIndex, nodeId).map((l) => {
     const m = membershipById.get(l.edgeId)
@@ -333,6 +348,9 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
     sources: sourceInfos(sourceIds),
     ...(channels.length && {
       youtube: { fetched_at: youtube.fetched_at, channels },
+    }),
+    ...(xAccounts.length && {
+      x: { fetched_at: xDump.fetched_at, accounts: xAccounts },
     }),
     ...(e.history?.length && { history: e.history }),
     ...(nodeId in programDump.nodes && {
