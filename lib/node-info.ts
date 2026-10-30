@@ -7,6 +7,7 @@ import type {
 import type { Program } from "@/lib/programs"
 import type { YoutubeChannel } from "@/lib/youtube"
 import type { XAccount } from "@/lib/x"
+import type { Live } from "@/lib/lives"
 import { linksOf, type EdgeIndex, type EdgeKind, type Graph } from "@/lib/graph"
 
 // 詳細パネル・詳細ページの表示内容。サーバーで組み立て、パネルには静的JSONとして配信する
@@ -73,6 +74,8 @@ export type NodeInfo = {
   }[]
   youtube?: { fetched_at: string; channels: YoutubeChannel[] }
   x?: { fetched_at: string; accounts: XAccount[] }
+  // FANYチケット・各事務所の公演情報に載っている今日以降の劇場・ライブ出演
+  lives?: { fetched_at: string; items: Live[] }
   // Wikipedia から集めたテレビ出演番組（未照合の二次情報）
   programs?: {
     fetched_at: string

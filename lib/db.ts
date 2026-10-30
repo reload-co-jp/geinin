@@ -6,6 +6,8 @@ import yoshimoto from "@/data/yoshimoto.json"
 import programs from "@/data/programs.json"
 import youtube from "@/data/youtube.json"
 import xDump from "@/data/x.json"
+import livesDump from "@/data/lives.json"
+import { livesIndex } from "@/lib/lives"
 import { mergeAgencies, type AgencyDump } from "@/lib/agencies"
 import { mergeDebuts, type DebutDump } from "@/lib/debuts"
 import {
@@ -45,6 +47,11 @@ const membershipById = new Map(
 )
 const youtubeOf = youtubeIndex(youtube as YoutubeDump)
 const xIndexed = xIndex(xDump as XDump)
+// 静的書き出しなのでビルド日（日本時間）より前の公演は出さない
+const livesOf = livesIndex(
+  livesDump,
+  new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Tokyo" })
+)
 
 // 同名の芸人・グループ（別人か重複登録かはデータからは判定しない）
 const byLabel = Map.groupBy(
@@ -351,6 +358,12 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
     }),
     ...(xAccounts.length && {
       x: { fetched_at: xDump.fetched_at, accounts: xAccounts },
+    }),
+    ...(livesOf(nodeId).length && {
+      lives: {
+        fetched_at: livesDump.fetched_at,
+        items: livesOf(nodeId),
+      },
     }),
     ...(e.history?.length && { history: e.history }),
     ...(nodeId in programDump.nodes && {

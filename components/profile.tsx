@@ -4,6 +4,7 @@ import { LineSample } from "@/components/graph/legend"
 import { Photo } from "@/components/photo"
 import { EDGE_KINDS, nodeHref, programId } from "@/lib/graph"
 import { xUrl } from "@/lib/x"
+import { FANY } from "@/lib/lives"
 import {
   EVIDENCE_LABEL,
   relationSummary,
@@ -424,6 +425,49 @@ export const XAccounts: FC<{ info: NodeInfo }> = ({ info }) =>
     </ul>
   )
 
+// 劇場の定期公演に多数出る芸人もいるので直近だけ出し、残りは FANY の検索へ送る
+const LIVES_SHOWN = 20
+const weekday = new Intl.DateTimeFormat("ja-JP", {
+  month: "numeric",
+  day: "numeric",
+  weekday: "short",
+  timeZone: "UTC",
+})
+
+export const Lives: FC<{ info: NodeInfo }> = ({ info }) =>
+  info.lives && (
+    <>
+      <ul className="pf-list">
+        {info.lives.items.slice(0, LIVES_SHOWN).map((l) => (
+          <li key={`${l.url} ${l.date} ${l.start} ${l.title}`}>
+            <span className="pf-muted">
+              {weekday.format(new Date(l.date))}
+              {l.start && ` ${l.start}`}
+            </span>{" "}
+            <a href={l.url} target="_blank" rel="noopener noreferrer">
+              {l.title}
+            </a>{" "}
+            <span className="pf-muted pf-small">{l.venue}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="pf-muted pf-small">
+        {`${[...new Set(info.lives.items.map((l) => l.source))].join("・")}（${info.lives.fetched_at}時点）より。出演者は変更になる場合があります。`}
+        {info.lives.items.length > LIVES_SHOWN &&
+          ` ほか${info.lives.items.length - LIVES_SHOWN}件。`}{" "}
+        {info.lives.items.some((l) => l.source === "FANYチケット") && (
+          <a
+            href={`${FANY}/search/event?keywords=${encodeURIComponent(info.name)}&search_type=search_string`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            FANY で最新情報を見る
+          </a>
+        )}
+      </p>
+    </>
+  )
+
 const PROGRAM_STATUS = { current: "出演中", past: "終了" }
 
 export const Programs: FC<{ info: NodeInfo }> = ({ info }) =>
@@ -556,6 +600,11 @@ export const Profile: FC<{
     sections.push([
       `賞レース（${info.results.length}件）`,
       <Results key="r" info={info} />,
+    ])
+  if (info.lives)
+    sections.push([
+      `劇場・ライブ出演予定（${info.lives.items.length}件）`,
+      <Lives key="l" info={info} />,
     ])
   if (info.youtube)
     sections.push([

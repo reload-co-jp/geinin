@@ -5,6 +5,9 @@ on:
     branches:
       - main
   workflow_dispatch:
+  # 劇場・ライブの出演予定を毎日取り直す（6:00 JST）
+  schedule:
+    - cron: "0 21 * * *"
 
 permissions:
   contents: read
@@ -32,6 +35,11 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      # 取得に失敗してもコミット済みの data/lives.json でビルドする
+      - name: Collect live schedules
+        run: npx tsx scripts/collect-lives.ts
+        continue-on-error: true
 
       - name: Build application
         run: pnpm build
