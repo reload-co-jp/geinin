@@ -1,5 +1,6 @@
 "use client"
 
+import { usePathname } from "next/navigation"
 import { ComponentProps, FC, useEffect } from "react"
 
 declare global {
@@ -9,18 +10,21 @@ declare global {
 }
 
 // AdSense 広告ユニット（ローダーは app/layout.tsx で読み込み済み）
+// クライアント遷移では layout が再マウントされないため、パスごとに <ins> を作り直して新しい広告を要求する
 export const AdSlot: FC<ComponentProps<"ins"> & { "data-ad-slot": string }> = (
   props
 ) => {
+  const pathname = usePathname()
   useEffect(() => {
     try {
       ;(window.adsbygoogle = window.adsbygoogle || []).push({})
     } catch {
       // 開発時の二重 push などは無視
     }
-  }, [])
+  }, [pathname])
   return (
     <ins
+      key={pathname}
       data-ad-client="ca-pub-6542845006087970"
       {...props}
       className={`adsbygoogle ${props.className ?? ""}`}

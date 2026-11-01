@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { FC, Fragment, ReactNode } from "react"
 import { LineSample } from "@/components/graph/legend"
+import { InArticleAd } from "@/components/in-article-ad"
 import { Photo } from "@/components/photo"
 import { EDGE_KINDS, nodeHref, programId } from "@/lib/graph"
 import { xUrl } from "@/lib/x"
@@ -628,6 +629,17 @@ export const Profile: FC<{
       ),
     ])
   if (info.history) sections.push(["更新履歴", <History key="h" info={info} />])
+  // 詳細ページ（toc あり）で長い記事だけ、段組みを分けて途中に広告を挟む
+  const mid =
+    toc && sections.length >= 4
+      ? Math.ceil(sections.length / 2)
+      : sections.length
+  const renderSec = ([title, body]: (typeof sections)[number], i: number) => (
+    <section key={title} id={`s${i}`} className="pf-sec">
+      <SectionTitle>{title}</SectionTitle>
+      {body}
+    </section>
+  )
   return (
     <>
       <Stats info={info} />
@@ -640,14 +652,15 @@ export const Profile: FC<{
           ))}
         </nav>
       )}
-      <div className="pf-secs">
-        {sections.map(([title, body], i) => (
-          <section key={title} id={`s${i}`} className="pf-sec">
-            <SectionTitle>{title}</SectionTitle>
-            {body}
-          </section>
-        ))}
-      </div>
+      <div className="pf-secs">{sections.slice(0, mid).map(renderSec)}</div>
+      {mid < sections.length && (
+        <>
+          <InArticleAd />
+          <div className="pf-secs">
+            {sections.slice(mid).map((s, i) => renderSec(s, mid + i))}
+          </div>
+        </>
+      )}
     </>
   )
 }
