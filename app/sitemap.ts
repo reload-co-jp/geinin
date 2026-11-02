@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next"
 import { OTHER, ROWS } from "@/app/list/shared"
 import { races } from "@/app/races/shared"
+import { prelimYears, stagesOf } from "@/app/m1/shared"
+import { STAGE_SLUGS } from "@/lib/m1"
 import { years } from "@/app/doki/shared"
 import { db, programIds, raceIds, venues } from "@/lib/db"
 import { nodeHref } from "@/lib/graph"
@@ -27,6 +29,10 @@ const sitemap = (): MetadataRoute.Sitemap =>
     ...programIds.map(nodeHref),
     "/agencies/",
     ...db.agencies.map((a) => `/agencies/${a.id}/`),
+    ...prelimYears.flatMap((y) => [
+      `/m1/${y}/`,
+      ...stagesOf(y).map((s) => `/m1/${y}/${STAGE_SLUGS[s]}/`),
+    ]),
     "/venues/",
     ...venues.map((v) => `/venues/${v.slug}/`),
   ].map((path) => ({ url: base + path }))

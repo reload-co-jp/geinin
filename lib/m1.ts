@@ -23,16 +23,23 @@ export type M1Prelim = {
 }
 export type M1PrelimsDump = { fetched_at: string | null; results: M1Prelim[] }
 
-export const PRELIM_STAGES = ["1回戦", "2回戦", "3回戦", "準々決勝"] as const
+// 準決勝は data/db.ts に手入力の記録もあり、同じ年・組なら重ねない
+export const PRELIM_STAGES = [
+  "1回戦",
+  "2回戦",
+  "3回戦",
+  "準々決勝",
+  "準決勝",
+] as const
 export type PrelimStage = (typeof PRELIM_STAGES)[number]
 // 進んだ順。数字が大きいほど先の段階
-export const STAGE_ORDER = [...PRELIM_STAGES, "準決勝", "敗者復活戦", "決勝"]
+export const STAGE_ORDER = [...PRELIM_STAGES, "敗者復活戦", "決勝"]
 export const stageRank = (stage: string) => STAGE_ORDER.indexOf(stage)
 
 const key = (s: string) => s.normalize("NFKC").replace(/[\s・]/g, "")
 
 // 出典 URL（M-1 公式のコンビ番号ページ）か、同名がひとつだけのときは名前でノードを引く
-const resolver = (db: Db) => {
+export const resolver = (db: Db) => {
   const byUrl = new Map<string, Person | Group>()
   const urlOf = new Map(db.sources.map((s) => [s.id, s.source_url]))
   for (const e of [...db.groups, ...db.people])
@@ -48,7 +55,8 @@ const resolver = (db: Db) => {
     return same.length === 1 ? same[0] : undefined
   }
 }
-const nodeId = (e: Person | Group) => `${"group_type" in e ? "g" : "p"}:${e.id}`
+export const nodeId = (e: Person | Group) =>
+  `${"group_type" in e ? "g" : "p"}:${e.id}`
 
 // 結成年が未登録のグループにだけ補う
 export const mergeM1Formation = (base: Db, dump: M1FormationDump): Db => {
@@ -143,3 +151,16 @@ export const prelimPeers = (base: Db, dump: M1PrelimsDump) => {
         stageRank(b.prelim.stage) - stageRank(a.prelim.stage)
     )
 }
+
+// 予選の回戦別ページ /m1/{年}/{slug}/ のスラッグ
+export const STAGE_SLUGS: Record<PrelimStage, string> = {
+  "1回戦": "r1",
+  "2回戦": "r2",
+  "3回戦": "r3",
+  準々決勝: "qf",
+  準決勝: "sf",
+}
+export const prelimHref = (year: number, stage: string) =>
+  stage in STAGE_SLUGS
+    ? `/m1/${year}/${STAGE_SLUGS[stage as PrelimStage]}/`
+    : null

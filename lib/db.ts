@@ -13,6 +13,8 @@ import {
   mergeM1Formation,
   mergeM1Prelims,
   prelimPeers,
+  resolver,
+  nodeId as m1NodeId,
   type M1FormationDump,
   type M1PrelimsDump,
 } from "@/lib/m1"
@@ -36,7 +38,7 @@ import { mergeYoshimoto, type YoshimotoDump } from "@/lib/yoshimoto"
 import { youtubeIndex, type YoutubeDump } from "@/lib/youtube"
 import { xIndex, type XDump } from "@/lib/x"
 
-const m1Prelims = m1PrelimsDump as M1PrelimsDump
+export const m1Prelims = m1PrelimsDump as M1PrelimsDump
 export const db = mergeM1Prelims(
   mergeM1Formation(
     mergeDebuts(
@@ -52,6 +54,12 @@ export const db = mergeM1Prelims(
 )
 // M-1 予選で同じ日・同じ会場に出た組
 export const prelimPeersOf = prelimPeers(db, m1Prelims)
+const m1Find = resolver(db)
+// M-1 公式のコンビ番号ページ（または一意な名前）→ ノード id
+export const m1NodeOf = (url: string, name: string) => {
+  const e = m1Find(url, name)
+  return e ? m1NodeId(e) : null
+}
 const programDump = programs as ProgramsDump
 export const graph = buildGraph(db, programDump)
 export const edgeIndex = indexEdges(graph)

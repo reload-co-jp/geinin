@@ -6,6 +6,7 @@ import { Photo } from "@/components/photo"
 import { EDGE_KINDS, nodeHref, programId } from "@/lib/graph"
 import { xUrl } from "@/lib/x"
 import { FANY } from "@/lib/lives"
+import { prelimHref } from "@/lib/m1"
 import {
   EVIDENCE_LABEL,
   relationSummary,
@@ -316,8 +317,14 @@ export const Results: FC<{ info: NodeInfo }> = ({ info }) =>
         <li key={`${r.year}-${r.competition}-${r.stage}-${r.via}`}>
           <span className="num pf-year">{r.year}</span>
           <span>
-            {r.raceId ? (
-              <Link href={nodeHref(r.raceId)}>{r.competition}</Link>
+            {r.raceId || prelimHref(r.year, r.stage) ? (
+              <Link
+                href={
+                  r.raceId ? nodeHref(r.raceId) : prelimHref(r.year, r.stage)!
+                }
+              >
+                {r.competition}
+              </Link>
             ) : (
               r.competition
             )}{" "}
