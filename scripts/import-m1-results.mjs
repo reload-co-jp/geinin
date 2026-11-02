@@ -162,40 +162,54 @@ const main = async () => {
     // 最新の回戦に出場（予定）していれば、それより前の回戦はシードの可能性があるので詳細でだけ補う
     add(r, YEAR, r.status.stage, r.heat, r.heat?.url ?? `${SCHEDULE}index.html`)
   }
-  if (HISTORY)
-    for (const [i, r] of rows.entries()) {
+  // 前回までの記録は残す（--history で取った過去の年の戦績を含む）
+  let prev = []
+  try {
+    prev = JSON.parse(readFileSync(PRELIMS, "utf8")).results
+  } catch {
+    /* 初回 */
+  }
+  for (const p of prev) {
+    const k = `${p.url} ${p.year} ${p.stage}`
+    if (!results.has(k)) results.set(k, p)
+  }
+  const save = () =>
+    writeFileSync(
+      PRELIMS,
+      JSON.stringify({
+        fetched_at: today,
+        results: [...results.values()].sort(
+          (a, b) =>
+            a.url.localeCompare(b.url) ||
+            a.year - b.year ||
+            STAGES.indexOf(a.stage) - STAGES.indexOf(b.stage)
+        ),
+      })
+    )
+  if (HISTORY) {
+    // 詳細ページから取った記録は出典が詳細ページ自身。取得済みの組は飛ばして途中から再開できる
+    const done = new Set(
+      [...results.values()]
+        .filter((p) => p.source_url === p.url)
+        .map((p) => p.url)
+    )
+    const todo = rows.filter((r) => !done.has(r.url))
+    console.log(`詳細 未取得 ${todo.length}/${rows.length}件`)
+    for (const [i, r] of todo.entries()) {
       try {
         for (const h of parseHistory(await get(r.url)))
           add(r, h.year, h.stage, null, r.url)
       } catch (e) {
         console.warn(`${r.url} ${e.message}`)
       }
-      if (i % 200 === 199) console.log(`詳細 ${i + 1}/${rows.length}`)
+      if (i % 100 === 99) {
+        save()
+        console.log(`詳細 ${i + 1}/${todo.length}`)
+      }
       await sleep(WAIT_MS)
     }
-  else {
-    // 前回 --history で取った過去の記録は残す
-    try {
-      for (const p of JSON.parse(readFileSync(PRELIMS, "utf8")).results) {
-        const k = `${p.url} ${p.year} ${p.stage}`
-        if (!results.has(k)) results.set(k, p)
-      }
-    } catch {
-      /* 初回 */
-    }
   }
-  writeFileSync(
-    PRELIMS,
-    JSON.stringify({
-      fetched_at: today,
-      results: [...results.values()].sort(
-        (a, b) =>
-          a.url.localeCompare(b.url) ||
-          a.year - b.year ||
-          STAGES.indexOf(a.stage) - STAGES.indexOf(b.stage)
-      ),
-    })
-  )
+  save()
   console.log(`予選の記録 ${results.size}件`)
 }
 
