@@ -164,8 +164,12 @@ const main = async () => {
   }
   // 前回までの記録は残す（--history で取った過去の年の戦績を含む）
   let prev = []
+  // 詳細ページを取得済みの組（記録が増えなかった組も含む）
+  let fetched = []
   try {
-    prev = JSON.parse(readFileSync(PRELIMS, "utf8")).results
+    const dump = JSON.parse(readFileSync(PRELIMS, "utf8"))
+    prev = dump.results
+    fetched = dump.history_fetched ?? []
   } catch {
     /* 初回 */
   }
@@ -173,11 +177,19 @@ const main = async () => {
     const k = `${p.url} ${p.year} ${p.stage}`
     if (!results.has(k)) results.set(k, p)
   }
+  // 詳細ページから取った記録は出典が詳細ページ自身。取得済みの組は飛ばして途中から再開できる
+  const done = new Set([
+    ...fetched,
+    ...[...results.values()]
+      .filter((p) => p.source_url === p.url)
+      .map((p) => p.url),
+  ])
   const save = () =>
     writeFileSync(
       PRELIMS,
       JSON.stringify({
         fetched_at: today,
+        history_fetched: [...done].sort(),
         results: [...results.values()].sort(
           (a, b) =>
             a.url.localeCompare(b.url) ||
@@ -187,18 +199,13 @@ const main = async () => {
       })
     )
   if (HISTORY) {
-    // 詳細ページから取った記録は出典が詳細ページ自身。取得済みの組は飛ばして途中から再開できる
-    const done = new Set(
-      [...results.values()]
-        .filter((p) => p.source_url === p.url)
-        .map((p) => p.url)
-    )
     const todo = rows.filter((r) => !done.has(r.url))
     console.log(`詳細 未取得 ${todo.length}/${rows.length}件`)
     for (const [i, r] of todo.entries()) {
       try {
         for (const h of parseHistory(await get(r.url)))
           add(r, h.year, h.stage, null, r.url)
+        done.add(r.url)
       } catch (e) {
         console.warn(`${r.url} ${e.message}`)
       }

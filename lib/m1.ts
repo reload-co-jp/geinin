@@ -21,7 +21,11 @@ export type M1Prelim = {
   venue: string | null
   source_url: string // 結果が載っているページ
 }
-export type M1PrelimsDump = { fetched_at: string | null; results: M1Prelim[] }
+export type M1PrelimsDump = {
+  fetched_at: string | null
+  history_fetched?: string[]
+  results: M1Prelim[]
+}
 
 // 準決勝は data/db.ts に手入力の記録もあり、同じ年・組なら重ねない
 export const PRELIM_STAGES = [
