@@ -47,7 +47,8 @@ export const resolver = (db: Db) => {
       const u = urlOf.get(sid)
       if (u) byUrl.set(u, e)
     }
-  const byName = Map.groupBy([...db.groups, ...db.people], (e) => key(e.name))
+  // M-1 は2人以上の組で出場するので、名前での照合はグループに限る（同名の個人を取り違えない）
+  const byName = Map.groupBy(db.groups, (e) => key(e.name))
   return (url: string, name: string) => {
     const hit = byUrl.get(url)
     if (hit) return hit
