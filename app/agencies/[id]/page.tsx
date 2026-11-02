@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { agencyName, db } from "@/lib/db"
 import { InArticleAd } from "@/components/in-article-ad"
+import { Photo } from "@/components/photo"
 
 type Props = { params: Promise<{ id: string }> }
 
@@ -12,14 +13,6 @@ const of = <T extends { agency_id: string | null; reading: string }>(
   xs
     .filter((x) => x.agency_id === id)
     .toSorted((a, b) => a.reading.localeCompare(b.reading, "ja"))
-
-const listStyle = {
-  display: "flex",
-  flexWrap: "wrap",
-  gap: ".25rem 1rem",
-  listStyle: "none",
-  padding: 0,
-} as const
 
 export const generateStaticParams = () => db.agencies.map((a) => ({ id: a.id }))
 
@@ -57,15 +50,18 @@ const Page = async ({ params }: Props) => {
       <h1 className="page-title">{name}所属の芸人・コンビ</h1>
       <section>
         <h2 className="section-title">グループ（{groups.length}組）</h2>
-        <ul style={listStyle}>
+        <ul className="pf-cast">
           {groups.map((g) => (
             <li key={g.id}>
-              <Link href={`/groups/${g.id}/`}>{g.name}</Link>
-              {g.dissolution_date && (
-                <span style={{ color: "var(--muted)" }}>
-                  （{g.dissolution_date}解散）
-                </span>
-              )}
+              <Photo src={g.photo_url} size={64} />
+              <span className="pf-cast-body">
+                <Link href={`/groups/${g.id}/`}>{g.name}</Link>
+                {g.dissolution_date && (
+                  <span className="pf-muted pf-small">
+                    {g.dissolution_date}解散
+                  </span>
+                )}
+              </span>
             </li>
           ))}
         </ul>
@@ -73,10 +69,13 @@ const Page = async ({ params }: Props) => {
       <InArticleAd />
       <section>
         <h2 className="section-title">芸人（{people.length}人）</h2>
-        <ul style={listStyle}>
+        <ul className="pf-cast">
           {people.map((p) => (
             <li key={p.id}>
-              <Link href={`/people/${p.id}/`}>{p.name}</Link>
+              <Photo src={p.photo_url} size={64} />
+              <span className="pf-cast-body">
+                <Link href={`/people/${p.id}/`}>{p.name}</Link>
+              </span>
             </li>
           ))}
         </ul>
