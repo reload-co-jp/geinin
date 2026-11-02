@@ -44,6 +44,18 @@ describe("mergeAgencies", () => {
     expect(r.people.length).toBe(db.people.length)
   })
 
+  it("M-1 公式サイトの番号は事務所サイトの数字IDと区別する", () => {
+    const r = merge(
+      talent({ name: "テストM1", url: "https://www.m-1gp.com/combi/68.html" })
+    )
+    expect(r.people.find((p) => p.name === "テストM1")?.id).toBe(
+      "ohtapro-m1-68"
+    )
+    expect(r.sources.at(-1)?.source_name).toBe(
+      "M-1グランプリ 公式サイト「テストM1」"
+    )
+  })
+
   it("詳細未取得の新規は追加しない", () => {
     const r = merge(talent({ name: "未知の芸人", members: null }))
     expect(r.people.length).toBe(db.people.length)

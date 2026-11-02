@@ -18,7 +18,10 @@ const hiragana = (s: string) =>
 // 読みが無いときは、名前が仮名だけならそれを読みとする
 const reading = (name: string, kana: string | null) =>
   kana ?? (/^[ぁ-んァ-ヶー・\s]+$/.test(name) ? hiragana(name) : "")
-const slug = (url: string) => url.match(/([^/?=]+?)(?:\.html)?\/?$/)![1]
+const M1 = "https://www.m-1gp.com/"
+// M-1 公式サイトのコンビ番号は事務所サイトの数字IDと衝突しうるので区別する
+const slug = (url: string) =>
+  (url.startsWith(M1) ? "m1-" : "") + url.match(/([^/?=]+?)(?:\.html)?\/?$/)![1]
 const sourceId = (t: AgencyTalent) => `${t.agency}:${slug(t.url)}`
 
 // 吉本以外の事務所公式サイトの取得結果を統合する。既存レコードは id を保ち、空欄だけ補う
@@ -134,7 +137,9 @@ export const mergeAgencies = (base: Db, dump: AgencyDump): Db => {
       ...base.sources,
       ...dump.talents.map((t) => ({
         id: sourceId(t),
-        source_name: `${agencyName.get(t.agency) ?? t.agency} 公式プロフィール「${t.name}」`,
+        source_name: t.url.startsWith(M1)
+          ? `M-1グランプリ 公式サイト「${t.name}」`
+          : `${agencyName.get(t.agency) ?? t.agency} 公式プロフィール「${t.name}」`,
         source_url: t.url,
         source_type: "official" as const,
         published_at: null,
