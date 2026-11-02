@@ -536,7 +536,9 @@ export const Profile: FC<{
   renderOther: (l: LinkInfo) => ReactNode
   // 詳細ページでは節への目次を出す
   toc?: boolean
-}> = ({ info, renderOther, toc }) => {
+  // 詳細ページだけの節。top は経歴の直後、bottom は出典の直前に入れる
+  extra?: { title: string; body: ReactNode; position: "top" | "bottom" }[]
+}> = ({ info, renderOther, toc, extra = [] }) => {
   // 芸人・コンビの番組共演は下の「テレビ出演番組」に出すので関係の一覧からは外す
   const rels = info.id.startsWith("v:")
     ? info
@@ -568,6 +570,8 @@ export const Profile: FC<{
         )}
       </div>,
     ])
+  for (const x of extra)
+    if (x.position === "top") sections.push([x.title, x.body])
   const linkSections: [string, LinkInfo[]][] = info.id.startsWith("v:")
     ? [[`出演者（${rels.links.length}件）`, rels.links]]
     : rels.links.length === 0
@@ -617,6 +621,8 @@ export const Profile: FC<{
       `テレビ出演番組（バラエティなど ${info.programs.items.length}件）`,
       <Programs key="v" info={info} />,
     ])
+  for (const x of extra)
+    if (x.position === "bottom") sections.push([x.title, x.body])
   if (info.sources.length > 0 || /^[pg]:/.test(info.id))
     sections.push([
       "出典・確認状況",

@@ -4,6 +4,7 @@ import { FC } from "react"
 import { JsonLd } from "@/components/json-ld"
 import { InArticleAd } from "@/components/in-article-ad"
 import { Heading, Profile } from "@/components/profile"
+import { FaqList, NextReads, Timeline } from "@/components/related"
 import { years } from "@/app/doki/shared"
 import { OTHER, ROWS, rowOf } from "@/app/list/shared"
 import { agencyName, nodeInfo, raceIds, sameName } from "@/lib/db"
@@ -14,6 +15,7 @@ import {
   raceId,
   raceSlugs,
 } from "@/lib/graph"
+import { faqOf, recommendations, timelineOf } from "@/lib/related"
 
 const SITE = "https://geinin.reload.co.jp"
 
@@ -38,9 +40,10 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
   const row = listed
     ? [...ROWS, OTHER].find((r) => r.slug === rowOf(info.reading))
     : undefined
-  const dokiYear = nodeId.startsWith("p:")
-    ? years.find(([, ps]) => ps.some((p) => p.id === nodeId))?.[0]
+  const doki = nodeId.startsWith("p:")
+    ? years.find(([, ps]) => ps.some((p) => p.id === nodeId))
     : undefined
+  const dokiYear = doki?.[0]
   const crumbs: [string, string][] = [
     ["トップ", "/"],
     ...(race
@@ -56,6 +59,15 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
           ] as [string, string][])),
     [info.name, nodeHref(nodeId)],
   ]
+  // 芸人・グループだけ、年表・よくある質問と次に見る芸人を出す
+  const timeline = listed ? timelineOf(nodeId, info) : []
+  const faqs = listed ? faqOf(nodeId, info) : []
+  const recs = listed
+    ? recommendations(
+        nodeId,
+        doki && { year: doki[0], ids: doki[1].map((p) => p.id) }
+      )
+    : null
   return (
     // 見た目は app/reset.css の .nd（詳細パネルとは分ける）
     <article className="nd">
@@ -71,6 +83,19 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
           })),
         }}
       />
+      {faqs.length > 0 && (
+        <JsonLd
+          data={{
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faqs.map((f) => ({
+              "@type": "Question",
+              name: f.q,
+              acceptedAnswer: { "@type": "Answer", text: f.a },
+            })),
+          }}
+        />
+      )}
       <nav aria-label="パンくずリスト" style={{ fontSize: ".75rem" }}>
         {crumbs.map(([name, href], i) => (
           <span key={href}>
@@ -139,12 +164,41 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
       <Profile
         info={info}
         toc
+        extra={[
+          ...(timeline.length >= 2
+            ? [
+                {
+                  title: "年表",
+                  body: <Timeline entries={timeline} />,
+                  position: "top" as const,
+                },
+              ]
+            : []),
+          ...(faqs.length > 0
+            ? [
+                {
+                  title: "よくある質問",
+                  body: <FaqList faqs={faqs} />,
+                  position: "bottom" as const,
+                },
+              ]
+            : []),
+        ]}
         renderOther={(l) => (
           <Link href={nodeHref(l.other)} style={{ fontWeight: "bold" }}>
             {l.otherName}
           </Link>
         )}
       />
+      {recs && (
+        <NextReads
+          name={info.name}
+          {...recs}
+          agencyName={agencyName(recs.agencyId)}
+          group={nodeId.startsWith("g:")}
+          dokiHref={dokiYear ? `/doki/${dokiYear}/` : null}
+        />
+      )}
       <p style={{ fontSize: ".8rem", marginTop: "1.5rem" }}>
         <a
           href={`https://github.com/reload-co-jp/geinin/issues/new?title=${encodeURIComponent(`情報の誤り: ${info.name}`)}&body=${encodeURIComponent(`${SITE}${nodeHref(nodeId)}\n\n誤っている箇所:\n正しい内容:\n根拠（URLなど）:`)}`}
