@@ -448,7 +448,16 @@ export const Lives: FC<{ info: NodeInfo }> = ({ info }) =>
             <a href={l.url} target="_blank" rel="noopener noreferrer">
               {l.title}
             </a>{" "}
-            <span className="pf-muted pf-small">{l.venue}</span>
+            {l.venue && info.lives?.venuePages?.[l.venue] ? (
+              <Link
+                className="pf-small"
+                href={`/venues/${info.lives.venuePages[l.venue]}/`}
+              >
+                {l.venue}
+              </Link>
+            ) : (
+              <span className="pf-muted pf-small">{l.venue}</span>
+            )}
           </li>
         ))}
       </ul>

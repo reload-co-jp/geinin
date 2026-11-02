@@ -55,6 +55,7 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
             <Link href="/races/">賞レース</Link>
             <Link href="/programs/">番組</Link>
             <Link href="/agencies/">事務所</Link>
+            <Link href="/venues/">劇場</Link>
             <Link href="/search/">検索</Link>
             <Link href="/graph/">相関図</Link>
           </nav>

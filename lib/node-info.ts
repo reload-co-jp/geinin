@@ -75,7 +75,12 @@ export type NodeInfo = {
   youtube?: { fetched_at: string; channels: YoutubeChannel[] }
   x?: { fetched_at: string; accounts: XAccount[] }
   // FANYチケット・各事務所の公演情報に載っている今日以降の劇場・ライブ出演
-  lives?: { fetched_at: string; items: Live[] }
+  lives?: {
+    fetched_at: string
+    items: Live[]
+    // 会場名 → 劇場ページのスラッグ（ページのある会場だけ）
+    venuePages?: Record<string, string>
+  }
   // Wikipedia から集めたテレビ出演番組（未照合の二次情報）
   programs?: {
     fetched_at: string

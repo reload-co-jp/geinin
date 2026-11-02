@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next"
 import { OTHER, ROWS } from "@/app/list/shared"
 import { races } from "@/app/races/shared"
 import { years } from "@/app/doki/shared"
-import { db, programIds, raceIds } from "@/lib/db"
+import { db, programIds, raceIds, venues } from "@/lib/db"
 import { nodeHref } from "@/lib/graph"
 
 export const dynamic = "force-static"
@@ -27,6 +27,8 @@ const sitemap = (): MetadataRoute.Sitemap =>
     ...programIds.map(nodeHref),
     "/agencies/",
     ...db.agencies.map((a) => `/agencies/${a.id}/`),
+    "/venues/",
+    ...venues.map((v) => `/venues/${v.slug}/`),
   ].map((path) => ({ url: base + path }))
 
 export default sitemap

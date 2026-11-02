@@ -98,7 +98,8 @@ export type CompetitionResult = {
   year: number
   // 出場者のノード id。コンビ・トリオは "g:<group id>"、ピン芸人は "p:<person id>"
   entrant_id: string
-  stage: "決勝" | "準決勝" | "準々決勝"
+  // 1回戦〜3回戦は M-1 の予選（lib/m1.ts）。その回戦に出場したことを表す
+  stage: "決勝" | "準決勝" | "準々決勝" | "3回戦" | "2回戦" | "1回戦"
   rank: number | null
   score: number | null
   source_ids: string[]
