@@ -211,6 +211,23 @@ export const AGENCIES = {
         /【(?:左|中|右)】/
       ),
   },
+  prime: {
+    list: ["https://www.primecorp.co.jp/talent/?category=comedian"],
+    links: (html) =>
+      all(
+        between(html, '<ul class="talentList">', "</ul>"),
+        /<a href="([^"]+)">[\s\S]*?<h2>([^<]+)<\/h2>/g
+      ).map((m) => {
+        const { name, kana } = member(decode(m[2]), null)
+        return { url: m[1], name, kana }
+      }),
+    // 「長門石倭（右）」の後に「（ながといし やまと）」と読みが続く。見出しは他の欄にも使われるため立ち位置付きだけ拾う
+    members: (html) =>
+      names(
+        html,
+        /<h3>([^<]+（(?:左|中|右)）)<\/h3>\s*<p class="texts">\s*(?:（([ぁ-んー ]+)）)?/g
+      ),
+  },
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))

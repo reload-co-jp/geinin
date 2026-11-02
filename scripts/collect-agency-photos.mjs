@@ -3,8 +3,8 @@
 // 規約: 画像ファイルはコピーせず、公式プロフィールの画像URLを参照するだけにする。
 //   node scripts/collect-agency-photos.mjs <事務所id>   指定事務所のみ取得（未取得分のみ）
 //   node scripts/collect-agency-photos.mjs --all          全事務所を取得（未取得分のみ）
-// 対応事務所: asai grape jinrikisha maseki ohtapro sma shochiku titan watanabe
-// （shochiku・titan は一覧ページからコンビ/グループ写真を一括取得）
+// 対応事務所: asai grape jinrikisha maseki ohtapro prime sma shochiku titan watanabe
+// （shochiku・titan・prime は一覧ページからコンビ/グループ写真を一括取得）
 import { readFileSync, writeFileSync } from "node:fs"
 
 const OUT = new URL("../data/agencies.json", import.meta.url)
@@ -141,7 +141,7 @@ const detailExtractors = {
 // 各事務所の一覧ページから全タレントの画像を一括抽出（1ページ取得で完了）
 // 戻り値: Map<識別子, 画像絶対URL>
 //   shochiku: 識別子 = タレント名（key正規化）
-//   titan: 識別子 = 詳細ページURL
+//   titan・prime: 識別子 = 詳細ページURL
 const listExtractors = {
   shochiku: (html, listUrl) => {
     const result = new Map()
@@ -180,6 +180,20 @@ const listExtractors = {
     }
     return result
   },
+
+  prime: (html, listUrl) => {
+    const result = new Map()
+    const re = /<li><a href="([^"]+)"><div class="img"><img src="([^"]+)"/g
+    for (const [, detailUrl, imgUrl] of html.matchAll(re))
+      result.set(detailUrl, toAbsolute(imgUrl, listUrl))
+    return result
+  },
+}
+
+const LIST_URLS = {
+  shochiku: "https://www.shochikugeino.co.jp/talents/03/",
+  titan: "https://www.titan-net.co.jp/talent/",
+  prime: "https://www.primecorp.co.jp/talent/?category=comedian",
 }
 
 const DETAIL_AGENCIES = Object.keys(detailExtractors)
@@ -235,10 +249,7 @@ const main = async () => {
 
     if (LIST_AGENCIES.includes(ag)) {
       // 一覧ページを1回取得して全タレントの画像を一括マッチ
-      const listUrl =
-        ag === "shochiku"
-          ? "https://www.shochikugeino.co.jp/talents/03/"
-          : "https://www.titan-net.co.jp/talent/"
+      const listUrl = LIST_URLS[ag]
       console.log(`===== ${ag}: 一覧ページ取得 ${listUrl} =====`)
       const html = await get(listUrl)
       if (!html) {
@@ -255,7 +266,7 @@ const main = async () => {
           // 名前で照合（agencies.jsonのURLは数字ID/スラッグ混在のため）
           t.photo = photoMap.get(key(t.name))
         } else {
-          // titan: 詳細URLで照合
+          // titan・prime: 詳細URLで照合
           t.photo = photoMap.get(t.url)
         }
         n++

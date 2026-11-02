@@ -165,6 +165,8 @@ export const db: Db = {
     { id: "watanabe", name: "ワタナベエンターテインメント" },
     { id: "sma", name: "ソニー・ミュージックアーティスツ" },
     { id: "asai", name: "浅井企画" },
+    { id: "chatterbox", name: "チャッターボックス" },
+    { id: "prime", name: "プライム" },
   ],
   people: [
     // NSC大阪1期
@@ -253,6 +255,14 @@ export const db: Db = {
       agency_id: "kdash",
     }),
     person("kasuga", "春日俊彰", "かすが としあき", { agency_id: "kdash" }),
+    person("ueda", "上田晋也", "うえだ しんや", {
+      agency_id: "chatterbox",
+      birth_date: "1970-05-07",
+    }),
+    person("arita", "有田哲平", "ありた てっぺい", {
+      agency_id: "chatterbox",
+      birth_date: "1971-02-03",
+    }),
     person("hanawa", "塙宣之", "はなわ のぶゆき", { agency_id: "maseki" }),
     person("tsuchiya", "土屋伸之", "つちや のぶゆき", { agency_id: "maseki" }),
     person("ishida", "石田明", "いしだ あきら", { agency_id: "yoshimoto" }),
@@ -422,6 +432,11 @@ export const db: Db = {
       aliases: ["ナイスミドル"],
       formation_date: "2000",
       agency_id: "kdash",
+    }),
+    group("kuriimu", "くりぃむしちゅー", "くりぃむしちゅー", {
+      aliases: ["海砂利水魚"],
+      formation_date: "1991",
+      agency_id: "chatterbox",
     }),
     group("knights", "ナイツ", "ないつ", { agency_id: "maseki" }),
     group("nonstyle", "NON STYLE", "のんすたいる", {
@@ -649,6 +664,8 @@ export const db: Db = {
     member("tomizawa", "sandwichman"),
     member("wakabayashi", "audrey"),
     member("kasuga", "audrey"),
+    member("ueda", "kuriimu"),
+    member("arita", "kuriimu"),
     member("hanawa", "knights"),
     member("tsuchiya", "knights"),
     member("ishida", "nonstyle"),
