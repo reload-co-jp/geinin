@@ -14,6 +14,7 @@ import {
   mergeM1Prelims,
   prelimPeers,
   resolver,
+  stageRank,
   nodeId as m1NodeId,
   type M1FormationDump,
   type M1PrelimsDump,
@@ -379,17 +380,29 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
         .toSorted()
         .at(-1) ?? null,
     links,
-    results: results.map((r) => ({
-      year: r.year,
-      competition: r.competition_name,
-      stage: r.stage,
-      rank: r.rank,
-      via:
-        r.entrant_id !== nodeId
-          ? (graph.nodes.get(r.entrant_id)?.label ?? null)
-          : null,
-      raceId: r.stage === "決勝" ? raceId(r.competition_name, r.year) : null,
-    })),
+    // 同じ大会・年・名義では一番先まで進んだ段階だけ（予選の各回戦を並べない）
+    results: results
+      .filter(
+        (r) =>
+          !results.some(
+            (x) =>
+              x.competition_name === r.competition_name &&
+              x.year === r.year &&
+              x.entrant_id === r.entrant_id &&
+              stageRank(x.stage) > stageRank(r.stage)
+          )
+      )
+      .map((r) => ({
+        year: r.year,
+        competition: r.competition_name,
+        stage: r.stage,
+        rank: r.rank,
+        via:
+          r.entrant_id !== nodeId
+            ? (graph.nodes.get(r.entrant_id)?.label ?? null)
+            : null,
+        raceId: r.stage === "決勝" ? raceId(r.competition_name, r.year) : null,
+      })),
     sources: sourceInfos(sourceIds),
     ...(channels.length && {
       youtube: { fetched_at: youtube.fetched_at, channels },
