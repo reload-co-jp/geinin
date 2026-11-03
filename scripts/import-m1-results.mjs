@@ -159,9 +159,16 @@ const main = async () => {
     })
   }
   for (const r of rows) {
-    if (!r.status || r.status.year !== YEAR) continue
+    if (!r.status) continue
+    // 最新ステータスは一覧の年に限らずその組の最後の出場年。日程・会場はここでしか取れない
     // 最新の回戦に出場（予定）していれば、それより前の回戦はシードの可能性があるので詳細でだけ補う
-    add(r, YEAR, r.status.stage, r.heat, r.heat?.url ?? `${SCHEDULE}index.html`)
+    add(
+      r,
+      r.status.year,
+      r.status.stage,
+      r.heat,
+      r.heat?.url ?? `${SCHEDULE}index.html`
+    )
   }
   // 前回までの記録は残す（--history で取った過去の年の戦績を含む）
   let prev = []
