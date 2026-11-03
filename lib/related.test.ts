@@ -33,3 +33,13 @@ test("よくある質問で相方・事務所・メンバーに答える", () =>
   const gf = faqOf(g, nodeInfo(g)!)
   expect(gf.find((f) => f.q.includes("メンバー"))?.a).toContain("遠藤章造")
 })
+
+test("ライブ出演のある芸人は共演者と出演劇場をおすすめに出す", () => {
+  const id = personId("齋藤のようなもの")
+  const r = recommendations(id)
+  expect(r.live.length).toBeGreaterThan(0)
+  expect(r.live[0].reason).toMatch(/共演/)
+  expect(r.venues.length).toBeGreaterThan(0)
+  const f = faqOf(id, nodeInfo(id)!)
+  expect(f.some((x) => x.q.includes("劇場"))).toBe(true)
+})

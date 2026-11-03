@@ -58,6 +58,9 @@ const Cards: FC<{ items: Recommendation[] }> = ({ items }) => (
 export const NextReads: FC<{
   name: string
   near: Recommendation[]
+  prelim: Recommendation[]
+  live: Recommendation[]
+  venues: { slug: string; name: string; count: number }[]
   agency: Recommendation[]
   agencyId: string | null
   agencyName: string | null
@@ -68,6 +71,9 @@ export const NextReads: FC<{
 }> = ({
   name,
   near,
+  prelim,
+  live,
+  venues,
   agency,
   agencyId,
   agencyName,
@@ -76,13 +82,44 @@ export const NextReads: FC<{
   group,
   dokiHref,
 }) =>
-  (near.length > 0 || agency.length > 0 || year.length > 0) && (
+  (near.length > 0 ||
+    prelim.length > 0 ||
+    live.length > 0 ||
+    agency.length > 0 ||
+    year.length > 0) && (
     <aside aria-label="次に見る" className="nd-next">
       <h2 className="nd-next-title">{name}を見た人におすすめ</h2>
       {near.length > 0 && (
         <section>
           <h3 className="pf-section">関係の近い芸人</h3>
           <Cards items={near} />
+        </section>
+      )}
+      {prelim.length > 0 && (
+        <section>
+          <h3 className="pf-section">M-1予選で同じ組だった芸人</h3>
+          <Cards items={prelim} />
+        </section>
+      )}
+      {live.length > 0 && (
+        <section>
+          <h3 className="pf-section">同じライブに出る芸人</h3>
+          <Cards items={live} />
+        </section>
+      )}
+      {venues.length > 0 && (
+        <section>
+          <h3 className="pf-section">よく出演する劇場</h3>
+          <ul className="nd-chips">
+            {venues.map((v) => (
+              <li key={v.slug}>
+                <Link className="chip" href={`/venues/${v.slug}/`}>
+                  {v.name}
+                  <small>{v.count}公演</small>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
       {agency.length > 0 && (
@@ -117,6 +154,8 @@ export const NextReads: FC<{
         <Link href="/races/">賞レース歴代決勝</Link>
         {" ・ "}
         <Link href="/agencies/">事務所一覧</Link>
+        {" ・ "}
+        <Link href="/venues/">劇場一覧</Link>
       </p>
     </aside>
   )
