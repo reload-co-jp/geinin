@@ -129,17 +129,18 @@ const main = async () => {
   console.log(`一覧 ${rows.length}件`)
   const today = new Date().toISOString().slice(0, 10)
 
+  // 別の年の一覧で取った結成年は残し、今回の一覧の値で上書きする
+  let formed = {}
+  try {
+    formed = JSON.parse(readFileSync(FORMATION, "utf8")).formed
+  } catch {
+    /* 初回 */
+  }
+  for (const r of rows)
+    if (r.formed) formed[r.url] = { name: r.name, year: r.formed }
   writeFileSync(
     FORMATION,
-    JSON.stringify({
-      fetched_at: today,
-      year: YEAR,
-      formed: Object.fromEntries(
-        rows
-          .filter((r) => r.formed)
-          .map((r) => [r.url, { name: r.name, year: r.formed }])
-      ),
-    })
+    JSON.stringify({ fetched_at: today, year: YEAR, formed })
   )
 
   const results = new Map()
