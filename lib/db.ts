@@ -28,10 +28,10 @@ import { xIndex, type XDump } from "@/lib/x"
 
 export const db = mergeDebuts(
   mergeAgencies(
-    mergeYoshimoto(manual, yoshimoto as YoshimotoDump),
-    agencies as AgencyDump
+    mergeYoshimoto(manual, yoshimoto as unknown as YoshimotoDump),
+    agencies as unknown as AgencyDump
   ),
-  debuts as DebutDump
+  debuts as unknown as DebutDump
 )
 const programDump = programs as ProgramsDump
 export const graph = buildGraph(db, programDump)

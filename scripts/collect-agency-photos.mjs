@@ -23,6 +23,11 @@ const get = async (url) => {
       })
       if (res.ok) return await res.text()
       if (res.status === 404) return null
+      if (res.status === 403) {
+        if (i >= 2) return null
+        await sleep(5000)
+        continue
+      }
       throw new Error(`HTTP ${res.status}`)
     } catch (e) {
       if (i >= 2) throw e

@@ -49,16 +49,6 @@ const extractPhoto = (html) => {
 
 const main = async () => {
   const all = process.argv.includes("--all")
-  if (!all) {
-    console.log("使い方: node scripts/collect-photos.mjs --all")
-    console.log(
-      "  吉本タレント全件を再取得し、公式プロフィール画像URLを data/yoshimoto.json に反映します"
-    )
-    console.log(
-      "  （※ 1 req/s でアクセス。全件約15分程度。未取得分のみ再取得したい場合は import-yoshimoto.mjs をご利用ください）"
-    )
-    return
-  }
   const raw = JSON.parse(readFileSync(OUT, "utf8"))
   const data = new Map(raw.talents.map((t) => [t.id, t]))
 
@@ -66,7 +56,7 @@ const main = async () => {
     ? [...data.values()].map((t) => t.id)
     : [...data.values()].filter((t) => !t.photo).map((t) => t.id)
 
-  const modeLabel = all ? "全件" : "photoなし"
+  const modeLabel = all ? "全件" : "photoなし（未取得のみ）"
   console.log(`対象 ${todo.length}件（${modeLabel}）`)
 
   let n = 0
