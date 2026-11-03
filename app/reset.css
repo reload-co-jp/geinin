@@ -835,3 +835,10 @@ h2.pf-name {
   font-size: 0.85rem;
   text-align: right;
 }
+.nd-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  list-style: none;
+  padding: 0;
+}

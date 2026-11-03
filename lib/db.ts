@@ -7,7 +7,20 @@ import programs from "@/data/programs.json"
 import youtube from "@/data/youtube.json"
 import xDump from "@/data/x.json"
 import livesDump from "@/data/lives.json"
-import { livesIndex } from "@/lib/lives"
+import m1Formation from "@/data/m1-formation.json"
+import m1PrelimsDump from "@/data/m1-prelims.json"
+import {
+  mergeM1Formation,
+  mergeM1Prelims,
+  prelimPeers,
+  resolver,
+  stageRank,
+  nodeId as m1NodeId,
+  type M1FormationDump,
+  type M1PrelimsDump,
+} from "@/lib/m1"
+import { livesIndex, type LivesDump } from "@/lib/lives"
+import { buildVenues, liveRelations } from "@/lib/venues"
 import { mergeAgencies, type AgencyDump } from "@/lib/agencies"
 import { mergeDebuts, type DebutDump } from "@/lib/debuts"
 import {
@@ -26,13 +39,28 @@ import { mergeYoshimoto, type YoshimotoDump } from "@/lib/yoshimoto"
 import { youtubeIndex, type YoutubeDump } from "@/lib/youtube"
 import { xIndex, type XDump } from "@/lib/x"
 
-export const db = mergeDebuts(
-  mergeAgencies(
-    mergeYoshimoto(manual, yoshimoto as YoshimotoDump),
-    agencies as AgencyDump
+export const m1Prelims = m1PrelimsDump as M1PrelimsDump
+export const db = mergeM1Prelims(
+  mergeM1Formation(
+    mergeDebuts(
+      mergeAgencies(
+        mergeYoshimoto(manual, yoshimoto as YoshimotoDump),
+        agencies as AgencyDump
+      ),
+      debuts as DebutDump
+    ),
+    m1Formation as M1FormationDump
   ),
-  debuts as DebutDump
+  m1Prelims
 )
+// M-1 予選で同じ日・同じ会場に出た組
+export const prelimPeersOf = prelimPeers(db, m1Prelims)
+const m1Find = resolver(db)
+// M-1 公式のコンビ番号ページ（または一意な名前）→ ノード id
+export const m1NodeOf = (url: string, name: string) => {
+  const e = m1Find(url, name)
+  return e ? m1NodeId(e) : null
+}
 const programDump = programs as ProgramsDump
 export const graph = buildGraph(db, programDump)
 export const edgeIndex = indexEdges(graph)
@@ -52,6 +80,16 @@ const livesOf = livesIndex(
   livesDump,
   new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Tokyo" })
 )
+
+// 劇場ページ（公演数の多い会場）と、芸人ごとの出演会場・ライブ共演者
+export const today = new Date().toLocaleDateString("sv-SE", {
+  timeZone: "Asia/Tokyo",
+})
+export const livesFetchedAt = livesDump.fetched_at
+export const venues = buildVenues(livesDump as LivesDump)
+export const venueBySlug = new Map(venues.map((v) => [v.slug, v]))
+const venueSlugOf = new Map(venues.map((v) => [v.name, v.slug]))
+export const { venuesOf, costarsOf } = liveRelations(livesDump as LivesDump)
 
 // 同名の芸人・グループ（別人か重複登録かはデータからは判定しない）
 const byLabel = Map.groupBy(
@@ -323,9 +361,10 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
       group?.dissolution_date ?? null,
       person ? "デビュー" : "結成"
     ),
-    finals: results.length
+    // 決勝の記録が無ければ数字の枠は出さない（予選だけの組で「決勝0回」と見せない）
+    finals: finals.length
       ? {
-          count: results.filter((r) => r.stage === "決勝").length,
+          count: finals.length,
           best:
             results
               .flatMap((r) => (r.rank ? [r.rank] : []))
@@ -341,17 +380,29 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
         .toSorted()
         .at(-1) ?? null,
     links,
-    results: results.map((r) => ({
-      year: r.year,
-      competition: r.competition_name,
-      stage: r.stage,
-      rank: r.rank,
-      via:
-        r.entrant_id !== nodeId
-          ? (graph.nodes.get(r.entrant_id)?.label ?? null)
-          : null,
-      raceId: r.stage === "決勝" ? raceId(r.competition_name, r.year) : null,
-    })),
+    // 同じ大会・年・名義では一番先まで進んだ段階だけ（予選の各回戦を並べない）
+    results: results
+      .filter(
+        (r) =>
+          !results.some(
+            (x) =>
+              x.competition_name === r.competition_name &&
+              x.year === r.year &&
+              x.entrant_id === r.entrant_id &&
+              stageRank(x.stage) > stageRank(r.stage)
+          )
+      )
+      .map((r) => ({
+        year: r.year,
+        competition: r.competition_name,
+        stage: r.stage,
+        rank: r.rank,
+        via:
+          r.entrant_id !== nodeId
+            ? (graph.nodes.get(r.entrant_id)?.label ?? null)
+            : null,
+        raceId: r.stage === "決勝" ? raceId(r.competition_name, r.year) : null,
+      })),
     sources: sourceInfos(sourceIds),
     ...(channels.length && {
       youtube: { fetched_at: youtube.fetched_at, channels },
@@ -363,6 +414,13 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
       lives: {
         fetched_at: livesDump.fetched_at,
         items: livesOf(nodeId),
+        venuePages: Object.fromEntries(
+          livesOf(nodeId).flatMap((l) =>
+            l.venue && venueSlugOf.has(l.venue)
+              ? [[l.venue, venueSlugOf.get(l.venue)!]]
+              : []
+          )
+        ),
       },
     }),
     ...(e.history?.length && { history: e.history }),

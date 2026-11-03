@@ -2,12 +2,19 @@
 // おすすめの芸人・年表・よくある質問を登録データから組み立てる
 import {
   agencyName,
+  costarsOf,
   db,
   edgeIndex,
   graph,
   groupById,
+  livesFetchedAt,
+  prelimPeersOf,
   personById,
+  venueBySlug,
+  venuesOf,
 } from "@/lib/db"
+import { venueLabel, venueSlug } from "@/lib/venues"
+import { stageRank } from "@/lib/m1"
 import { rankLabel, termYear, type EdgeKind, type GNode } from "@/lib/graph"
 import type { NodeInfo } from "@/lib/node-info"
 
@@ -179,6 +186,86 @@ const sameYear = (nodeId: string, y: number, peers?: string[]) =>
       reason: `${y}年${m.kind === "group" ? "結成" : "デビュー"}${m.agencyId ? `・${agencyName(m.agencyId)}` : ""}`,
     }))
 
+// 同じライブに出る芸人。芸人は所属コンビとしての出演も含める
+const liveCostars = (nodeId: string): Recommendation[] => {
+  const origins = [
+    nodeId,
+    ...(nodeId.startsWith("p:")
+      ? (groupsOfPerson.get(nodeId.slice(2)) ?? [])
+          .filter((m) => m.status === "current")
+          .map((m) => `g:${m.group_id}`)
+      : []),
+  ]
+  const merged = new Map<string, { count: number; title: string }>()
+  for (const o of origins)
+    for (const c of costarsOf(o)) {
+      if (origins.includes(c.id)) continue
+      const cur = merged.get(c.id)
+      merged.set(c.id, {
+        count: (cur?.count ?? 0) + c.count,
+        title: cur?.title ?? c.live.title,
+      })
+    }
+  return [...merged]
+    .filter(([id]) => isEntity(graph.nodes.get(id)))
+    .toSorted(([a, x], [b, y]) => y.count - x.count || pop(b) - pop(a))
+    .map(([id, { count, title }]) => {
+      const n = graph.nodes.get(id)!
+      return {
+        id,
+        name: n.label,
+        photo: n.photo,
+        reason: count > 1 ? `ライブで${count}公演共演` : `「${title}」で共演`,
+      }
+    })
+}
+
+// M-1 予選で同じ日・同じ会場に出た組（芸人は所属コンビの出場を含める）
+const prelimPeers = (nodeId: string): Recommendation[] =>
+  [
+    nodeId,
+    ...(nodeId.startsWith("p:")
+      ? (groupsOfPerson.get(nodeId.slice(2)) ?? []).map(
+          (m) => `g:${m.group_id}`
+        )
+      : []),
+  ].flatMap((o) =>
+    prelimPeersOf(o).flatMap(({ ids, prelim }) =>
+      ids
+        .flatMap((id) => graph.nodes.get(id) ?? [])
+        .toSorted((a, b) => pop(b.id) - pop(a.id))
+        .map((n) => ({
+          id: n.id,
+          name: n.label,
+          photo: n.photo,
+          reason: `M-1 ${prelim.year} ${prelim.stage}で同じ組（${prelim.date?.slice(5).replace("-", "/")} ${prelim.venue}）`,
+        }))
+    )
+  )
+
+// 出演の多い会場（劇場ページのあるもの）。芸人は所属コンビとしての出演も含める
+export const venuesFor = (nodeId: string) => {
+  const counts = new Map<string, number>()
+  for (const o of [
+    nodeId,
+    ...(nodeId.startsWith("p:")
+      ? (groupsOfPerson.get(nodeId.slice(2)) ?? [])
+          .filter((m) => m.status === "current")
+          .map((m) => `g:${m.group_id}`)
+      : []),
+  ])
+    for (const v of venuesOf(o))
+      counts.set(v.venue, (counts.get(v.venue) ?? 0) + v.count)
+  return [...counts]
+    .filter(([v]) => venueBySlug.has(venueSlug(v)))
+    .map(([venue, count]) => ({
+      slug: venueSlug(venue),
+      name: venueLabel(venue),
+      count,
+    }))
+    .toSorted((a, b) => b.count - a.count)
+}
+
 export const RECOMMEND_SHOWN = 8
 
 // 詳細ページ下部の「次に見る」。重複しないよう上の枠から順に取る
@@ -208,12 +295,22 @@ export const recommendations = (
   const y = doki?.year ?? startYear(nodeId)
   return {
     near: take(nearBy(nodeId)),
+    prelim: take(prelimPeers(nodeId)),
+    live: take(liveCostars(nodeId)),
+    venues: venuesFor(nodeId).slice(0, 5),
     agency: take(sameAgency(nodeId)),
     agencyId: n?.agencyId ?? null,
     year: y ? take(sameYear(nodeId, y, doki?.ids)) : [],
     startYear: y,
   }
 }
+
+// 大会・年・出場名義ごとに一番先まで進んだ記録（予選の各回戦をまとめる）
+const furthest = (results: NodeInfo["results"]) =>
+  [...Map.groupBy(results, (r) => `${r.year} ${r.competition} ${r.via}`)].map(
+    ([, rs]) =>
+      rs.reduce((a, b) => (stageRank(b.stage) > stageRank(a.stage) ? b : a))
+  )
 
 export type TimelineEntry = { year: number; date: string; text: string }
 
@@ -266,13 +363,13 @@ export const timelineOf = (nodeId: string, info: NodeInfo): TimelineEntry[] => {
     }
     push(g.dissolution_date, "解散")
   } else return []
-  for (const r of info.results)
-    if (r.stage === "決勝")
-      out.push({
-        year: r.year,
-        date: String(r.year),
-        text: `${r.competition} 決勝${r.rank ? ` ${rankLabel(r.rank)}` : "進出"}${r.via ? `（${r.via}）` : ""}`,
-      })
+  // 大会・年ごとに一番先まで進んだ段階だけ
+  for (const r of furthest(info.results))
+    out.push({
+      year: r.year,
+      date: String(r.year),
+      text: `${r.competition} ${r.stage}${r.stage === "決勝" && r.rank ? ` ${rankLabel(r.rank)}` : "進出"}${r.via ? `（${r.via}）` : ""}`,
+    })
   // 同じ年の中では日付の分かるものを先に。日付が同じなら登録順
   return out.toSorted((a, b) => a.year - b.year || a.date.localeCompare(b.date))
 }
@@ -388,17 +485,28 @@ export const faqOf = (nodeId: string, info: NodeInfo): Faq[] => {
       })
     }
   } else return []
+  const vs = venuesFor(nodeId)
+  if (vs.length)
+    out.push({
+      q: `${name}はどこの劇場・ライブに出ている？`,
+      a: `${vs
+        .slice(0, 3)
+        .map((v) => `${v.name}（${v.count}公演）`)
+        .join(
+          "、"
+        )}などへの出演が掲載されています（${livesFetchedAt}時点の公演情報）。`,
+    })
   // 成績の登録が無いのは「出場していない」とは限らないので問い自体を出さない
   if (info.results.length)
     out.push({
       q: `${name}の賞レースの成績は？`,
       a: finals.length
         ? `決勝に${finals.length}回進出しています${best ? `（最高成績は${best.year}年${best.competition}${rankLabel(best.rank)}）` : ""}。`
-        : `${info.results
+        : `${furthest(info.results)
             .toReversed()
             .slice(0, 3)
             .map((r) => `${r.year}年${r.competition}${r.stage}`)
-            .join("、")}などに進出しています。`,
+            .join("、")}に進出しています。`,
     })
   return out
 }

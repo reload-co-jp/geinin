@@ -3,6 +3,7 @@ import { FC } from "react"
 import { races, Schedule, Years } from "@/app/races/shared"
 import { FinalsView, YearData } from "@/components/finals-view"
 import { InArticleAd } from "@/components/in-article-ad"
+import { prelimYears } from "@/app/m1/shared"
 
 export const metadata = {
   title: "賞レース",
@@ -47,6 +48,17 @@ const Page: FC = () => (
     <h3 style={{ fontSize: "1rem" }}>開催時期</h3>
     <p className="lead">例年の目安です。年によって前後します。</p>
     <Schedule />
+    {prelimYears.length > 0 && (
+      <p className="lead">
+        M-1グランプリの予選（1回戦〜準決勝）の出場コンビ:{" "}
+        {prelimYears.map((y, i) => (
+          <span key={y}>
+            {i > 0 && "・"}
+            <Link href={`/m1/${y}/`}>{y}年</Link>
+          </span>
+        ))}
+      </p>
+    )}
     <InArticleAd />
     <h3 style={{ fontSize: "1rem" }}>歴代決勝</h3>
     <p className="lead">
