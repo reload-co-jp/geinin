@@ -3,14 +3,16 @@ import { notFound } from "next/navigation"
 import { InArticleAd } from "@/components/in-article-ad"
 import { Photo } from "@/components/photo"
 import { m1Prelims } from "@/lib/db"
-import { nodeHref } from "@/lib/graph"
 import { STAGE_SLUGS } from "@/lib/m1"
+import { dayLabel, Heat, Name, weekday } from "../../heats"
 import {
+  daysOf,
   entrantsOf,
   prelimYears,
+  SPLIT_AT,
   stageBySlug,
   stagesOf,
-  type Entrant,
+  venuesOfDay,
 } from "../../shared"
 
 type Props = { params: Promise<{ year: string; stage: string }> }
@@ -36,33 +38,15 @@ export const generateMetadata = async ({ params }: Props) => {
   }
 }
 
-const weekday = new Intl.DateTimeFormat("ja-JP", {
-  month: "numeric",
-  day: "numeric",
-  weekday: "short",
-  timeZone: "UTC",
-})
-
-const Name = ({ e }: { e: Entrant }) =>
-  e.nodeId ? <Link href={nodeHref(e.nodeId)}>{e.name}</Link> : <>{e.name}</>
-
 const Page = async ({ params }: Props) => {
   const { year, stage } = await params
   const y = Number(year)
   const s = stageBySlug(stage)
   if (!s || !stagesOf(y).includes(s)) notFound()
   const es = entrantsOf(y, s)
-  // 日程・会場の分かる組は会場ごと、分からない組は最後にまとめる
-  const heats = [
-    ...Map.groupBy(
-      es.toSorted(
-        (a, b) =>
-          (a.date ?? "9999").localeCompare(b.date ?? "9999") ||
-          (a.venue ?? "").localeCompare(b.venue ?? "")
-      ),
-      (e) => (e.date ? `${e.date} ${e.venue ?? ""}` : "")
-    ),
-  ]
+  const days = daysOf(es)
+  // 多い回戦は日程ごとのページへのリンクだけを並べる
+  const split = es.length > SPLIT_AT
   const featured = es.filter((e) => e.nodeId && e.photo).slice(0, 24)
   const others = stagesOf(y).filter((x) => x !== s)
   return (
@@ -111,24 +95,38 @@ const Page = async ({ params }: Props) => {
         </section>
       )}
       <InArticleAd />
-      {heats.map(([k, hs]) => (
-        <section key={k || "unknown"}>
-          <h2 className="pf-section">
-            {k
-              ? `${weekday.format(new Date(hs[0].date!))} ${hs[0].venue ?? ""}`
-              : "日程・会場の掲載なし"}
-            <small className="pf-muted"> {hs.length}組</small>
-          </h2>
-          <p style={{ fontSize: ".85rem", lineHeight: 1.9 }}>
-            {hs.map((e, i) => (
-              <span key={e.url}>
-                {i > 0 && " ／ "}
-                <Name e={e} />
-              </span>
+      {split ? (
+        <section>
+          <h2 className="pf-section">日程別の出場コンビ</h2>
+          <ul className="m1-days">
+            {days.map((d) => (
+              <li key={d.slug}>
+                <Link href={`/m1/${y}/${stage}/${d.slug}/`}>
+                  {dayLabel(d.date)}
+                </Link>
+                <span className="pf-muted pf-small">
+                  {" "}
+                  {venuesOfDay(d.entrants)
+                    .map(([v]) => v)
+                    .filter(Boolean)
+                    .join("・")}{" "}
+                  {d.entrants.length}組
+                </span>
+              </li>
             ))}
-          </p>
+          </ul>
         </section>
-      ))}
+      ) : (
+        days.flatMap((d) =>
+          venuesOfDay(d.entrants).map(([v, hs]) => (
+            <Heat
+              key={`${d.slug}-${v}`}
+              title={d.date ? `${dayLabel(d.date)} ${v}` : dayLabel(null)}
+              entrants={hs}
+            />
+          ))
+        )
+      )}
     </div>
   )
 }

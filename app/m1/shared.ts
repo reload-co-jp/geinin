@@ -34,3 +34,30 @@ export const entrantsOf = (year: number, stage: PrelimStage): Entrant[] =>
         photo: (nodeId && graph.nodes.get(nodeId)?.photo) ?? null,
       }
     })
+
+// 出場組が多い回戦は、日程ごとのページ /m1/{年}/{回戦}/{MMDD}/ に分ける
+export const SPLIT_AT = 600
+export const NO_DATE = "other"
+
+export type Day = { slug: string; date: string | null; entrants: Entrant[] }
+// 日程順。日程の分からない組は最後にまとめる
+export const daysOf = (es: Entrant[]): Day[] =>
+  [
+    ...Map.groupBy(
+      es.toSorted(
+        (a, b) =>
+          (a.date ?? "9999").localeCompare(b.date ?? "9999") ||
+          (a.venue ?? "").localeCompare(b.venue ?? "")
+      ),
+      (e) => e.date ?? ""
+    ),
+  ].map(([date, entrants]) => ({
+    slug: date ? date.slice(5).replace("-", "") : NO_DATE,
+    date: date || null,
+    entrants,
+  }))
+
+// 同じ日の組を会場ごとに分ける
+export const venuesOfDay = (es: Entrant[]) => [
+  ...Map.groupBy(es, (e) => e.venue ?? ""),
+]
