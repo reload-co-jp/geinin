@@ -39,23 +39,48 @@ export const entrantsOf = (year: number, stage: PrelimStage): Entrant[] =>
 export const SPLIT_AT = 600
 export const NO_DATE = "other"
 
-export type Day = { slug: string; date: string | null; entrants: Entrant[] }
+export type Day = {
+  slug: string
+  date: string | null
+  label: string
+  entrants: Entrant[]
+}
+// 日程の分からない組は多いので、この組数ずつのページに分ける
+const NO_DATE_PAGE = 400
+export const weekday = new Intl.DateTimeFormat("ja-JP", {
+  month: "numeric",
+  day: "numeric",
+  weekday: "short",
+  timeZone: "UTC",
+})
 // 日程順。日程の分からない組は最後にまとめる
-export const daysOf = (es: Entrant[]): Day[] =>
-  [
+export const daysOf = (es: Entrant[]): Day[] => {
+  const sorted = es.toSorted(
+    (a, b) =>
+      (a.date ?? "9999").localeCompare(b.date ?? "9999") ||
+      (a.venue ?? "").localeCompare(b.venue ?? "")
+  )
+  const dated = [
     ...Map.groupBy(
-      es.toSorted(
-        (a, b) =>
-          (a.date ?? "9999").localeCompare(b.date ?? "9999") ||
-          (a.venue ?? "").localeCompare(b.venue ?? "")
-      ),
-      (e) => e.date ?? ""
+      sorted.filter((e) => e.date),
+      (e) => e.date!
     ),
   ].map(([date, entrants]) => ({
-    slug: date ? date.slice(5).replace("-", "") : NO_DATE,
-    date: date || null,
+    slug: date.slice(5).replace("-", ""),
+    date,
+    label: weekday.format(new Date(date)),
     entrants,
   }))
+  const rest = sorted.filter((e) => !e.date)
+  const pages = Math.ceil(rest.length / NO_DATE_PAGE)
+  const undated = Array.from({ length: pages }, (_, i) => ({
+    slug: i ? `${NO_DATE}-${i + 1}` : NO_DATE,
+    date: null,
+    label: `日程・会場の掲載なし${pages > 1 ? `（${i + 1}/${pages}）` : ""}`,
+    entrants: rest.slice(i * NO_DATE_PAGE, (i + 1) * NO_DATE_PAGE),
+  }))
+  return [...dated, ...undated]
+}
 
 // 同じ日の組を会場ごとに分ける
 export const venuesOfDay = (es: Entrant[]) => [

@@ -3,16 +3,6 @@ import { FC } from "react"
 import { nodeHref } from "@/lib/graph"
 import type { Entrant } from "./shared"
 
-export const weekday = new Intl.DateTimeFormat("ja-JP", {
-  month: "numeric",
-  day: "numeric",
-  weekday: "short",
-  timeZone: "UTC",
-})
-
-export const dayLabel = (date: string | null) =>
-  date ? weekday.format(new Date(date)) : "日程・会場の掲載なし"
-
 export const Name: FC<{ e: Entrant }> = ({ e }) =>
   e.nodeId ? <Link href={nodeHref(e.nodeId)}>{e.name}</Link> : <>{e.name}</>
 

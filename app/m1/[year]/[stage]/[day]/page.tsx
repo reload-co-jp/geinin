@@ -3,7 +3,7 @@ import { notFound } from "next/navigation"
 import { InArticleAd } from "@/components/in-article-ad"
 import { m1Prelims } from "@/lib/db"
 import { STAGE_SLUGS } from "@/lib/m1"
-import { dayLabel, Heat } from "../../../heats"
+import { Heat } from "../../../heats"
 import {
   daysOf,
   entrantsOf,
@@ -49,7 +49,7 @@ export const generateMetadata = async ({ params }: Props) => {
   const hit = dayOf(year, stage, day)
   if (!hit) return {}
   const { s, d } = hit
-  const when = d.date ? `${dayLabel(d.date)}` : "日程不明"
+  const when = d.label
   const venues = venuesOfDay(d.entrants)
     .map(([v]) => v)
     .filter(Boolean)
@@ -78,11 +78,10 @@ const Page = async ({ params }: Props) => {
       <p style={{ fontSize: ".75rem" }}>
         <Link href="/">トップ</Link> › <Link href="/races/">賞レース</Link> ›{" "}
         <Link href={`/m1/${y}/`}>M-1グランプリ{y} 予選</Link> ›{" "}
-        <Link href={base}>{s}</Link> › {dayLabel(d.date)}
+        <Link href={base}>{s}</Link> › {d.label}
       </p>
       <h1 className="page-title">
-        M-1グランプリ{y} {s} {d.date ? dayLabel(d.date) : "（日程不明）"}（
-        {d.entrants.length}組）
+        M-1グランプリ{y} {s} {d.label}（{d.entrants.length}組）
       </h1>
       <p style={{ fontSize: ".85rem", color: "var(--muted)" }}>
         M-1グランプリ公式サイトのエントリー一覧（プロ、{m1Prelims.fetched_at}
@@ -95,19 +94,15 @@ const Page = async ({ params }: Props) => {
       {venuesOfDay(d.entrants).map(([v, hs], i) => (
         <div key={v} style={{ display: "contents" }}>
           {i === 1 && <InArticleAd />}
-          <Heat title={v || dayLabel(d.date)} entrants={hs} />
+          <Heat title={v || d.label} entrants={hs} />
         </div>
       ))}
       <p className="nd-more">
-        {prev && (
-          <Link href={`${base}${prev.slug}/`}>← {dayLabel(prev.date)}</Link>
-        )}
+        {prev && <Link href={`${base}${prev.slug}/`}>← {prev.label}</Link>}
         {prev && " ・ "}
         <Link href={base}>{s}の日程一覧</Link>
         {next && " ・ "}
-        {next && (
-          <Link href={`${base}${next.slug}/`}>{dayLabel(next.date)} →</Link>
-        )}
+        {next && <Link href={`${base}${next.slug}/`}>{next.label} →</Link>}
       </p>
     </div>
   )

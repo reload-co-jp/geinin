@@ -4,7 +4,7 @@ import { InArticleAd } from "@/components/in-article-ad"
 import { Photo } from "@/components/photo"
 import { m1Prelims } from "@/lib/db"
 import { STAGE_SLUGS } from "@/lib/m1"
-import { dayLabel, Heat, Name, weekday } from "../../heats"
+import { Heat, Name } from "../../heats"
 import {
   daysOf,
   entrantsOf,
@@ -13,6 +13,7 @@ import {
   stageBySlug,
   stagesOf,
   venuesOfDay,
+  weekday,
 } from "../../shared"
 
 type Props = { params: Promise<{ year: string; stage: string }> }
@@ -101,9 +102,7 @@ const Page = async ({ params }: Props) => {
           <ul className="m1-days">
             {days.map((d) => (
               <li key={d.slug}>
-                <Link href={`/m1/${y}/${stage}/${d.slug}/`}>
-                  {dayLabel(d.date)}
-                </Link>
+                <Link href={`/m1/${y}/${stage}/${d.slug}/`}>{d.label}</Link>
                 <span className="pf-muted pf-small">
                   {" "}
                   {venuesOfDay(d.entrants)
@@ -121,7 +120,7 @@ const Page = async ({ params }: Props) => {
           venuesOfDay(d.entrants).map(([v, hs]) => (
             <Heat
               key={`${d.slug}-${v}`}
-              title={d.date ? `${dayLabel(d.date)} ${v}` : dayLabel(null)}
+              title={d.date ? `${d.label} ${v}` : d.label}
               entrants={hs}
             />
           ))
