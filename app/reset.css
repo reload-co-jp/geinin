@@ -842,3 +842,11 @@ h2.pf-name {
   list-style: none;
   padding: 0;
 }
+.m1-days {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 0.3rem 1rem;
+  list-style: none;
+  padding: 0;
+  font-size: 0.9rem;
+}

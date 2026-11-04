@@ -129,17 +129,18 @@ const main = async () => {
   console.log(`一覧 ${rows.length}件`)
   const today = new Date().toISOString().slice(0, 10)
 
+  // 別の年の一覧で取った結成年は残し、今回の一覧の値で上書きする
+  let formed = {}
+  try {
+    formed = JSON.parse(readFileSync(FORMATION, "utf8")).formed
+  } catch {
+    /* 初回 */
+  }
+  for (const r of rows)
+    if (r.formed) formed[r.url] = { name: r.name, year: r.formed }
   writeFileSync(
     FORMATION,
-    JSON.stringify({
-      fetched_at: today,
-      year: YEAR,
-      formed: Object.fromEntries(
-        rows
-          .filter((r) => r.formed)
-          .map((r) => [r.url, { name: r.name, year: r.formed }])
-      ),
-    })
+    JSON.stringify({ fetched_at: today, year: YEAR, formed })
   )
 
   const results = new Map()
@@ -158,9 +159,16 @@ const main = async () => {
     })
   }
   for (const r of rows) {
-    if (!r.status || r.status.year !== YEAR) continue
+    if (!r.status) continue
+    // 最新ステータスは一覧の年に限らずその組の最後の出場年。日程・会場はここでしか取れない
     // 最新の回戦に出場（予定）していれば、それより前の回戦はシードの可能性があるので詳細でだけ補う
-    add(r, YEAR, r.status.stage, r.heat, r.heat?.url ?? `${SCHEDULE}index.html`)
+    add(
+      r,
+      r.status.year,
+      r.status.stage,
+      r.heat,
+      r.heat?.url ?? `${SCHEDULE}index.html`
+    )
   }
   // 前回までの記録は残す（--history で取った過去の年の戦績を含む）
   let prev = []
