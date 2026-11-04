@@ -10,6 +10,7 @@ import {
   type GNode,
   type Graph,
 } from "@/lib/graph"
+import { groupNodes, placeGroups } from "@/components/graph/groups"
 
 const INK = "#1f1d1a"
 
@@ -181,7 +182,10 @@ const style: cytoscape.StylesheetJson = [
   },
   // 順位を出すモードのときだけ競演の線に順位を載せる
   { selector: "edge.rank", style: { label: "data(rankLabel)" } },
+  // 項目ごとの配置では枠で関係が分かるので、線は控えめにする
+  { selector: "edge.soft", style: { opacity: 0.12, label: "" } },
   { selector: ".faded", style: { opacity: 0.12 } },
+  { selector: "edge.hl", style: { opacity: 1 } },
   { selector: "edge.hl", style: { label: "data(label)", "z-index": 10 } },
   {
     selector: "edge:selected",
@@ -191,6 +195,36 @@ const style: cytoscape.StylesheetJson = [
       "underlay-opacity": 1,
       "underlay-padding": 4,
     },
+  },
+]
+
+// 関係の項目ごとの枠。操作の対象にはしない
+const frameStyle: cytoscape.StylesheetJson = [
+  {
+    selector: "node.frame",
+    style: {
+      shape: "round-rectangle",
+      width: "data(w)",
+      height: "data(h)",
+      label: "data(title)",
+      "text-valign": "top",
+      "text-halign": "center",
+      "text-margin-y": 24,
+      "font-size": 14,
+      "font-weight": "bold",
+      color: INK,
+      "background-color": "data(color)",
+      "background-opacity": 0.07,
+      "border-width": 2,
+      "border-color": "data(color)",
+      "border-style": "solid",
+      "z-index": 0,
+      events: "no",
+    },
+  },
+  {
+    selector: "node.frame.root-frame",
+    style: { "background-color": "#d9342b", "border-color": "#d9342b" },
   },
 ]
 
@@ -256,7 +290,7 @@ type Tip = { x: number; y: number; title: string; body: string }
 type Props = {
   graph: Graph
   roots: string[]
-  layout: "radial" | "tree"
+  layout: "grouped" | "tree"
   selected: string | null
   onSelect: (id: string | null) => void
   onSelectEdge: (id: string) => void
@@ -289,7 +323,7 @@ export const CyGraph: FC<Props> = ({
   useEffect(() => {
     const c = cytoscape({
       container: ref.current,
-      style,
+      style: [...style, ...frameStyle],
       maxZoom: 2.5,
       minZoom: 0.15,
     })
@@ -392,58 +426,97 @@ export const CyGraph: FC<Props> = ({
       .roots()
       .filter((n) => n.outgoers("edge[kind = 'master']").nonempty())
     if (animate) added.nodes().style("opacity", 0)
-    // 起点からの距離ごとに同心円へ置く。concentric は人数に応じて円を広げるので重ならない
-    const depth = new Map<string, number>()
-    const order: string[] = []
-    c.elements().bfs({
-      roots: focus,
-      visit: (v, _e, _u, _i, d) => {
-        depth.set(v.id(), d)
-        order.push(v.id())
-      },
-    })
-    const far = Math.max(0, ...depth.values()) + 1
-    // 同じ距離のノードは BFS の順に並べて、開催ごとの出場者が隣り合うようにする
-    const seen = new Set(order)
-    const rest = c
-      .nodes()
-      .map((n) => n.id())
-      .filter((id) => !seen.has(id))
-    const ordered = [...order, ...rest]
-      .map((id) => c.getElementById(id))
-      .reduce((acc, col) => acc.merge(col), c.collection())
+    const done = () => {
+      if (animate)
+        added
+          .nodes()
+          .animate({ style: { opacity: 1 } }, { duration: 250 })
+          .removeStyle("opacity")
+    }
+    c.edges().removeClass("soft")
+    if (layout !== "grouped")
+      c.nodes().forEach((n) => {
+        n.data(
+          "display",
+          nodeData(graph.nodes.get(n.id())!, rootSet.has(n.id())).display
+        )
+      })
+    if (layout === "grouped") {
+      // 起点との関係（師匠・弟子・同期…）ごとの枠に、格子状に並べる
+      const groups = groupNodes(graph, roots[0])
+      // 順位などの補足は名前の下に添える
+      const notes = new Map(groups.flatMap((g) => [...g.notes]))
+      c.nodes().forEach((n) => {
+        const base = nodeData(graph.nodes.get(n.id())!, rootSet.has(n.id()))
+        const note = notes.get(n.id())
+        n.data("display", note ? `${base.display}\n${note}` : base.display)
+      })
+      const { positions, frames } = placeGroups(groups, (id) => {
+        const d = c
+          .getElementById(id)
+          .layoutDimensions({ nodeDimensionsIncludeLabels: true })
+        return { w: d.w, h: d.h }
+      })
+      c.add(
+        frames.map((f) => ({
+          group: "nodes" as const,
+          classes: f.key === "root" ? "frame root-frame" : "frame",
+          data: {
+            id: `frame:${f.key}`,
+            title: `${f.title}（${f.ids.length}）`,
+            color: f.kind ? EDGE_KINDS[f.kind].color : "#7a746b",
+            w: f.w,
+            h: f.h,
+          },
+          position: { x: f.x, y: f.y },
+          locked: true,
+          grabbable: false,
+          selectable: false,
+        }))
+      )
+      c.edges().addClass("soft")
+      c.elements()
+        .not(".frame")
+        .layout({
+          name: "preset",
+          positions: Object.fromEntries(positions),
+          fit: false,
+          animate,
+          animationDuration: 400,
+          animationEasing: "ease-out-cubic",
+          stop: done,
+        })
+        .run()
+      // 全体が収まる倍率。枠が少ないときに拡大しすぎないよう上限を設ける
+      const bb = c.nodes(".frame").boundingBox()
+      const zoom = Math.min(
+        1.1,
+        (c.width() - 60) / bb.w,
+        (c.height() - 60) / bb.h
+      )
+      const viewport = {
+        zoom,
+        pan: {
+          x: c.width() / 2 - (bb.x1 + bb.w / 2) * zoom,
+          y: c.height() / 2 - (bb.y1 + bb.h / 2) * zoom,
+        },
+      }
+      if (animate) c.animate(viewport, { duration: 400 })
+      else c.viewport(viewport)
+      return
+    }
     c.layout({
-      ...(layout === "radial"
-        ? {
-            name: "concentric",
-            // eles はcytoscape内部の指定。同じ距離の並び順をBFS順に固定する
-            eles: ordered,
-            concentric: (n: cytoscape.NodeSingular) =>
-              -(depth.get(n.id()) ?? far),
-            levelWidth: () => 1,
-            minNodeSpacing: 16,
-          }
-        : {
-            name: "breadthfirst",
-            roots: (treeRoots.nonempty() ? treeRoots : focus).map((n) =>
-              n.id()
-            ),
-            directed: treeRoots.nonempty(),
-            spacingFactor: 0.9,
-          }),
+      name: "breadthfirst",
+      roots: (treeRoots.nonempty() ? treeRoots : focus).map((n) => n.id()),
+      directed: treeRoots.nonempty(),
+      spacingFactor: 0.9,
       avoidOverlap: true,
       nodeDimensionsIncludeLabels: true,
       padding: 40,
       animate,
       animationDuration: 400,
       animationEasing: "ease-out-cubic",
-      stop: () => {
-        if (animate)
-          added
-            .nodes()
-            .animate({ style: { opacity: 1 } }, { duration: 250 })
-            .removeStyle("opacity")
-      },
+      stop: done,
     }).run()
   }, [graph, roots, layout, showRanks])
 
@@ -455,7 +528,7 @@ export const CyGraph: FC<Props> = ({
     if (n.empty()) return
     n.select()
     const near = n.closedNeighborhood()
-    c.elements().not(near).addClass("faded")
+    c.elements().not(near).not(".frame").addClass("faded")
     near.edges().addClass("hl")
     if (reduceMotion()) c.center(n)
     else c.animate({ center: { eles: n } }, { duration: 300 })
@@ -519,7 +592,7 @@ export const CyGraph: FC<Props> = ({
         </button>
         <button
           className="zoom"
-          onClick={() => cy.current!.fit(undefined, 40)}
+          onClick={() => cy.current!.fit(undefined, 30)}
           aria-label="全体を表示"
           title="全体を表示"
         >
