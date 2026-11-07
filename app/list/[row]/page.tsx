@@ -4,6 +4,7 @@ import { agencyName, db, edgeIndex, graph } from "@/lib/db"
 import { linksOf } from "@/lib/graph"
 import { KanaNav } from "../nav"
 import { OTHER, ROWS, rowOf, td, th } from "../shared"
+import { Breadcrumbs } from "@/components/breadcrumbs"
 import { InArticleAd } from "@/components/in-article-ad"
 
 type Props = { params: Promise<{ row: string }> }
@@ -41,6 +42,13 @@ const Page = async ({ params }: Props) => {
         fontSize: ".875rem",
       }}
     >
+      <Breadcrumbs
+        items={[
+          ["トップ", "/"],
+          ["一覧", "/list/"],
+          [current.label, `/list/${row}/`],
+        ]}
+      />
       <h1 className="page-title">芸人・コンビ一覧（{current.label}）</h1>
       <KanaNav current={row} />
       <section>

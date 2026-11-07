@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { agencyName, db } from "@/lib/db"
+import { Breadcrumbs } from "@/components/breadcrumbs"
 import { InArticleAd } from "@/components/in-article-ad"
 import { Photo } from "@/components/photo"
 
@@ -44,9 +45,13 @@ const Page = async ({ params }: Props) => {
         fontSize: ".875rem",
       }}
     >
-      <p style={{ fontSize: ".85rem" }}>
-        <Link href="/agencies/">← 事務所一覧</Link>
-      </p>
+      <Breadcrumbs
+        items={[
+          ["トップ", "/"],
+          ["事務所", "/agencies/"],
+          [name, `/agencies/${id}/`],
+        ]}
+      />
       <h1 className="page-title">{name}所属の芸人・コンビ</h1>
       <section>
         <h2 className="section-title">グループ（{groups.length}組）</h2>

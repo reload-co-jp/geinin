@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { Breadcrumbs } from "@/components/breadcrumbs"
 import { InArticleAd } from "@/components/in-article-ad"
 import { Photo } from "@/components/photo"
 import { m1Prelims } from "@/lib/db"
@@ -54,10 +55,15 @@ const Page = async ({ params }: Props) => {
     <div
       style={{ maxWidth: 1000, margin: "0 auto", display: "grid", gap: "1rem" }}
     >
-      <p style={{ fontSize: ".75rem" }}>
-        <Link href="/">トップ</Link> › <Link href="/races/">賞レース</Link> ›{" "}
-        <Link href={`/m1/${y}/`}>M-1グランプリ{y} 予選</Link> › {s}
-      </p>
+      <Breadcrumbs
+        items={[
+          ["トップ", "/"],
+          ["賞レース", "/races/"],
+          ["M-1グランプリ", "/races/m1/"],
+          [`M-1グランプリ${y} 予選`, `/m1/${y}/`],
+          [s, `/m1/${y}/${stage}/`],
+        ]}
+      />
       <h1 className="page-title">
         M-1グランプリ{y} {s}（{es.length}組）
       </h1>
