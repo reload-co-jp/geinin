@@ -1,8 +1,9 @@
 // 公式プロフィールの画像をダウンロードし、WebP に変換・圧縮して public/images/photos/ に保存する。
 // agencies.json の photo フィールドを絶対URLから /images/photos/<ファイル名>.webp に書き換える。
 // 規約: 画像は各事務所の公式サイトから取得し、WebP に圧縮してローカル保存する。
-//   node scripts/download-and-compress-photos.mjs          未保存分のみ処理
-//   node scripts/download-and-compress-photos.mjs --all    全件をやり直す
+//   node scripts/download-and-compress-photos.mjs                    未保存分のみ処理
+//   node scripts/download-and-compress-photos.mjs sunmusic kdash     指定した事務所の未保存分のみ処理
+//   node scripts/download-and-compress-photos.mjs --limit=10         先頭10件だけ処理
 import {
   existsSync,
   readFileSync,
@@ -112,12 +113,19 @@ const downloadAndConvert = async (url, agency) => {
 const main = async () => {
   const limitArg = process.argv.find((a) => a.startsWith("--limit="))
   const limit = limitArg ? Number(limitArg.split("=")[1]) : Infinity
+  const targets = process.argv.slice(2).filter((a) => !a.startsWith("--"))
   const raw = JSON.parse(readFileSync(OUT, "utf8"))
   const data = [...raw.talents]
+  const unknown = targets.filter((a) => !data.some((t) => t.agency === a))
+  if (unknown.length) {
+    console.log(`未登録の事務所です: ${unknown.join(", ")}`)
+    return
+  }
 
-  // 未保存分のみ：photo が絶対URL（http で始まる）のもの
+  // 未保存分のみ：photo が絶対URL（http で始まる）のもの。事務所の指定があればそれに絞る
   const unprocessed = data
     .filter((t) => t.photo && String(t.photo).startsWith("http"))
+    .filter((t) => !targets.length || targets.includes(t.agency))
     .slice(0, limit)
   const alreadySaved = data.filter(
     (t) => t.photo && String(t.photo).startsWith("/images/photos/")
