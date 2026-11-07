@@ -13,6 +13,7 @@ import {
   type GEdge,
 } from "@/lib/graph"
 import { InArticleAd } from "@/components/in-article-ad"
+import { JsonLd } from "@/components/json-ld"
 
 // トップの特集はすべて登録データから組み立てる。該当データがなければ節ごと出さない
 
@@ -330,6 +331,21 @@ export const metadata = { alternates: { canonical: "/" } }
 const Page: FC = () => (
   <div className="top">
     <style>{css}</style>
+    {/* 検索結果のサイト名表示用 */}
+    <JsonLd
+      data={{
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: "芸人データベース",
+        url: "https://geinin.reload.co.jp/",
+        inLanguage: "ja",
+        potentialAction: {
+          "@type": "SearchAction",
+          target: "https://geinin.reload.co.jp/search/?q={search_term_string}",
+          "query-input": "required name=search_term_string",
+        },
+      }}
+    />
 
     <section className="hero">
       <div className="hero-copy">

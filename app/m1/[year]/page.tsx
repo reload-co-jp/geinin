@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { Breadcrumbs } from "@/components/breadcrumbs"
 import { InArticleAd } from "@/components/in-article-ad"
 import { m1Prelims } from "@/lib/db"
 import { STAGE_SLUGS } from "@/lib/m1"
@@ -27,10 +28,14 @@ const Page = async ({ params }: Props) => {
     <div
       style={{ maxWidth: 960, margin: "0 auto", display: "grid", gap: "1rem" }}
     >
-      <p style={{ fontSize: ".75rem" }}>
-        <Link href="/">トップ</Link> › <Link href="/races/">賞レース</Link> ›
-        M-1グランプリ{y} 予選
-      </p>
+      <Breadcrumbs
+        items={[
+          ["トップ", "/"],
+          ["賞レース", "/races/"],
+          ["M-1グランプリ", "/races/m1/"],
+          [`M-1グランプリ${y} 予選`, `/m1/${y}/`],
+        ]}
+      />
       <h1 className="page-title">M-1グランプリ{y} 予選</h1>
       <p style={{ fontSize: ".85rem", color: "var(--muted)" }}>
         M-1グランプリ公式サイトのエントリー一覧（プロ、{m1Prelims.fetched_at}
