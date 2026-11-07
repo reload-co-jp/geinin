@@ -228,6 +228,90 @@ export const AGENCIES = {
         /<h3>([^<]+（(?:左|中|右)）)<\/h3>\s*<p class="texts">\s*(?:（([ぁ-んー ]+)）)?/g
       ),
   },
+  sunmusic: {
+    // 一覧はカテゴリ「お笑い」(profile:04) で絞り込む
+    list: ["https://www.sunmusic-gp.co.jp/search/profile:04/"],
+    links: (html) =>
+      all(
+        html,
+        /<a href="(\/talent\/[\w-]+\/)"[^>]*>[\s\S]*?item-info-name">([^<]+)</g
+      ).map((m) => ({
+        url: `https://www.sunmusic-gp.co.jp${m[1]}`,
+        name: decode(m[2]),
+        kana: null,
+      })),
+    kana: (html) =>
+      hiragana(
+        decode(
+          html.match(
+            /jumbotron-title-main">[^<]*<\/span>\s*<small>([^<]*)<\/small>/
+          )?.[1] ?? ""
+        )
+      ) || null,
+    // 「リッキー <small>りっきー（写真左）</small>」。個人ページも名前欄が1つあるため、2つ以上のときだけメンバーとみなす
+    members: (html) => {
+      const m = all(
+        html,
+        /<th>\s*名前\s*<\/th>\s*<td>\s*([^<]+?)\s*<small>([^<]*)<\/small>/g
+      ).map((m) =>
+        member(decode(m[1]), decode(m[2]).replace(/[（(][^）)]*[）)]/g, ""))
+      )
+      return m.length > 1 ? m : []
+    },
+  },
+  "horipro-com": {
+    list: ["https://com.horipro.co.jp/talent/"],
+    // 業務提携のタレント（文化人なども含む）は所属ではないため除く
+    links: (html) =>
+      all(
+        html,
+        /talent_name">([^<]+)<\/div>\s*<a href="(https:\/\/com\.horipro\.co\.jp\/talent_info\/[^"]+\/)"/g
+      )
+        .map((m) => ({ url: m[2], name: decode(m[1]), kana: null }))
+        .filter((t) => !t.name.includes("業務提携")),
+    // PC 用の表に全員が横並びで載る（SP 用の表は同じ内容の繰り返し）
+    members: (html) => {
+      const m = names(
+        between(html, '<div class="talent_box pconly">', "</table>"),
+        /<span class="name">([^<]+)<\/span>\s*<span class="kana">([^<※]*)/g
+      )
+      return m.length > 1 ? m : []
+    },
+  },
+  kdash: {
+    list: ["https://www.kdashstage.jp/talent/"],
+    // バラエティ欄だけ拾う（女性タレント・アーティスト・文化人の欄は除く）
+    links: (html) =>
+      all(
+        between(html, 'id="cat-variety"', '<section class="kd-section'),
+        /<a href="(https:\/\/www\.kdashstage\.jp\/talent\/[\w-]+\/)">[\s\S]*?kd-profile__name">\s*([^<]+?)\s*<small/g
+      ).map((m) => ({ url: m[1], name: decode(m[2]), kana: null })),
+    // 「名前：春日 俊彰(としあき) ※ダディガ」。読みは本名欄が芸名と同じときだけ使う
+    members: (html) => {
+      const m = html
+        .split('<div class="kd-member">')
+        .slice(1)
+        .map((b) => {
+          const name = decode(
+            b.match(/kd-member__name">([\s\S]*?)<\/p>/)?.[1] ?? ""
+          )
+            .replace(/^名前[:：]\s*/, "")
+            .replace(/\s*※.*$/, "")
+            .replace(/\s*[（(][^）)]*[）)]$/, "")
+          const real = b.match(
+            /<dt>本名<\/dt>\s*<dd>([^<（(]+)[（(]([ぁ-んー ]+)[）)]/
+          )
+          const kana =
+            real &&
+            decode(real[1]).replace(/\s/g, "") === name.replace(/\s/g, "")
+              ? real[2].trim()
+              : null
+          return { name, kana }
+        })
+        .filter((m) => m.name)
+      return m.length > 1 ? m : []
+    },
+  },
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
@@ -262,16 +346,17 @@ const crawl = async (agency, conf, data, refetch, save) => {
     if (!refetch && data.get(t.url)?.members) continue
     let members = null
     let name = t.name
+    let kana = t.kana
     try {
       const html = await get(t.url)
       members = conf.members(html)
       name = conf.name?.(html) ?? name
+      kana = t.kana ?? conf.kana?.(html) ?? null
     } catch (e) {
       console.warn(`${t.url} ${e.message}`)
     }
     // members: null は詳細未取得。統合時は既存レコードへの所属付与だけに使う
-    if (name)
-      data.set(t.url, { agency, url: t.url, name, kana: t.kana, members })
+    if (name) data.set(t.url, { agency, url: t.url, name, kana, members })
     if (++n % 50 === 0) save()
     await sleep(WAIT_MS)
   }
