@@ -52,17 +52,19 @@ const get = async (url) => {
 const slugFromUrl = (url) => {
   const pathname = new URL(url).pathname
   const segments = pathname.split("/").filter(Boolean)
-  const last = segments[segments.length - 1]
+  // 日本語のファイル名はパーセントエンコードを戻して保存する
+  const last = decodeURIComponent(segments[segments.length - 1])
   // 拡張子を除去
   const slug = last.replace(/\.(jpg|jpeg|png|webp|gif|bmp)$/i, "")
   return slug || null
 }
 
 // 画像をダウンロードして WebP に変換・保存。戻り値: 相対パス または null
-const downloadAndConvert = async (url) => {
+// 保存名は事務所id を前置きして事務所間の衝突を避ける（例: ohtapro-nagon.webp）
+const downloadAndConvert = async (url, agency) => {
   const slug = slugFromUrl(url)
   if (!slug) return null
-  const outName = `${slug}.webp`
+  const outName = `${agency}-${slug}.webp`
   const outUrl = new URL(outName, PUBLIC_DIR)
   const outFsPath = fileURLToPath(outUrl)
 
@@ -72,7 +74,7 @@ const downloadAndConvert = async (url) => {
   const buf = await get(url)
   if (!buf) return null
 
-  const tmpBase = fileURLToPath(new URL(slug, TMP_DIR))
+  const tmpBase = fileURLToPath(new URL(`${agency}-${slug}`, TMP_DIR))
   const ext = url.match(/\.(jpg|jpeg|png|webp|gif)/i)?.[1] ?? "jpg"
   const tmpWithExt = `${tmpBase}.${ext}`
   writeFileSync(tmpWithExt, Buffer.from(buf))
@@ -154,7 +156,7 @@ const main = async () => {
   for (const t of unprocessed) {
     const agency = t.agency
     const photoUrl = t.photo
-    const relPath = await downloadAndConvert(photoUrl)
+    const relPath = await downloadAndConvert(photoUrl, agency)
     n++
     if (relPath) {
       t.photo = relPath
