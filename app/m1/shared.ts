@@ -86,3 +86,18 @@ export const daysOf = (es: Entrant[]): Day[] => {
 export const venuesOfDay = (es: Entrant[]) => [
   ...Map.groupBy(es, (e) => e.venue ?? ""),
 ]
+
+// 回戦を通過した組（次の回戦に出場した組）のコンビ番号URL。
+// 次の回戦の記録がまだない（開催前・未取得）ときは判定できないので null
+export const passersOf = (year: number, stage: PrelimStage) => {
+  const next = PRELIM_STAGES[PRELIM_STAGES.indexOf(stage) + 1]
+  if (!next || !stagesOf(year).includes(next)) return null
+  return {
+    next,
+    urls: new Set(
+      m1Prelims.results
+        .filter((p) => p.year === year && p.stage === next)
+        .map((p) => p.url)
+    ),
+  }
+}
