@@ -3,8 +3,8 @@
 // 規約: 画像ファイルはコピーせず、公式プロフィールの画像URLを参照するだけにする。
 //   node scripts/collect-agency-photos.mjs <事務所id>   指定事務所のみ取得（未取得分のみ）
 //   node scripts/collect-agency-photos.mjs --all          全事務所を取得（未取得分のみ）
-// 対応事務所: asai grape jinrikisha maseki ohtapro prime sma shochiku titan watanabe
-// （shochiku・titan・prime は一覧ページからコンビ/グループ写真を一括取得）
+// 対応事務所: asai grape horipro-com jinrikisha kdash maseki ohtapro prime sma shochiku sunmusic titan watanabe
+// （shochiku・titan・prime・sunmusic・horipro-com・kdash は一覧ページからコンビ/グループ写真を一括取得）
 import { readFileSync, writeFileSync } from "node:fs"
 
 const OUT = new URL("../data/agencies.json", import.meta.url)
@@ -193,12 +193,43 @@ const listExtractors = {
       result.set(detailUrl, toAbsolute(imgUrl, listUrl))
     return result
   },
+
+  sunmusic: (html, listUrl) => {
+    const result = new Map()
+    const re =
+      /<a href="(\/talent\/[\w-]+\/)"[^>]*>\s*<div class="item-info-img">\s*<img data-original="([^"]+)"/g
+    for (const [, detailPath, imgUrl] of html.matchAll(re))
+      result.set(toAbsolute(detailPath, listUrl), toAbsolute(imgUrl, listUrl))
+    return result
+  },
+
+  "horipro-com": (html, listUrl) => {
+    const result = new Map()
+    // 画像は style の background-image に入る（引用符が ' と " で揃っていない）
+    const re =
+      /background-image: url\(['"]?([^'")]+)[\s\S]*?<a href="(https:\/\/com\.horipro\.co\.jp\/talent_info\/[^"]+\/)"/g
+    for (const [, imgUrl, detailUrl] of html.matchAll(re))
+      result.set(detailUrl, toAbsolute(imgUrl, listUrl))
+    return result
+  },
+
+  kdash: (html, listUrl) => {
+    const result = new Map()
+    const re =
+      /<a href="(https:\/\/www\.kdashstage\.jp\/talent\/[\w-]+\/)">\s*<div class="kd-profile__photo">\s*<img src="([^"]+)"/g
+    for (const [, detailUrl, imgUrl] of html.matchAll(re))
+      result.set(detailUrl, toAbsolute(imgUrl, listUrl))
+    return result
+  },
 }
 
 const LIST_URLS = {
   shochiku: "https://www.shochikugeino.co.jp/talents/03/",
   titan: "https://www.titan-net.co.jp/talent/",
   prime: "https://www.primecorp.co.jp/talent/?category=comedian",
+  sunmusic: "https://www.sunmusic-gp.co.jp/search/profile:04/",
+  "horipro-com": "https://com.horipro.co.jp/talent/",
+  kdash: "https://www.kdashstage.jp/talent/",
 }
 
 const DETAIL_AGENCIES = Object.keys(detailExtractors)
@@ -271,7 +302,7 @@ const main = async () => {
           // 名前で照合（agencies.jsonのURLは数字ID/スラッグ混在のため）
           t.photo = photoMap.get(key(t.name))
         } else {
-          // titan・prime: 詳細URLで照合
+          // それ以外: 詳細URLで照合
           t.photo = photoMap.get(t.url)
         }
         n++
@@ -281,11 +312,6 @@ const main = async () => {
         } else {
           console.log(`  - ${t.name} （画像なし）`)
         }
-        if (n % 25 === 0) {
-          saveTalents(data)
-          console.log(`[${n}/${todo.length}] 取得済 ${found}件`)
-        }
-        await sleep(WAIT_MS)
       }
       saveTalents(data)
       console.log(`${ag} 完了: ${n}件処理 / 新規取得 ${found}件`)

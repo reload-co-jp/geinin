@@ -1,8 +1,9 @@
 // 公式プロフィールの画像をダウンロードし、WebP に変換・圧縮して public/images/photos/ に保存する。
 // agencies.json の photo フィールドを絶対URLから /images/photos/<ファイル名>.webp に書き換える。
 // 規約: 画像は各事務所の公式サイトから取得し、WebP に圧縮してローカル保存する。
-//   node scripts/download-and-compress-photos.mjs          未保存分のみ処理
-//   node scripts/download-and-compress-photos.mjs --all    全件をやり直す
+//   node scripts/download-and-compress-photos.mjs                    未保存分のみ処理
+//   node scripts/download-and-compress-photos.mjs sunmusic kdash     指定した事務所の未保存分のみ処理
+//   node scripts/download-and-compress-photos.mjs --limit=10         先頭10件だけ処理
 import {
   existsSync,
   readFileSync,
@@ -52,17 +53,19 @@ const get = async (url) => {
 const slugFromUrl = (url) => {
   const pathname = new URL(url).pathname
   const segments = pathname.split("/").filter(Boolean)
-  const last = segments[segments.length - 1]
+  // 日本語のファイル名はパーセントエンコードを戻して保存する
+  const last = decodeURIComponent(segments[segments.length - 1])
   // 拡張子を除去
   const slug = last.replace(/\.(jpg|jpeg|png|webp|gif|bmp)$/i, "")
   return slug || null
 }
 
 // 画像をダウンロードして WebP に変換・保存。戻り値: 相対パス または null
-const downloadAndConvert = async (url) => {
+// 保存名は事務所id を前置きして事務所間の衝突を避ける（例: ohtapro-nagon.webp）
+const downloadAndConvert = async (url, agency) => {
   const slug = slugFromUrl(url)
   if (!slug) return null
-  const outName = `${slug}.webp`
+  const outName = `${agency}-${slug}.webp`
   const outUrl = new URL(outName, PUBLIC_DIR)
   const outFsPath = fileURLToPath(outUrl)
 
@@ -72,7 +75,7 @@ const downloadAndConvert = async (url) => {
   const buf = await get(url)
   if (!buf) return null
 
-  const tmpBase = fileURLToPath(new URL(slug, TMP_DIR))
+  const tmpBase = fileURLToPath(new URL(`${agency}-${slug}`, TMP_DIR))
   const ext = url.match(/\.(jpg|jpeg|png|webp|gif)/i)?.[1] ?? "jpg"
   const tmpWithExt = `${tmpBase}.${ext}`
   writeFileSync(tmpWithExt, Buffer.from(buf))
@@ -110,12 +113,19 @@ const downloadAndConvert = async (url) => {
 const main = async () => {
   const limitArg = process.argv.find((a) => a.startsWith("--limit="))
   const limit = limitArg ? Number(limitArg.split("=")[1]) : Infinity
+  const targets = process.argv.slice(2).filter((a) => !a.startsWith("--"))
   const raw = JSON.parse(readFileSync(OUT, "utf8"))
   const data = [...raw.talents]
+  const unknown = targets.filter((a) => !data.some((t) => t.agency === a))
+  if (unknown.length) {
+    console.log(`未登録の事務所です: ${unknown.join(", ")}`)
+    return
+  }
 
-  // 未保存分のみ：photo が絶対URL（http で始まる）のもの
+  // 未保存分のみ：photo が絶対URL（http で始まる）のもの。事務所の指定があればそれに絞る
   const unprocessed = data
     .filter((t) => t.photo && String(t.photo).startsWith("http"))
+    .filter((t) => !targets.length || targets.includes(t.agency))
     .slice(0, limit)
   const alreadySaved = data.filter(
     (t) => t.photo && String(t.photo).startsWith("/images/photos/")
@@ -154,7 +164,7 @@ const main = async () => {
   for (const t of unprocessed) {
     const agency = t.agency
     const photoUrl = t.photo
-    const relPath = await downloadAndConvert(photoUrl)
+    const relPath = await downloadAndConvert(photoUrl, agency)
     n++
     if (relPath) {
       t.photo = relPath
