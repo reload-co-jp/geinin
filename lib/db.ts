@@ -438,28 +438,52 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
 }
 
 // 検索結果に出すほどの情報が無いページ。Search Console で「クロール済み -
-// インデックス未登録」になりやすいので noindex にし、サイトマップからも外す。
-// ページ自体は残し、follow で内部リンクはたどらせる
+// インデックス未登録」になったページの大半がこれに当たるので noindex にし、
+// サイトマップや事務所ページの一覧からも外す。ページ自体は残し、follow で
+// 内部リンクはたどらせる
 // - 番組: 出演の登録が2組だけ
-// - 芸人・グループ: 関係が1件以下（所属コンビのみ等）で、種別・事務所以外の
-//   プロフィール項目も賞レース・番組・ライブ・SNS の情報も無い
+// - 芸人・グループ: M-1 エントリー一覧から取り込んだだけのような、名前・事務所・
+//   コンビのメンバー構成と予選序盤の結果しか無いもの。関係はコンビの所属だけ、
+//   プロフィール項目は種別・事務所・結成・活動状況だけ、賞レースは M-1 の
+//   3回戦以下だけで、ライブ・SNS の情報も無い
 const MIN_PROGRAM_CAST = 3
+const LIGHT_FACTS = new Set(["種別", "所属事務所", "結成", "活動状況"])
+const EARLY_STAGES = new Set(["1回戦", "2回戦", "3回戦"])
+const thinCache = new Map<string, boolean>()
 export const isThin = (nodeId: string) => {
   if (nodeId.startsWith("v:"))
     return (edgeIndex.get(nodeId) ?? []).length < MIN_PROGRAM_CAST
   if (!/^[pg]:/.test(nodeId)) return false
+  const cached = thinCache.get(nodeId)
+  if (cached !== undefined) return cached
   const info = nodeInfo(nodeId)
-  if (!info) return false
-  return (
-    info.links.length <= 1 &&
-    info.facts.filter(([k]) => k !== "種別" && k !== "所属事務所").length ===
-      0 &&
-    info.results.length === 0 &&
-    !info.programs?.items.length &&
+  const thin =
+    !!info &&
+    info.links.every((l) => l.kind === "member") &&
+    info.facts.every(([k]) => LIGHT_FACTS.has(k)) &&
+    info.results.every((r) => EARLY_STAGES.has(r.stage)) &&
     !info.lives?.items.length &&
     !info.youtube?.channels.length &&
     !info.x?.accounts.length
-  )
+  thinCache.set(nodeId, thin)
+  return thin
+}
+
+// 事務所ページの一覧に載せる芸人・コンビ。isThin のものまで並べると吉本興業では
+// 1万件を超える名前だけのページになり、検索エンジンにインデックスされないため
+export const agencyListed = (agencyId: string) => ({
+  groups: db.groups.filter(
+    (g) => g.agency_id === agencyId && !isThin(`g:${g.id}`)
+  ),
+  people: db.people.filter(
+    (p) => p.agency_id === agencyId && !isThin(`p:${p.id}`)
+  ),
+})
+// 一覧に載る芸人・コンビがこれ未満の事務所ページは noindex にする
+const AGENCY_MIN_LISTED = 5
+export const agencyIndexable = (agencyId: string) => {
+  const { groups, people } = agencyListed(agencyId)
+  return groups.length + people.length >= AGENCY_MIN_LISTED
 }
 
 // 番組ページを持つ番組（2組以上が出演）

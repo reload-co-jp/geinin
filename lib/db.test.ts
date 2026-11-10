@@ -1,5 +1,13 @@
 import { expect, test } from "vitest"
-import { db, edgeIndex, isThin, nodeInfo, programIds } from "@/lib/db"
+import {
+  agencyIndexable,
+  agencyListed,
+  db,
+  edgeIndex,
+  isThin,
+  nodeInfo,
+  programIds,
+} from "@/lib/db"
 import { relationSummary } from "@/lib/node-info"
 
 test("biography 未登録なら登録データから紹介文を組み立てる", () => {
@@ -25,8 +33,11 @@ test("情報の少ないページだけを isThin とする", () => {
   const g = db.groups.find((g) => g.name === "ココリコ")!
   expect(isThin(`g:${g.id}`)).toBe(false)
   // 所属コンビへのリンクしか無い芸人
-  const thin = db.people.find((p) => p.id === "raffine-m1-130-1")!
-  expect(isThin(`p:${thin.id}`)).toBe(true)
+  expect(isThin("p:raffine-m1-130-1")).toBe(true)
+  // M-1 エントリー一覧から取り込んだだけのコンビ（メンバーと1回戦の出場のみ）
+  const g2 = nodeInfo("g:yoshimoto-m1-45195")!
+  expect(g2.links.every((l) => l.kind === "member")).toBe(true)
+  expect(isThin("g:yoshimoto-m1-45195")).toBe(true)
   const casts = programIds.map((id) => (edgeIndex.get(id) ?? []).length)
   const thinPrograms = programIds.filter(isThin)
   expect(thinPrograms.length).toBe(casts.filter((n) => n < 3).length)
@@ -38,3 +49,11 @@ test("事務所サイトの URL 由来の id にURL に使えない文字を含�
   expect(db.people.filter((p) => bad(p.id))).toEqual([])
   expect(db.groups.filter((g) => bad(g.id))).toEqual([])
 })
+
+test("事務所ページには isThin でない芸人・コンビだけを載せる", () => {
+  const { groups, people } = agencyListed("yoshimoto")
+  expect(groups.some((g) => g.name === "ココリコ")).toBe(true)
+  expect(groups.some((g) => g.id === "yoshimoto-m1-45195")).toBe(false)
+  expect(people.every((p) => !isThin(`p:${p.id}`))).toBe(true)
+  expect(agencyIndexable("yoshimoto")).toBe(true)
+}, 60_000)

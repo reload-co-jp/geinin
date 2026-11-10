@@ -1,6 +1,12 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { agencyName, db, edgeIndex } from "@/lib/db"
+import {
+  agencyIndexable,
+  agencyListed,
+  agencyName,
+  db,
+  edgeIndex,
+} from "@/lib/db"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { InArticleAd } from "@/components/in-article-ad"
 import { Photo } from "@/components/photo"
@@ -29,6 +35,15 @@ const notable = (id: string, n: number) =>
     .slice(0, n)
     .map((x) => x.name)
 
+// 検索に出す事務所ページは中身のある芸人・コンビだけを並べる。noindex の
+// 事務所ページ（載せられる組が少ない）は、たどれるように全員を並べる
+const listed = (id: string) => {
+  const { groups, people } = agencyIndexable(id)
+    ? agencyListed(id)
+    : { groups: db.groups, people: db.people }
+  return { groups: of(groups, id), people: of(people, id) }
+}
+
 export const generateStaticParams = () => db.agencies.map((a) => ({ id: a.id }))
 
 export const generateMetadata = async ({ params }: Props) => {
@@ -39,6 +54,9 @@ export const generateMetadata = async ({ params }: Props) => {
         title: `${name}所属の芸人・コンビ一覧`,
         description: `${name}に所属するお笑い芸人・コンビ・グループの一覧（${of(db.groups, id).length}組・${of(db.people, id).length}人）。${notable(id, 6).join("・")}など`,
         alternates: { canonical: `/agencies/${id}/` },
+        ...(!agencyIndexable(id) && {
+          robots: { index: false, follow: true },
+        }),
       }
     : {}
 }
@@ -47,8 +65,9 @@ const Page = async ({ params }: Props) => {
   const { id } = await params
   const name = agencyName(id)
   if (!name) notFound()
-  const groups = of(db.groups, id)
-  const people = of(db.people, id)
+  const allGroups = of(db.groups, id).length
+  const allPeople = of(db.people, id).length
+  const { groups, people } = listed(id)
   return (
     <div
       style={{
@@ -67,13 +86,15 @@ const Page = async ({ params }: Props) => {
         ]}
       />
       <h1 className="page-title">{name}所属の芸人・コンビ</h1>
-      {groups.length + people.length > 0 && (
+      {allGroups + allPeople > 0 && (
         <p className="lead">
           {name}
-          に所属するお笑い芸人・コンビの一覧です（グループ{groups.length}
+          に所属するお笑い芸人・コンビの一覧です（登録はグループ{allGroups}
           組・芸人
-          {people.length}人）。主な所属芸人は{notable(id, 6).join("・")}
+          {allPeople}人）。主な所属芸人は{notable(id, 6).join("・")}
           など。名前から相方・同期・賞レース成績などの詳細ページへ移動できます。
+          {groups.length + people.length < allGroups + allPeople &&
+            "M-1グランプリのエントリー情報しか登録のない芸人・コンビは一覧に載せていません。"}
         </p>
       )}
       <section>

@@ -1,16 +1,17 @@
 import type { MetadataRoute } from "next"
 import { OTHER, ROWS } from "@/app/list/shared"
 import { races } from "@/app/races/shared"
-import {
-  daysOf,
-  entrantsOf,
-  prelimYears,
-  SPLIT_AT,
-  stagesOf,
-} from "@/app/m1/shared"
+import { prelimYears, stagesOf } from "@/app/m1/shared"
 import { STAGE_SLUGS } from "@/lib/m1"
 import { years } from "@/app/doki/shared"
-import { db, isThin, programIds, raceIds, venues } from "@/lib/db"
+import {
+  agencyIndexable,
+  db,
+  isThin,
+  programIds,
+  raceIds,
+  venues,
+} from "@/lib/db"
 import { nodeHref } from "@/lib/graph"
 
 export const dynamic = "force-static"
@@ -39,19 +40,13 @@ const sitemap = (): MetadataRoute.Sitemap =>
     "/programs/",
     ...programIds.filter((id) => !isThin(id)).map(nodeHref),
     "/agencies/",
-    ...db.agencies.map((a) => `/agencies/${a.id}/`),
+    ...db.agencies
+      .filter((a) => agencyIndexable(a.id))
+      .map((a) => `/agencies/${a.id}/`),
     ...prelimYears.flatMap((y) => [
       `/m1/${y}/`,
-      ...stagesOf(y).flatMap((s) => {
-        const href = `/m1/${y}/${STAGE_SLUGS[s]}/`
-        const es = entrantsOf(y, s)
-        return [
-          href,
-          ...(es.length > SPLIT_AT
-            ? daysOf(es).map((d) => `${href}${d.slug}/`)
-            : []),
-        ]
-      }),
+      // 日程別のページ（/m1/{年}/{回戦}/{日付}/）は noindex なので載せない
+      ...stagesOf(y).map((s) => `/m1/${y}/${STAGE_SLUGS[s]}/`),
     ]),
     "/venues/",
     ...venues.map((v) => `/venues/${v.slug}/`),
