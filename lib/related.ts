@@ -390,7 +390,8 @@ export const faqOf = (nodeId: string, info: NodeInfo): Faq[] => {
   const [kind, id] = nodeId.split(":")
   const out: Faq[] = []
   const name = info.name
-  out.push({ q: `${name}の読み方は？`, a: `「${info.reading}」と読みます。` })
+  if (info.reading)
+    out.push({ q: `${name}の読み方は？`, a: `「${info.reading}」と読みます。` })
   const agency = info.agencyId && agencyName(info.agencyId)
   if (agency) out.push({ q: `${name}の所属事務所は？`, a: `${agency}です。` })
   const now = new Date().getFullYear()

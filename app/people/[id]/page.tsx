@@ -6,12 +6,17 @@ import {
   agencyName,
   db,
   groupById,
+  isThin,
   nodeInfo,
   ownUrls,
   xOf,
   personById,
   sameName,
 } from "@/lib/db"
+
+// 読みが未登録のときに「名前（）」とならないようにする
+const withReading = (e: { name: string; reading: string }) =>
+  e.reading ? `${e.name}（${e.reading}）` : e.name
 
 type Props = { params: Promise<{ id: string }> }
 
@@ -23,9 +28,9 @@ export const generateMetadata = async ({ params }: Props) => {
   return p
     ? {
         // 同名の登録があるときは事務所を添えて区別する
-        title: `${p.name}（${p.reading}）のプロフィール・相方・同期${sameName(`p:${id}`).length && agencyName(p.agency_id) ? ` - ${agencyName(p.agency_id)}` : ""}`,
+        title: `${withReading(p)}のプロフィール・相方・同期${sameName(`p:${id}`).length && agencyName(p.agency_id) ? ` - ${agencyName(p.agency_id)}` : ""}`,
         description: [
-          `${p.name}（${p.reading}）`,
+          withReading(p),
           agencyName(p.agency_id),
           db.memberships
             .filter((m) => m.person_id === id)
@@ -36,6 +41,7 @@ export const generateMetadata = async ({ params }: Props) => {
           .join(" / ")
           .concat("。所属コンビ・師弟・同期・共演などの関係と賞レース成績"),
         alternates: { canonical: `/people/${id}/` },
+        ...(isThin(`p:${id}`) && { robots: { index: false, follow: true } }),
       }
     : {}
 }

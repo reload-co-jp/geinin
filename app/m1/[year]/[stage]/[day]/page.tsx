@@ -63,6 +63,9 @@ export const generateMetadata = async ({ params }: Props) => {
       .map((e) => e.name)
       .join("・")}ほか）の一覧`,
     alternates: { canonical: `/m1/${year}/${stage}/${day}/` },
+    // 1日分の出場組を並べただけで中身が薄く、Search Console でもインデックス
+    // 未登録になっていたので検索には出さない。回戦ページの日程一覧からはたどれる
+    robots: { index: false, follow: true },
   }
 }
 
