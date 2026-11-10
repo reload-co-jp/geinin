@@ -437,6 +437,31 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
   }
 }
 
+// 検索結果に出すほどの情報が無いページ。Search Console で「クロール済み -
+// インデックス未登録」になりやすいので noindex にし、サイトマップからも外す。
+// ページ自体は残し、follow で内部リンクはたどらせる
+// - 番組: 出演の登録が2組だけ
+// - 芸人・グループ: 関係が1件以下（所属コンビのみ等）で、種別・事務所以外の
+//   プロフィール項目も賞レース・番組・ライブ・SNS の情報も無い
+const MIN_PROGRAM_CAST = 3
+export const isThin = (nodeId: string) => {
+  if (nodeId.startsWith("v:"))
+    return (edgeIndex.get(nodeId) ?? []).length < MIN_PROGRAM_CAST
+  if (!/^[pg]:/.test(nodeId)) return false
+  const info = nodeInfo(nodeId)
+  if (!info) return false
+  return (
+    info.links.length <= 1 &&
+    info.facts.filter(([k]) => k !== "種別" && k !== "所属事務所").length ===
+      0 &&
+    info.results.length === 0 &&
+    !info.programs?.items.length &&
+    !info.lives?.items.length &&
+    !info.youtube?.channels.length &&
+    !info.x?.accounts.length
+  )
+}
+
 // 番組ページを持つ番組（2組以上が出演）
 export const programIds = [...graph.nodes.values()]
   .filter((n) => n.kind === "program")

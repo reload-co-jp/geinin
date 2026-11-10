@@ -10,7 +10,7 @@ import {
 } from "@/app/m1/shared"
 import { STAGE_SLUGS } from "@/lib/m1"
 import { years } from "@/app/doki/shared"
-import { db, programIds, raceIds, venues } from "@/lib/db"
+import { db, isThin, programIds, raceIds, venues } from "@/lib/db"
 import { nodeHref } from "@/lib/graph"
 
 export const dynamic = "force-static"
@@ -25,14 +25,19 @@ const sitemap = (): MetadataRoute.Sitemap =>
     "/doki/",
     "/search/",
     ...[...ROWS, OTHER].map((r) => `/list/${r.slug}/`),
-    ...db.people.map((p) => `/people/${p.id}/`),
-    ...db.groups.map((g) => `/groups/${g.id}/`),
+    // noindex のページはサイトマップに載せない
+    ...db.people
+      .filter((p) => !isThin(`p:${p.id}`))
+      .map((p) => `/people/${p.id}/`),
+    ...db.groups
+      .filter((g) => !isThin(`g:${g.id}`))
+      .map((g) => `/groups/${g.id}/`),
     "/races/",
     ...races.map((r) => `/races/${r.slug}/`),
     ...raceIds.map(nodeHref),
     ...years.map(([y]) => `/doki/${y}/`),
     "/programs/",
-    ...programIds.map(nodeHref),
+    ...programIds.filter((id) => !isThin(id)).map(nodeHref),
     "/agencies/",
     ...db.agencies.map((a) => `/agencies/${a.id}/`),
     ...prelimYears.flatMap((y) => [

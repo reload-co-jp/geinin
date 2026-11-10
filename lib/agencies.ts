@@ -1,3 +1,4 @@
+import { programSlug } from "@/lib/graph"
 import type { Db, Group, Person } from "@/lib/types"
 
 // scripts/import-agencies.mjs が出力する data/agencies.json の形
@@ -22,6 +23,13 @@ const M1 = "https://www.m-1gp.com/"
 // M-1 公式サイトのコンビ番号は事務所サイトの数字IDと衝突しうるので区別する
 const slug = (url: string) =>
   (url.startsWith(M1) ? "m1-" : "") + url.match(/([^/?=]+?)(?:\.html)?\/?$/)![1]
+// URL 末尾が日本語（パーセントエンコードを含む）だと id をページの URL に使えない
+// （静的書き出しのディレクトリ名とリクエスト URL が一致せず 404 になる）ので、
+// デコードした文字列のハッシュにする
+const idSlug = (url: string) => {
+  const s = slug(url)
+  return /^[\w.-]+$/.test(s) ? s : programSlug(decodeURIComponent(s))
+}
 const sourceId = (t: AgencyTalent) => `${t.agency}:${slug(t.url)}`
 
 // 吉本以外の事務所公式サイトの取得結果を統合する。既存レコードは id を保ち、空欄だけ補う
@@ -78,7 +86,7 @@ export const mergeAgencies = (base: Db, dump: AgencyDump): Db => {
   }
 
   for (const t of dump.talents) {
-    const id = `${t.agency}-${slug(t.url)}`
+    const id = `${t.agency}-${idSlug(t.url)}`
     // 本人の名前だけが載る個人ページはメンバー扱いしない
     const members = (t.members ?? []).filter((m) => key(m.name) !== key(t.name))
     const existing =
