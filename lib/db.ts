@@ -67,6 +67,8 @@ export const edgeIndex = indexEdges(graph)
 
 export const personById = new Map(db.people.map((p) => [p.id, p]))
 export const groupById = new Map(db.groups.map((g) => [g.id, g]))
+export const groupsOfPerson = Map.groupBy(db.memberships, (m) => m.person_id)
+export const membersOfGroup = Map.groupBy(db.memberships, (m) => m.group_id)
 const agencyById = new Map(db.agencies.map((a) => [a.id, a.name]))
 const sourceById = new Map(db.sources.map((s) => [s.id, s]))
 const relById = new Map(db.relationships.map((r) => [r.id, r]))

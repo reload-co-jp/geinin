@@ -15,7 +15,7 @@ import {
 } from "@/lib/db"
 import { venueLabel, venueSlug } from "@/lib/venues"
 import { stageRank } from "@/lib/m1"
-import { rankLabel, termYear, type EdgeKind, type GNode } from "@/lib/graph"
+import { rankLabel, termYear, nodeHref, type EdgeKind, type GNode } from "@/lib/graph"
 import type { NodeInfo } from "@/lib/node-info"
 
 export type Recommendation = {
@@ -317,7 +317,7 @@ export type TimelineEntry = { year: number; date: string; text: string }
 const y4 = (d: string | null | undefined) =>
   d && /^\d{4}/.test(d) ? Number(d.slice(0, 4)) : null
 
-// 年表。生年・養成所入学・デビュー・結成・加入脱退・賞レース決勝・解散を年順に並べる
+// 年表。生年・養成所入学・デビュー・結成・加入脱退・賞レース・解散を年順に並べる
 export const timelineOf = (nodeId: string, info: NodeInfo): TimelineEntry[] => {
   const [kind, id] = nodeId.split(":")
   const out: TimelineEntry[] = []
@@ -363,13 +363,29 @@ export const timelineOf = (nodeId: string, info: NodeInfo): TimelineEntry[] => {
     }
     push(g.dissolution_date, "解散")
   } else return []
-  // 大会・年ごとに一番先まで進んだ段階だけ
-  for (const r of furthest(info.results))
+  // 賞レース（全記録・重複大会年は最上位のみ）
+  const resultsByCompYear = new Map<string, typeof info.results[0]>()
+  for (const r of info.results) {
+    const key = `${r.competition} ${r.year}`
+    const existing = resultsByCompYear.get(key)
+    if (!existing || stageRank(r.stage) > stageRank(existing.stage)) {
+      resultsByCompYear.set(key, r)
+    }
+  }
+  for (const r of resultsByCompYear.values())
     out.push({
       year: r.year,
       date: String(r.year),
       text: `${r.competition} ${r.stage}${r.stage === "決勝" && r.rank ? ` ${rankLabel(r.rank)}` : "進出"}${r.via ? `（${r.via}）` : ""}`,
     })
+  // 初ライブ出演
+  if (info.lives?.items.length) {
+    const firstLive = info.lives.items.reduce((a, b) =>
+      a.date < b.date ? a : b
+    )
+    push(firstLive.date, `初ライブ出演「${firstLive.title}」${firstLive.venue ? `（${firstLive.venue}）` : ""}`)
+  }
+  // YouTube開設（公開日は未取得のためスキップ）
   // 同じ年の中では日付の分かるものを先に。日付が同じなら登録順
   return out.toSorted((a, b) => a.year - b.year || a.date.localeCompare(b.date))
 }
@@ -385,7 +401,7 @@ const NAMES = 5
 const names = (xs: string[]) =>
   xs.slice(0, NAMES).join("・") + (xs.length > NAMES ? "ほか" : "")
 
-// よくある質問。検索されやすい問い（相方・事務所・芸歴・年齢・成績）に登録データで答える
+// よくある質問。検索されやすい問い（相方・事務所・芸歴・年齢・成績・SNS等）に登録データで答える
 export const faqOf = (nodeId: string, info: NodeInfo): Faq[] => {
   const [kind, id] = nodeId.split(":")
   const out: Faq[] = []
@@ -398,8 +414,9 @@ export const faqOf = (nodeId: string, info: NodeInfo): Faq[] => {
   const best = finals
     .filter((r) => r.rank)
     .toSorted((a, b) => a.rank! - b.rank!)[0]
+  let p: (typeof personById extends Map<string, infer V> ? V : never) | undefined
   if (kind === "p") {
-    const p = personById.get(id)
+    p = personById.get(id)
     if (!p) return []
     const ms = groupsOfPerson.get(id) ?? []
     const current = ms.filter((m) => m.status === "current")
@@ -508,5 +525,44 @@ export const faqOf = (nodeId: string, info: NodeInfo): Faq[] => {
             .map((r) => `${r.year}年${r.competition}${r.stage}`)
             .join("、")}に進出しています。`,
     })
+  // YouTube
+  if (info.youtube?.channels.length)
+    out.push({
+      q: `${name}のYouTubeチャンネルは？`,
+      a: info.youtube.channels
+        .map((c) => `${c.title}${c.subscribers !== null ? `（登録者${new Intl.NumberFormat("ja-JP", { notation: "compact", maximumSignificantDigits: 3 }).format(c.subscribers)}人）` : ""}`)
+        .join("、") + `（${info.youtube.fetched_at}時点）。`,
+    })
+  // テレビ出演番組
+  if (info.programs?.items.length)
+    out.push({
+      q: `${name}のテレビ出演番組は？`,
+      a: `${info.programs.items.slice(0, 5).map((p) => p.title).join("、")}${info.programs.items.length > 5 ? "ほか" : ""}（${info.programs.fetched_at}時点・Wikipedia記載・未照合）。`,
+    })
+  // X（Twitter）
+  if (info.x?.accounts.length)
+    out.push({
+      q: `${name}のX（旧Twitter）は？`,
+      a: info.x.accounts
+        .map((a) => `@${a.handle}${a.name ? `（${a.name}）` : ""}${a.followers !== undefined ? ` フォロワー${new Intl.NumberFormat("ja-JP", { notation: "compact", maximumSignificantDigits: 3 }).format(a.followers)}人` : ""}`)
+        .join("、") + `（${info.x.fetched_at}時点）。`,
+    })
+  // 直近のライブ出演
+  if (info.lives?.items.length) {
+    const upcoming = info.lives.items.filter((l) => l.date >= new Date().toISOString().slice(0, 10))
+    if (upcoming.length)
+      out.push({
+        q: `${name}の直近のライブ出演は？`,
+        a: upcoming.slice(0, 3).map((l) => `${l.date.slice(5).replace("-", "/")} ${l.title}${l.venue ? `（${l.venue}）` : ""}`).join("、") + `など（${info.lives.fetched_at}時点）。`,
+      })
+  }
+  // 情報が少ない場合の案内
+  const hasDetail = info.biography || info.birth_date || p?.debut_date || p?.training_school || (kind === "p" && (groupsOfPerson.get(id) ?? []).some(m => m.status === "current")) || info.results.length > 0 || info.lives?.items.length > 0 || info.youtube?.channels.length > 0 || info.programs?.items.length > 0 || info.x?.accounts.length > 0
+  if (!hasDetail && kind === "p") {
+    out.push({
+      q: `${name}の詳細な情報を知りたい`,
+      a: `現在、詳細な経歴・プロフィールは未登録です。情報をお持ちの方は <a href="https://github.com/reload-co-jp/geinin/issues/new?title=${encodeURIComponent(`情報の追加: ${name}`)}&body=${encodeURIComponent(`https://geinin.reload.co.jp${nodeHref(nodeId)}\n\n追加したい情報:\n根拠（URLなど）:`)}" target="_blank" rel="noopener noreferrer">こちら</a> から追加・修正を提案できます。`,
+    })
+  }
   return out
 }

@@ -5,6 +5,7 @@ import { JsonLd } from "@/components/json-ld"
 import { InArticleAd } from "@/components/in-article-ad"
 import { Heading, Profile } from "@/components/profile"
 import { FaqList, NextReads, Timeline } from "@/components/related"
+import { Photo } from "@/components/photo"
 import { years } from "@/app/doki/shared"
 import { OTHER, ROWS, rowOf } from "@/app/list/shared"
 import { agencyName, nodeInfo, raceIds, sameName } from "@/lib/db"
@@ -16,6 +17,8 @@ import {
   raceSlugs,
 } from "@/lib/graph"
 import { faqOf, recommendations, timelineOf } from "@/lib/related"
+import { groupById, groupsOfPerson, membersOfGroup, personById, graph } from "@/lib/db"
+import { nodeHref as nodeHrefLib } from "@/lib/graph"
 
 const SITE = "https://geinin.reload.co.jp"
 
@@ -68,6 +71,29 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
         doki && { year: doki[0], ids: doki[1].map((p) => p.id) }
       )
     : null
+  // 所属コンビ・グループ（芸人）
+  const personGroups = nodeId.startsWith("p:")
+    ? (groupsOfPerson.get(nodeId.slice(2)) ?? [])
+        .map((m) => groupById.get(m.group_id))
+        .filter((g): g is typeof g & { id: string; name: string; group_type: string } => !!g)
+        .map((g) => ({
+          id: g.id,
+          name: g.name,
+          type: { combi: "コンビ", trio: "トリオ", unit: "ユニット" }[g.group_type],
+          formation_date: g.formation_date,
+          dissolution_date: g.dissolution_date,
+        }))
+    : []
+  // メンバー（コンビ・グループ）
+  const groupMembers = nodeId.startsWith("g:")
+    ? (membersOfGroup.get(nodeId.slice(2)) ?? [])
+        .map((m) => personById.get(m.person_id))
+        .filter((p): p is typeof p & { id: string; name: string } => !!p)
+        .map((p) => ({
+          id: p.id,
+          name: p.name,
+        }))
+    : []
   return (
     // 見た目は app/reset.css の .nd（詳細パネルとは分ける）
     <article className="nd">
@@ -170,6 +196,151 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
                 {
                   title: "年表",
                   body: <Timeline entries={timeline} />,
+                  position: "top" as const,
+                },
+              ]
+            : []),
+          ...(personGroups.length > 0
+            ? [
+                {
+                  title: "所属コンビ・グループ",
+                  body: (
+                    <ul className="pf-list">
+                      {personGroups.map((g) => (
+                        <li key={g.id}>
+                          <Link href={nodeHrefLib(`g:${g.id}`)} style={{ fontWeight: "bold" }}>
+                            {g.name}
+                          </Link>
+                          <span className="pf-muted pf-small">
+                            {" "}
+                            ({g.type})
+                            {g.formation_date && ` ${g.formation_date.slice(0, 4)}年結成`}
+                            {g.dissolution_date && `～${g.dissolution_date.slice(0, 4)}年解散`}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ),
+                  position: "top" as const,
+                },
+              ]
+            : []),
+          ...(groupMembers.length > 0
+            ? [
+                {
+                  title: "メンバー",
+                  body: (
+                    <ul className="pf-cast">
+                      {groupMembers.map((m) => (
+                        <li key={m.id}>
+                          <Photo src={graph.nodes.get(`p:${m.id}`)?.photo ?? null} size={48} />
+                          <span className="pf-cast-body">
+                            <Link href={nodeHrefLib(`p:${m.id}`)} style={{ fontWeight: "bold" }}>
+                              {m.name}
+                            </Link>
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ),
+                  position: "top" as const,
+                },
+              ]
+            : []),
+          ...(recs?.agency.length
+            ? [
+                {
+                  title: `同じ${agencyName(recs.agencyId) || "事務所"}の芸人`,
+                  body: (
+                    <ul className="pf-cast">
+                      {recs.agency.slice(0, 8).map((r) => (
+                        <li key={r.id}>
+                          <Photo src={r.photo} size={48} />
+                          <span className="pf-cast-body">
+                            <span className="pf-muted pf-small">
+                              {r.id.startsWith("g:") ? "コンビ・グループ" : "芸人"}
+                            </span>
+                            <Link href={nodeHrefLib(r.id)} style={{ fontWeight: "bold" }}>
+                              {r.name}
+                            </Link>
+                            <span className="pf-muted pf-small">{r.reason}</span>
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ),
+                  position: "top" as const,
+                },
+              ]
+            : []),
+          ...(dokiYear && recs?.year.length
+            ? [
+                {
+                  title: `${dokiYear}年デビューの同期芸人`,
+                  body: (
+                    <ul className="pf-cast">
+                      {recs.year.slice(0, 8).map((r) => (
+                        <li key={r.id}>
+                          <Photo src={r.photo} size={48} />
+                          <span className="pf-cast-body">
+                            <span className="pf-muted pf-small">
+                              {r.id.startsWith("g:") ? "コンビ・グループ" : "芸人"}
+                            </span>
+                            <Link href={nodeHrefLib(r.id)} style={{ fontWeight: "bold" }}>
+                              {r.name}
+                            </Link>
+                            <span className="pf-muted pf-small">{r.reason}</span>
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ),
+                  position: "top" as const,
+                },
+              ]
+            : []),
+          ...(recs?.venues.length
+            ? [
+                {
+                  title: "よく出演する劇場",
+                  body: (
+                    <ul className="nd-chips">
+                      {recs.venues.slice(0, 5).map((v) => (
+                        <li key={v.slug}>
+                          <Link className="chip" href={`/venues/${v.slug}/`}>
+                            {v.name}
+                            <small>{v.count}公演</small>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  ),
+                  position: "top" as const,
+                },
+              ]
+            : []),
+          ...(recs?.prelim.length
+            ? [
+                {
+                  title: "M-1予選で同じ組だった芸人",
+                  body: (
+                    <ul className="pf-cast">
+                      {recs.prelim.slice(0, 8).map((r) => (
+                        <li key={r.id}>
+                          <Photo src={r.photo} size={48} />
+                          <span className="pf-cast-body">
+                            <span className="pf-muted pf-small">
+                              {r.id.startsWith("g:") ? "コンビ・グループ" : "芸人"}
+                            </span>
+                            <Link href={nodeHrefLib(r.id)} style={{ fontWeight: "bold" }}>
+                              {r.name}
+                            </Link>
+                            <span className="pf-muted pf-small">{r.reason}</span>
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ),
                   position: "top" as const,
                 },
               ]

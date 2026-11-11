@@ -561,7 +561,10 @@ export const Profile: FC<{
     : { ...info, links: info.links.filter((l) => l.kind !== "tv") }
   // [見出し, 本文]。目次と本文で共用する
   const sections: [string, ReactNode][] = []
-  if (info.biography || info.facts.length > 0 || info.x)
+  const isPersonOrGroup = /^[pg]:/.test(info.id)
+  
+  // 基本情報（芸人・コンビは必ず表示）
+  if (isPersonOrGroup || info.biography || info.facts.length > 0 || info.x)
     sections.push([
       info.id.startsWith("v:") ? "番組について" : "経歴・プロフィール",
       <div key="b">
@@ -584,6 +587,18 @@ export const Profile: FC<{
             )}
           </p>
         )}
+        {!info.biography && isPersonOrGroup && (
+          <p className="pf-muted pf-small">
+            詳細な経歴・プロフィールは未登録です。情報をお持ちの方は{" "}
+            <a
+              href={`https://github.com/reload-co-jp/geinin/issues/new?title=${encodeURIComponent(`情報の追加: ${info.name}`)}&body=${encodeURIComponent(`https://geinin.reload.co.jp${nodeHref(info.id)}\n\n追加したい情報:\n根拠（URLなど）:`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              追加・修正を提案する
+            </a>
+          </p>
+        )}
       </div>,
     ])
   for (const x of extra)
@@ -591,7 +606,7 @@ export const Profile: FC<{
   const linkSections: [string, LinkInfo[]][] = info.id.startsWith("v:")
     ? [[`出演者（${rels.links.length}件）`, rels.links]]
     : rels.links.length === 0
-      ? [["関係", rels.links]]
+      ? []
       : [
           ...LINK_SECTIONS,
           [
