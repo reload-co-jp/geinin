@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import { JsonLd } from "@/components/json-ld"
 import { NodeDetail } from "@/components/node-detail"
-import { edgeIndex, graph, programIds } from "@/lib/db"
+import { edgeIndex, graph, isThin, programIds } from "@/lib/db"
 import { nodeHref, programSlug } from "@/lib/graph"
 
 type Props = { params: Promise<{ slug: string }> }
@@ -22,6 +22,7 @@ export const generateMetadata = async ({ params }: Props) => {
     title: `${name}の出演芸人`,
     description: `${name}に出演したお笑い芸人・コンビ${cast.length}組（${cast.slice(0, 5).join("・")}${cast.length > 5 ? "ほか" : ""}）`,
     alternates: { canonical: nodeHref(id) },
+    ...(isThin(id) && { robots: { index: false, follow: true } }),
   }
 }
 

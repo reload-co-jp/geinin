@@ -1,7 +1,7 @@
-import Link from "next/link"
 import { notFound } from "next/navigation"
 import { FinalsTable } from "@/app/races/client"
 import { races, RaceStats, Records, Years } from "@/app/races/shared"
+import { Breadcrumbs } from "@/components/breadcrumbs"
 import { InArticleAd } from "@/components/in-article-ad"
 
 type Props = { params: Promise<{ slug: string }> }
@@ -13,8 +13,12 @@ export const generateMetadata = async ({ params }: Props) => {
   const race = races.find((r) => r.slug === slug)
   return race
     ? {
-        title: `${race.name} 歴代決勝`,
-        description: `${race.name}の歴代優勝者と開催年ごとの決勝ページ一覧`,
+        title: `${race.name} 歴代優勝者・決勝結果一覧`,
+        description: `${race.name}の歴代優勝者と決勝進出者の一覧。${race.years
+          .filter((y) => y.winner)
+          .slice(0, 5)
+          .map((y) => `${y.year}年 ${y.winner!.name}`)
+          .join("、")}など、開催年ごとの決勝順位をまとめています`,
         alternates: { canonical: `/races/${slug}/` },
       }
     : {}
@@ -26,7 +30,13 @@ const Page = async ({ params }: Props) => {
   if (!race) notFound()
   return (
     <div className="page">
-      <Link href="/races/">← 賞レース</Link>
+      <Breadcrumbs
+        items={[
+          ["トップ", "/"],
+          ["賞レース", "/races/"],
+          [race.name, `/races/${slug}/`],
+        ]}
+      />
       <h1 className="page-title">{race.name} 歴代決勝</h1>
       <RaceStats race={race} />
       <Records race={race} />

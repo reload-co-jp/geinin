@@ -175,7 +175,13 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
         </p>
       )}
       <p style={{ margin: "1rem 0" }}>
-        <Link href={graphHref(nodeId)} style={{ fontSize: ".875rem" }}>
+        {/* /graph/?focus=… はどれも /graph/ を canonical とする同じページで、
+            個別ページごとにクロールされてインデックス未登録が増えるので nofollow */}
+        <Link
+          href={graphHref(nodeId)}
+          rel="nofollow"
+          style={{ fontSize: ".875rem" }}
+        >
           相関図で見る →
         </Link>
         {dokiYear && (

@@ -6,11 +6,16 @@ import {
   agencyName,
   db,
   groupById,
+  isThin,
   ownUrls,
   xOf,
   personById,
   sameName,
 } from "@/lib/db"
+
+// 読みが未登録のときに「名前（）」とならないようにする
+const withReading = (e: { name: string; reading: string }) =>
+  e.reading ? `${e.name}（${e.reading}）` : e.name
 
 type Props = { params: Promise<{ id: string }> }
 
@@ -22,9 +27,9 @@ export const generateMetadata = async ({ params }: Props) => {
   return g
     ? {
         // 同名の登録があるときは事務所を添えて区別する
-        title: `${g.name}（${g.reading}）のメンバー・賞レース戦績${sameName(`g:${id}`).length && agencyName(g.agency_id) ? ` - ${agencyName(g.agency_id)}` : ""}`,
+        title: `${withReading(g)}のメンバー・賞レース戦績${sameName(`g:${id}`).length && agencyName(g.agency_id) ? ` - ${agencyName(g.agency_id)}` : ""}`,
         description: [
-          `${g.name}（${g.reading}）`,
+          withReading(g),
           agencyName(g.agency_id),
           g.formation_date && `${g.formation_date.slice(0, 4)}年結成`,
           db.memberships
@@ -36,6 +41,7 @@ export const generateMetadata = async ({ params }: Props) => {
           .join(" / ")
           .concat("。メンバー変遷・賞レース戦績と関係性"),
         alternates: { canonical: `/groups/${id}/` },
+        ...(isThin(`g:${id}`) && { robots: { index: false, follow: true } }),
       }
     : {}
 }

@@ -111,7 +111,7 @@ export const MODES: Record<
     description: string
     kinds: EdgeKind[]
     depth: number
-    layout: "radial" | "tree"
+    layout: "grouped" | "tree"
     // 1ノードから広げる数の上限。番組のように枝が多い中継点で図が広がりすぎないように
     fanout?: number
   }
@@ -119,11 +119,11 @@ export const MODES: Record<
   all: {
     label: "人物相関図",
     description:
-      "すべての関係をまとめて表示。起点から距離ごとの同心円に並びます。",
+      "すべての関係をまとめて表示。起点との関係（師匠・弟子・同期など）ごとの枠に分けて並べます。",
     // 番組共演は数が多く図が埋まるため専用モードで出す
     kinds: (Object.keys(EDGE_KINDS) as EdgeKind[]).filter((k) => k !== "tv"),
     depth: 2,
-    layout: "radial",
+    layout: "grouped",
   },
   lineage: {
     label: "師弟系譜",
@@ -137,7 +137,7 @@ export const MODES: Record<
     description: "養成所の同じ期でつながる同期と、所属コンビを表示します。",
     kinds: ["doki", "member"],
     depth: 2,
-    layout: "radial",
+    layout: "grouped",
   },
   combi: {
     label: "コンビ変遷",
@@ -153,14 +153,14 @@ export const MODES: Record<
       "同じ年の決勝で戦った組を、開催（大会×年）ごとにまとめてつなぎます。",
     kinds: ["competition", "member"],
     depth: 2,
-    layout: "radial",
+    layout: "grouped",
   },
   costar: {
     label: "共演ネットワーク",
     description: "共演・ライバル・親族など、番組や私生活での関係を表示します。",
     kinds: ["costar", "rival", "family", "member"],
     depth: 2,
-    layout: "radial",
+    layout: "grouped",
   },
   tv: {
     label: "番組共演",
@@ -168,7 +168,7 @@ export const MODES: Record<
       "同じテレビ番組に出演した芸人を、番組ごとにまとめてつなぎます（Wikipedia記載・未照合）。",
     kinds: ["tv", "member"],
     depth: 2,
-    layout: "radial",
+    layout: "grouped",
     fanout: 5,
   },
 }
