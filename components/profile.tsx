@@ -137,12 +137,8 @@ export const Heading: FC<{ info: NodeInfo; level?: 1 | 2 }> = ({
   return (
     <div className="pf-hero">
       {info.photo_url && (
-        <div
-          role="img"
-          aria-label={info.name}
-          className="pf-photo"
-          style={{ backgroundImage: `url(${JSON.stringify(info.photo_url)})` }}
-        />
+        // 写真の縦横比は出典ごとにまちまちなので、枠を固定せず写真の比率に合わせる
+        <img src={info.photo_url} alt={info.name} className="pf-photo" />
       )}
       <div>
         <p className="pf-row">

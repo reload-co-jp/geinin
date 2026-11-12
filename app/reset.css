@@ -411,11 +411,14 @@ body > footer {
   margin-top: 0.75rem;
 }
 .pf-photo {
-  /* 写真内の著作権表記が切れないよう元の比率のまま枠に収める。
-     手元の写真は正方形（400x400）なので枠も正方形にして余白を出さない */
-  width: clamp(96px, 28vw, 160px);
-  aspect-ratio: 1;
-  background: center / contain no-repeat;
+  /* 写真の縦横比は出典ごとにまちまちなので、幅を決めて高さは写真の比率に合わせる。
+     著作権表記が切れないよう切り抜かず、極端に縦長なものだけ高さを抑えて収める */
+  --photo-w: clamp(96px, 28vw, 160px);
+  width: var(--photo-w);
+  height: auto;
+  aspect-ratio: auto;
+  max-height: calc(var(--photo-w) * 4 / 3);
+  object-fit: contain;
   flex-shrink: 0;
   border: 1px solid var(--line);
 }
@@ -623,7 +626,7 @@ h2.pf-name {
   border-block: 1px solid var(--line);
 }
 .nd .pf-photo {
-  width: clamp(120px, 28vw, 240px);
+  --photo-w: clamp(120px, 28vw, 240px);
   background-color: var(--surface);
   border: 4px solid var(--surface);
   box-shadow: var(--shadow);
@@ -707,7 +710,7 @@ h2.pf-name {
     gap: 0.9rem;
   }
   .nd .pf-photo {
-    width: 96px;
+    --photo-w: 96px;
     border-width: 3px;
   }
   .nd h1.pf-name {
