@@ -1,10 +1,10 @@
 // Google News RSS から芸人・グループの記事を収集し、data/news.json に保存する。
-// isThin で薄いページ（コンテンツが少ない）だけを対象にする。
+// 全ての芸人・グループを対象にする。
 // ノードごとに最終取得日時を data/news.json の fetched に記録し、
 // REFRESH_DAYS 日以内に取得済みのノードはスキップする。
 //   npx tsx scripts/collect-news.ts
 import { existsSync, readFileSync, writeFileSync } from "node:fs"
-import { db, isThin } from "@/lib/db"
+import { db } from "@/lib/db"
 import {
   needsRefresh,
   newsFetchedAt,
@@ -50,12 +50,12 @@ const get = async (url: string) => {
   return null
 }
 
-// isThin な芸人・グループを対象にする
+// 全ての芸人・グループを対象にする
 // （id 自体には接頭辞が無いので、people は p:、groups は g: を付けてノードIDにする）
 const targets = [
   ...db.people.map((e) => ({ nodeId: `p:${e.id}`, name: e.name })),
   ...db.groups.map((e) => ({ nodeId: `g:${e.id}`, name: e.name })),
-].filter((t) => isThin(t.nodeId))
+]
 const count = (prefix: string) =>
   targets.filter((t) => t.nodeId.startsWith(prefix)).length
 console.log(`対象: ${targets.length}件 (芸人 ${count("p:")} / グループ ${count("g:")})`)
