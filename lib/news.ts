@@ -9,7 +9,10 @@ export type NewsArticle = {
 
 // RSS ダンプ（ビルド時に collect-news.ts が生成）
 export type NewsDump = {
+  // 収集スクリプトの最終実行日時（ISO 8601。旧データは YYYY-MM-DD）
   fetched_at: string
+  // ノードID → そのノードのニュースを最後に取得できた日時（ISO 8601）
+  fetched?: Record<string, string>
   // ノードID（p:xxx, g:xxx）→ 記事リスト
   items: Record<string, NewsArticle[]>
 }
@@ -65,4 +68,31 @@ export const newsIndex = (dump: NewsDump) => {
     const articles = dump.items[nodeId] ?? []
     return sortAndLimit(articles, limit)
   }
+}
+
+// ノードのニュースを最後に取得した日時。ノード別の記録が無い旧データは
+// ダンプ全体の fetched_at で代用し、未取得なら null
+export const newsFetchedAt = (dump: NewsDump, nodeId: string): string | null =>
+  dump.fetched?.[nodeId] ?? (nodeId in dump.items ? dump.fetched_at || null : null)
+
+// 取得日時を日本時間の「YYYY-MM-DD HH:mm」にする。日付だけの旧データはそのまま返す
+export const formatFetchedAt = (fetchedAt: string): string => {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(fetchedAt)) return fetchedAt
+  const d = new Date(fetchedAt)
+  if (isNaN(d.getTime())) return fetchedAt
+  return d
+    .toLocaleString("sv-SE", { timeZone: "Asia/Tokyo" })
+    .slice(0, 16)
+}
+
+// 最終取得から refreshDays 日以上経っていれば再取得する
+export const needsRefresh = (
+  fetchedAt: string | null,
+  now: Date,
+  refreshDays: number
+): boolean => {
+  if (!fetchedAt) return true
+  const t = new Date(fetchedAt).getTime()
+  if (isNaN(t)) return true
+  return now.getTime() - t >= refreshDays * 24 * 60 * 60 * 1000
 }

@@ -19,6 +19,7 @@ import {
 import { faqOf, recommendations, timelineOf } from "@/lib/related"
 import { groupById, groupsOfPerson, membersOfGroup, personById, graph } from "@/lib/db"
 import { nodeHref as nodeHrefLib } from "@/lib/graph"
+import { formatFetchedAt } from "@/lib/news"
 
 const SITE = "https://geinin.reload.co.jp"
 
@@ -365,6 +366,7 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
                 {
                   title: "関連ニュース",
                   body: (
+                    <>
                     <ul className="pf-list">
                       {info.news.items.map((article, i) => (
                         <li key={i}>
@@ -384,6 +386,10 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
                         </li>
                       ))}
                     </ul>
+                    <p className="pf-muted pf-small">
+                      Google News（{formatFetchedAt(info.news.fetched_at)}時点）より
+                    </p>
+                    </>
                   ),
                   position: "bottom" as const,
                 },
