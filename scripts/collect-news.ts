@@ -51,11 +51,17 @@ const get = async (url: string) => {
 }
 
 // isThin な芸人・グループを対象にする
-const targets = [...db.people, ...db.groups].filter((e) => isThin(e.id.startsWith("p:") ? `p:${e.id}` : `g:${e.id}`))
-console.log(`対象: ${targets.length}件 (芸人 ${targets.filter((t) => t.id.startsWith("p:")).length} / グループ ${targets.filter((t) => t.id.startsWith("g:")).length})`)
+// （id 自体には接頭辞が無いので、people は p:、groups は g: を付けてノードIDにする）
+const targets = [
+  ...db.people.map((e) => ({ nodeId: `p:${e.id}`, name: e.name })),
+  ...db.groups.map((e) => ({ nodeId: `g:${e.id}`, name: e.name })),
+].filter((t) => isThin(t.nodeId))
+const count = (prefix: string) =>
+  targets.filter((t) => t.nodeId.startsWith(prefix)).length
+console.log(`対象: ${targets.length}件 (芸人 ${count("p:")} / グループ ${count("g:")})`)
 
 for (const [i, e] of targets.entries()) {
-  const nodeId = e.id.startsWith("p:") ? `p:${e.id}` : `g:${e.id}`
+  const { nodeId } = e
   // 最近取得済みならスキップ
   const fetchedAt = newsFetchedAt(dump, nodeId)
   if (!needsRefresh(fetchedAt, new Date(), REFRESH_DAYS)) {
