@@ -360,6 +360,35 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
                 },
               ]
             : []),
+          ...(info.news?.items.length
+            ? [
+                {
+                  title: "関連ニュース",
+                  body: (
+                    <ul className="pf-list">
+                      {info.news.items.map((article, i) => (
+                        <li key={i}>
+                          <a
+                            href={article.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ fontWeight: "bold", textDecoration: "underline" }}
+                          >
+                            {article.title}
+                          </a>
+                          <span className="pf-muted pf-small">
+                            {" "}
+                            {article.source}
+                            {article.pubDate && ` ${new Date(article.pubDate).toLocaleDateString("ja-JP", { month: "short", day: "numeric" })}`}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ),
+                  position: "bottom" as const,
+                },
+              ]
+            : []),
         ]}
         renderOther={(l) => (
           <Link href={nodeHref(l.other)} style={{ fontWeight: "bold" }}>

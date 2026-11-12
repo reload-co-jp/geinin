@@ -6,6 +6,7 @@ import yoshimoto from "@/data/yoshimoto.json"
 import programs from "@/data/programs.json"
 import youtube from "@/data/youtube.json"
 import xDump from "@/data/x.json"
+import newsDump from "@/data/news.json"
 import livesDump from "@/data/lives.json"
 import m1Formation from "@/data/m1-formation.json"
 import m1PrelimsDump from "@/data/m1-prelims.json"
@@ -38,6 +39,7 @@ import { programDescription, type ProgramsDump } from "@/lib/programs"
 import { mergeYoshimoto, type YoshimotoDump } from "@/lib/yoshimoto"
 import { youtubeIndex, type YoutubeDump } from "@/lib/youtube"
 import { xIndex, type XDump } from "@/lib/x"
+import { newsIndex, type NewsDump } from "@/lib/news"
 
 export const m1Prelims = m1PrelimsDump as M1PrelimsDump
 export const db = mergeM1Prelims(
@@ -77,6 +79,7 @@ const membershipById = new Map(
 )
 const youtubeOf = youtubeIndex(youtube as YoutubeDump)
 const xIndexed = xIndex(xDump as XDump)
+const newsOf = newsIndex(newsDump as NewsDump)
 // 静的書き出しなのでビルド日（日本時間）より前の公演は出さない
 const livesOf = livesIndex(
   livesDump,
@@ -424,6 +427,9 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
           )
         ),
       },
+    }),
+    ...(newsOf(nodeId).length && {
+      news: { fetched_at: newsDump.fetched_at, items: newsOf(nodeId) },
     }),
     ...(e.history?.length && { history: e.history }),
     ...(nodeId in programDump.nodes && {

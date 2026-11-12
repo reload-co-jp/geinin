@@ -8,6 +8,7 @@ import type { Program } from "@/lib/programs"
 import type { YoutubeChannel } from "@/lib/youtube"
 import type { XAccount } from "@/lib/x"
 import type { Live } from "@/lib/lives"
+import type { NewsArticle } from "@/lib/news"
 import { linksOf, type EdgeIndex, type EdgeKind, type Graph } from "@/lib/graph"
 
 // 詳細パネル・詳細ページの表示内容。サーバーで組み立て、パネルには静的JSONとして配信する
@@ -89,6 +90,7 @@ export type NodeInfo = {
     items: (Program & { hasPage: boolean })[]
   }
   history?: HistoryEntry[]
+  news?: { fetched_at: string; items: NewsArticle[] }
 }
 
 export const EVIDENCE_LABEL: Record<EvidenceType, string> = {
