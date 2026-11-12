@@ -1,20 +1,50 @@
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
+import { join } from "node:path"
+
 // Google News RSS から取得した記事
 export type NewsArticle = {
   title: string
   link: string
   pubDate: string // RFC 822 形式
   source: string // ニュース提供元
-  sourceUrl: string
 }
 
-// RSS ダンプ（ビルド時に collect-news.ts が生成）
-export type NewsDump = {
-  // 収集スクリプトの最終実行日時（ISO 8601。旧データは YYYY-MM-DD）
-  fetched_at: string
-  // ノードID → そのノードのニュースを最後に取得できた日時（ISO 8601）
-  fetched?: Record<string, string>
-  // ノードID（p:xxx, g:xxx）→ 記事リスト
-  items: Record<string, NewsArticle[]>
+// 1ノード分の保存内容
+export type NewsEntry = {
+  fetched_at: string // 最後に取得できた日時（ISO 8601）
+  items: NewsArticle[]
+}
+
+// data/news/<シャード>.json の中身。ノードID（p:xxx, g:xxx）→ NewsEntry
+export type NewsShard = Record<string, NewsEntry>
+
+// 全ノードを 1 ファイルにすると数十 MB になり、読み込むだけでテストやビルドが
+// メモリ不足になるため、ノードIDのハッシュで 256 ファイルに分け、必要な分だけ読む
+export const NEWS_DIR = join(process.cwd(), "data", "news")
+const SHARD_COUNT = 256
+
+// ノードIDの属するシャード名（"00"〜"ff"）。FNV-1a 32bit
+export const newsShardOf = (nodeId: string): string => {
+  let h = 0x811c9dc5
+  for (let i = 0; i < nodeId.length; i++) {
+    h ^= nodeId.charCodeAt(i)
+    h = Math.imul(h, 0x01000193)
+  }
+  return ((h >>> 0) % SHARD_COUNT).toString(16).padStart(2, "0")
+}
+
+export const readNewsShard = (dir: string, shard: string): NewsShard => {
+  const path = join(dir, `${shard}.json`)
+  return existsSync(path) ? JSON.parse(readFileSync(path, "utf8")) : {}
+}
+
+// 1ノード1行で書き出す（差分が読みやすく、インデント分のサイズも省ける）
+export const writeNewsShard = (dir: string, shard: string, data: NewsShard) => {
+  mkdirSync(dir, { recursive: true })
+  const lines = Object.keys(data)
+    .sort()
+    .map((id) => `${JSON.stringify(id)}:${JSON.stringify(data[id])}`)
+  writeFileSync(join(dir, `${shard}.json`), `{\n${lines.join(",\n")}\n}\n`)
 }
 
 // Google News RSS の URL を生成（名前をクエリに含める）
@@ -40,7 +70,6 @@ export const parseRss = (xml: string): NewsArticle[] => {
       ?? itemXml.match(/<link>([\s\S]*?)<\/link>/)?.[1]
     const pubDate = itemXml.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1]
     const source = itemXml.match(/<source[^>]*>([\s\S]*?)<\/source>/)?.[1]
-    const sourceUrl = itemXml.match(/<source[^>]*url="([^"]*)"[^>]*>/)?.[1]
 
     if (title && link && pubDate) {
       items.push({
@@ -48,7 +77,6 @@ export const parseRss = (xml: string): NewsArticle[] => {
         link: link.replace(/<!\[CDATA\[|\]\]>/g, "").trim(),
         pubDate: pubDate.trim(),
         source: source?.replace(/<!\[CDATA\[|\]\]>/g, "").trim() ?? "Google News",
-        sourceUrl: sourceUrl ?? "",
       })
     }
   }
@@ -62,20 +90,30 @@ export const sortAndLimit = (articles: NewsArticle[], limit: number): NewsArticl
     .sort((a, b) => parseRfc822(b.pubDate)!.localeCompare(parseRfc822(a.pubDate)!))
     .slice(0, limit)
 
-// ダンプからノードIDで記事を取得
-export const newsIndex = (dump: NewsDump) => {
-  return (nodeId: string, limit = 5): NewsArticle[] => {
-    const articles = dump.items[nodeId] ?? []
-    return sortAndLimit(articles, limit)
+// ノードIDから NewsEntry を引く。読んだシャードは直近 CACHE_SIZE 個だけ保持する
+const CACHE_SIZE = 16
+export const newsStore = (dir: string = NEWS_DIR) => {
+  const cache = new Map<string, NewsShard>()
+  const shardOf = (shard: string) => {
+    let data = cache.get(shard)
+    if (data) {
+      cache.delete(shard)
+    } else {
+      data = readNewsShard(dir, shard)
+      if (cache.size >= CACHE_SIZE) cache.delete(cache.keys().next().value!)
+    }
+    cache.set(shard, data)
+    return data
+  }
+  return (nodeId: string, limit = 5): NewsEntry | null => {
+    const entry = shardOf(newsShardOf(nodeId))[nodeId]
+    return entry
+      ? { fetched_at: entry.fetched_at, items: sortAndLimit(entry.items, limit) }
+      : null
   }
 }
 
-// ノードのニュースを最後に取得した日時。ノード別の記録が無い旧データは
-// ダンプ全体の fetched_at で代用し、未取得なら null
-export const newsFetchedAt = (dump: NewsDump, nodeId: string): string | null =>
-  dump.fetched?.[nodeId] ?? (nodeId in dump.items ? dump.fetched_at || null : null)
-
-// 取得日時を日本時間の「YYYY-MM-DD HH:mm」にする。日付だけの旧データはそのまま返す
+// 取得日時を日本時間の「YYYY-MM-DD HH:mm」にする。日付だけのものはそのまま返す
 export const formatFetchedAt = (fetchedAt: string): string => {
   if (/^\d{4}-\d{2}-\d{2}$/.test(fetchedAt)) return fetchedAt
   const d = new Date(fetchedAt)

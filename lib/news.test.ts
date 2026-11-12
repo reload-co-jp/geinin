@@ -1,21 +1,58 @@
-import { describe, expect, it } from "vitest"
-import { formatFetchedAt, needsRefresh, newsFetchedAt } from "@/lib/news"
+import { mkdtempSync, readFileSync, rmSync } from "node:fs"
+import { tmpdir } from "node:os"
+import { join } from "node:path"
+import { afterEach, describe, expect, it } from "vitest"
+import {
+  formatFetchedAt,
+  needsRefresh,
+  newsShardOf,
+  newsStore,
+  writeNewsShard,
+} from "@/lib/news"
 
-describe("newsFetchedAt", () => {
-  const dump = {
-    fetched_at: "2026-11-11",
-    fetched: { "g:a": "2026-11-12T03:00:00.000Z" },
-    items: { "g:a": [], "g:b": [] },
-  }
-  it("ノード別の取得日時を優先し、無ければダンプ全体の日時で代用する", () => {
-    expect(newsFetchedAt(dump, "g:a")).toBe("2026-11-12T03:00:00.000Z")
-    expect(newsFetchedAt(dump, "g:b")).toBe("2026-11-11")
-    expect(newsFetchedAt(dump, "g:c")).toBeNull()
+const article = (pubDate: string) => ({
+  title: pubDate,
+  link: "https://example.com",
+  pubDate,
+  source: "例",
+})
+
+describe("newsShardOf", () => {
+  it("同じノードIDは常に同じ 00〜ff のシャードになる", () => {
+    expect(newsShardOf("g:downtown")).toMatch(/^[0-9a-f]{2}$/)
+    expect(newsShardOf("g:downtown")).toBe(newsShardOf("g:downtown"))
+  })
+})
+
+describe("newsStore", () => {
+  let dir = ""
+  afterEach(() => rmSync(dir, { recursive: true, force: true }))
+
+  it("シャードからノードの記事を新しい順に引き、未取得なら null を返す", () => {
+    dir = mkdtempSync(join(tmpdir(), "news-"))
+    const shard = newsShardOf("g:a")
+    writeNewsShard(dir, shard, {
+      "g:a": {
+        fetched_at: "2026-11-12T03:00:00.000Z",
+        items: [
+          article("Mon, 09 Nov 2026 00:00:00 GMT"),
+          article("Tue, 10 Nov 2026 00:00:00 GMT"),
+        ],
+      },
+    })
+    // 1ノード1行で書き出す
+    expect(readFileSync(join(dir, `${shard}.json`), "utf8").split("\n")).toHaveLength(4)
+    const find = newsStore(dir)
+    expect(find("g:a", 1)).toEqual({
+      fetched_at: "2026-11-12T03:00:00.000Z",
+      items: [article("Tue, 10 Nov 2026 00:00:00 GMT")],
+    })
+    expect(find("g:missing")).toBeNull()
   })
 })
 
 describe("formatFetchedAt", () => {
-  it("日本時間の日時にし、日付だけの旧データはそのまま返す", () => {
+  it("日本時間の日時にし、日付だけのものはそのまま返す", () => {
     expect(formatFetchedAt("2026-11-12T03:04:05.000Z")).toBe("2026-11-12 12:04")
     expect(formatFetchedAt("2026-11-11")).toBe("2026-11-11")
   })
