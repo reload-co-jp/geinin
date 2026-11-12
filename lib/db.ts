@@ -39,7 +39,7 @@ import { programDescription, type ProgramsDump } from "@/lib/programs"
 import { mergeYoshimoto, type YoshimotoDump } from "@/lib/yoshimoto"
 import { youtubeIndex, type YoutubeDump } from "@/lib/youtube"
 import { xIndex, type XDump } from "@/lib/x"
-import { newsIndex, type NewsDump } from "@/lib/news"
+import { newsFetchedAt, newsIndex, type NewsDump } from "@/lib/news"
 
 export const m1Prelims = m1PrelimsDump as M1PrelimsDump
 export const db = mergeM1Prelims(
@@ -429,7 +429,11 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
       },
     }),
     ...(newsOf(nodeId).length && {
-      news: { fetched_at: newsDump.fetched_at, items: newsOf(nodeId) },
+      news: {
+        fetched_at:
+          newsFetchedAt(newsDump as NewsDump, nodeId) ?? newsDump.fetched_at,
+        items: newsOf(nodeId),
+      },
     }),
     ...(e.history?.length && { history: e.history }),
     ...(nodeId in programDump.nodes && {
