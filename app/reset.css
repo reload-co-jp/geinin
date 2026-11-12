@@ -411,9 +411,10 @@ body > footer {
   margin-top: 0.75rem;
 }
 .pf-photo {
-  /* 写真内の著作権表記が切れないよう元の比率のまま枠に収める */
+  /* 写真内の著作権表記が切れないよう元の比率のまま枠に収める。
+     手元の写真は正方形（400x400）なので枠も正方形にして余白を出さない */
   width: clamp(96px, 28vw, 160px);
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 1;
   background: center / contain no-repeat;
   flex-shrink: 0;
   border: 1px solid var(--line);
@@ -655,7 +656,8 @@ h2.pf-name {
 }
 .nd .pf-toc {
   position: sticky;
-  top: 0.5rem;
+  /* 固定ヘッダー（1行で約66px）の下に止める */
+  top: calc(66px + 0.5rem);
   z-index: 1;
   margin-top: 1.5rem;
   padding: 0.5rem;
@@ -667,6 +669,18 @@ h2.pf-name {
 .nd .pf-toc a:hover {
   background: var(--pop);
   color: var(--ink);
+}
+.nd .pf-sec {
+  scroll-margin-top: calc(66px + 4.5rem);
+}
+/* ヘッダーのメニューが2行に折り返す幅（約113px） */
+@media (min-width: 601px) and (max-width: 790px) {
+  .nd .pf-toc {
+    top: calc(113px + 0.5rem);
+  }
+  .nd .pf-sec {
+    scroll-margin-top: calc(113px + 4.5rem);
+  }
 }
 /* 広い画面では節を2段組みのカードに */
 .nd .pf-secs {
@@ -686,6 +700,51 @@ h2.pf-name {
 .nd .pf-section {
   font-size: 1.05rem;
   margin-top: 1rem;
+}
+/* スマホでは写真を小さくして名前の幅を確保し、数字が枠からはみ出さないようにする */
+@media (max-width: 600px) {
+  .nd .pf-hero {
+    gap: 0.9rem;
+  }
+  .nd .pf-photo {
+    width: 96px;
+    border-width: 3px;
+  }
+  .nd h1.pf-name {
+    font-size: clamp(1.5rem, 7.5vw, 2rem);
+    text-shadow: 2px 2px 0 var(--surface);
+  }
+  .nd .pf-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+  .nd .pf-stat {
+    padding: 0.6rem 0.75rem;
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+  .nd .pf-stat .num {
+    font-size: 2rem;
+  }
+  .nd .pf-sec {
+    padding: 0.25rem 0.9rem 1rem;
+    scroll-margin-top: calc(102px + 0.5rem);
+  }
+  /* 目次は折り返すと画面上部を何行も覆うので、横スクロールの1行にする。
+     ヘッダーだけで画面の上部を使うので、スマホでは追従させない */
+  .nd .pf-toc {
+    position: static;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 0.4rem;
+  }
+  .nd .pf-toc::-webkit-scrollbar {
+    display: none;
+  }
+  .nd .pf-toc a {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
 }
 
 /* 賞レース（app/races） */
