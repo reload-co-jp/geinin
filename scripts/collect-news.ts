@@ -10,12 +10,15 @@ import {
   newsFetchedAt,
   newsRssUrl,
   parseRss,
+  sortAndLimit,
   type NewsDump,
 } from "@/lib/news"
 
 const OUT = new URL("../data/news.json", import.meta.url)
 const WAIT_MS = 1000
-const MAX_ARTICLES = 10 // 1人あたり最大取得件数
+// 1人あたりの保存件数。画面に出すのは最大5件で、data/news.json が
+// 大きくなりすぎるとビルドやテストがメモリ不足で落ちるため、表示分だけ残す
+const MAX_ARTICLES = 5
 const REFRESH_DAYS = 7 // 最終取得からこの日数が経ったら取り直す
 const HEADERS = {
   "User-Agent": "geinin-db importer (news collection, 1 req/s)",
@@ -72,7 +75,7 @@ for (const [i, e] of targets.entries()) {
   const rssUrl = newsRssUrl(e.name)
   const xml = await get(rssUrl)
   if (xml) {
-    const articles = parseRss(xml).slice(0, MAX_ARTICLES)
+    const articles = sortAndLimit(parseRss(xml), MAX_ARTICLES)
     dump.items[nodeId] = articles
     dump.fetched![nodeId] = new Date().toISOString()
     console.log(`  [${i + 1}/${targets.length}] ${e.name} - ${articles.length}件`)
