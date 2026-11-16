@@ -13,9 +13,15 @@ export default [
     files: ["scripts/**/*.mjs"],
     languageOptions: {
       globals: Object.fromEntries(
-        ["console", "process", "fetch", "setTimeout", "URL", "AbortSignal"].map(
-          (g) => [g, "readonly"]
-        )
+        [
+          "console",
+          "process",
+          "fetch",
+          "setTimeout",
+          "URL",
+          "URLSearchParams",
+          "AbortSignal",
+        ].map((g) => [g, "readonly"])
       ),
     },
   },

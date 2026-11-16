@@ -22,7 +22,7 @@ while (count < MAX_LOOPS) {
       stdio: "inherit",
       timeout: 280000,
     })
-  } catch (e) {
+  } catch {
     console.log(`Loop ${count + 1} interrupted (timeout or error)`)
   }
 

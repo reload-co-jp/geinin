@@ -58,7 +58,7 @@ const getJson = async (url) => {
         continue
       }
       return null
-    } catch (e) {
+    } catch {
       if (i >= 1) return null
       await sleep(3000)
     }

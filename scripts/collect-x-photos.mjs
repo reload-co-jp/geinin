@@ -68,7 +68,7 @@ const getHtml = async (url) => {
         continue
       }
       return null
-    } catch (e) {
+    } catch {
       if (i >= 1) return null
       await sleep(5000)
     }
@@ -104,26 +104,6 @@ const extractProfileImage = (html) => {
 const xDump = JSON.parse(readFileSync(XDUMP.pathname, "utf8"))
 const pages = xDump.pages || {}
 
-// source_id から JSON ファイル内のタレントを特定する関数
-// 戻り値: { file: 'yoshimoto' | 'agencies', index: number } または null
-const resolveTalent = (sourceId, allTalents) => {
-  if (sourceId.startsWith("yoshimoto:")) {
-    const id = parseInt(sourceId.replace("yoshimoto:", ""), 10)
-    const idx = allTalents.yoshimoto.findIndex((t) => t.id === id)
-    return idx >= 0 ? { file: "yoshimoto", index: idx } : null
-  }
-  // 他事務所: {agency}:{slug}
-  const m = sourceId.match(/^([^:]+):(.+)$/)
-  if (!m) return null
-  const [, agency, slug] = m
-  // M-1公式の場合は slug の前に m1- が付く
-  const actualSlug = slug.startsWith("m1-") ? slug.replace(/^m1-/, "") : slug
-  const idx = allTalents.agencies.findIndex(
-    (t) => t.agency === agency && t.url.includes(actualSlug)
-  )
-  return idx >= 0 ? { file: "agencies", index: idx } : null
-}
-
 // すべてのユニークハンドルと source_id のマッピングを構築
 const handleToSources = new Map() // handle (lowercase) -> source_id[]
 for (const [sourceId, handles] of Object.entries(pages)) {
@@ -152,22 +132,6 @@ const main = async () => {
   let talents = raw.talents || raw
   const isArray = Array.isArray(talents)
   if (!isArray) talents = talents.talents
-
-  // 対象ファイルの全タレント（source_id 解決用）
-  const allTalents = {
-    yoshimoto: JSON.parse(
-      readFileSync(
-        new URL("file://" + `${process.cwd()}/data/yoshimoto.json`).pathname,
-        "utf8"
-      )
-    ).talents,
-    agencies: JSON.parse(
-      readFileSync(
-        new URL("file://" + `${process.cwd()}/data/agencies.json`).pathname,
-        "utf8"
-      )
-    ).talents,
-  }
 
   // 対象を絞り込む: photo なし + pages に source_id があるもののみ（よしもと・M-1公式は pages にキーがないため除外）
   let todo = all ? talents : talents.filter((t) => !t.photo)
@@ -205,7 +169,7 @@ const main = async () => {
     }
 
     // このタレントの source_id を特定（pages に登録されているキーとマッチさせる）
-    let sourceId = null
+    let sourceId
     if (OUT.pathname.includes("yoshimoto")) {
       // よしもとは pages に yoshimoto:{id} 形式のキーがないため、現状スキップ
       sourceId = null
