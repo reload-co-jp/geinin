@@ -1,7 +1,11 @@
 // scripts/collect-x.ts が公式プロフィールから集めた X（旧Twitter）アカウント
+// 本人の最新投稿（リポスト・返信を除く）。本文は X API の text をそのまま持つ
+export type XPost = { id: string; text: string; created_at: string }
 export type XAccount = {
   handle: string
   // 以下は X API で取れたときだけ。取れなければリンクのみ出す
+  id?: string
+  posts?: XPost[]
   name?: string
   description?: string
   location?: string
@@ -52,3 +56,7 @@ export const xIndex = (dump: XDump) => {
 }
 
 export const xUrl = (handle: string) => `https://x.com/${handle}`
+
+// X API v2 の text は & < > だけ実体参照で返る
+export const unescapeXText = (text: string) =>
+  text.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&")

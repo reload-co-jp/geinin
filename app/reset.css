@@ -558,6 +558,17 @@ h2.pf-name {
   border-left: 3px solid var(--line);
   white-space: pre-line;
 }
+.pf-x-posts {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+}
+.pf-x-posts li + li {
+  margin-top: 0.5rem;
+}
+.pf-x-posts blockquote {
+  overflow-wrap: anywhere;
+}
 .pf-programs-head {
   margin-bottom: 0.4rem;
 }

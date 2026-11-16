@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { xHandles, xIndex } from "@/lib/x"
+import { unescapeXText, xHandles, xIndex } from "@/lib/x"
 
 describe("xHandles", () => {
   it("アカウントだけを小文字にして重複なく返す", () => {
@@ -27,5 +27,11 @@ describe("xIndex", () => {
     expect(find(["b:0", "b:1"], false)).toEqual([own, { handle: "other" }])
     // 個人には他のページにも載るアカウントを付けない
     expect(find(["b:1"], true)).toEqual([{ handle: "other" }])
+  })
+})
+
+describe("unescapeXText", () => {
+  it("実体参照を戻す。&amp;lt; は二重に戻さない", () => {
+    expect(unescapeXText("A&amp;B &lt;3 &gt; &amp;lt;")).toBe("A&B <3 > &lt;")
   })
 })

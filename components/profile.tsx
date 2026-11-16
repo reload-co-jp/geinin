@@ -401,6 +401,30 @@ export const XAccounts: FC<{ info: NodeInfo }> = ({ info }) =>
           {a.description && (
             <blockquote className="pf-small">{a.description}</blockquote>
           )}
+          {a.posts && a.posts.length > 0 && (
+            <ul className="pf-x-posts pf-small">
+              {a.posts.map((p) => (
+                <li key={p.id}>
+                  <blockquote>{p.text}</blockquote>
+                  <a
+                    className="pf-muted"
+                    href={`${xUrl(a.handle)}/status/${p.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <time dateTime={p.created_at}>
+                      {new Date(p.created_at).toLocaleString("ja-JP", {
+                        timeZone: "Asia/Tokyo",
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })}
+                    </time>
+                    の投稿
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
           {(a.location || a.url || a.created_at) && (
             <p className="pf-muted pf-small">
               {[
@@ -421,9 +445,9 @@ export const XAccounts: FC<{ info: NodeInfo }> = ({ info }) =>
           )}
         </li>
       ))}
-      {info.x.accounts.some((a) => a.description) && (
+      {info.x.accounts.some((a) => a.description || a.posts?.length) && (
         <li className="pf-muted pf-small">
-          X のプロフィール欄（{info.x.fetched_at}時点）より
+          X のプロフィール欄・最新投稿（{info.x.fetched_at}時点）より
         </li>
       )}
     </ul>

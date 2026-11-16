@@ -1,10 +1,11 @@
 // 公式プロフィールページに載っている X（旧Twitter）アカウントを集め、data/x.json に保存する。
 // プロフィールは未調査のページだけを調べる（1秒1リクエスト）。
-// X_BEARER_TOKEN があれば X API v2 でプロフィール（自己紹介・フォロワー数など）も毎回取り直す。
+// X_BEARER_TOKEN があれば X API v2 でプロフィール（自己紹介・フォロワー数など）と最新投稿も毎回取り直す。
+// 最新投稿は静的書き出しのためビルド前に取り込む（埋め込みウィジェットは外部JS・未ログイン時に出ない）。
 //   X_BEARER_TOKEN=... npx tsx scripts/collect-x.ts
 import { existsSync, readFileSync, writeFileSync } from "node:fs"
 import { db } from "@/lib/db"
-import { xHandles, type XDump } from "@/lib/x"
+import { unescapeXText, xHandles, type XDump } from "@/lib/x"
 
 const OUT = new URL("../data/x.json", import.meta.url)
 const WAIT_MS = 1000
@@ -58,6 +59,7 @@ for (const [i, s] of todo.entries()) {
 }
 
 type ApiUser = {
+  id: string
   username: string
   name: string
   description?: string
@@ -86,6 +88,9 @@ for (let i = 0; token && i < handles.length; i += 100) {
   for (const u of ((await res.json()).data ?? []) as ApiUser[])
     dump.accounts[u.username.toLowerCase()] = {
       handle: u.username,
+      id: u.id,
+      // 投稿の取得に失敗したときは前回分を残す
+      posts: dump.accounts[u.username.toLowerCase()]?.posts,
       name: u.name,
       description: u.description || undefined,
       location: u.location || undefined,
@@ -94,6 +99,36 @@ for (let i = 0; token && i < handles.length; i += 100) {
       created_at: u.created_at?.slice(0, 10),
     }
   await sleep(WAIT_MS)
+}
+
+type ApiPost = { id: string; text: string; created_at: string }
+// users/:id/tweets は1アカウント1リクエスト（最少5件）。リポスト・返信は本人の発信ではないので除く
+// ponytail: 全アカウントを毎回取る。件数・課金が問題になったら更新日の古い順に上限を切る
+const accounts = Object.values(dump.accounts).filter((a) => a.id)
+if (token) console.log(`最新投稿 ${accounts.length}件`)
+for (const a of token ? accounts : []) {
+  const q = new URLSearchParams({
+    max_results: "5",
+    exclude: "retweets,replies",
+    "tweet.fields": "created_at",
+  })
+  const res = await fetch(`https://api.x.com/2/users/${a.id}/tweets?${q}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  await sleep(WAIT_MS)
+  if (!res.ok) {
+    console.warn(`X API @${a.handle} HTTP ${res.status} ${await res.text()}`)
+    // 上限に達したら以降も失敗するので打ち切る
+    if (res.status === 429) break
+    continue
+  }
+  a.posts = (((await res.json()).data ?? []) as ApiPost[])
+    .slice(0, 3)
+    .map((p) => ({
+      id: p.id,
+      text: unescapeXText(p.text),
+      created_at: p.created_at,
+    }))
 }
 save()
 console.log("保存しました")
