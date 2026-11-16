@@ -60,7 +60,9 @@ const targets = [
 ].filter((t) => t.name.trim()) // 名前が空では検索できない
 const count = (prefix: string) =>
   targets.filter((t) => t.nodeId.startsWith(prefix)).length
-console.log(`対象: ${targets.length}件 (芸人 ${count("p:")} / グループ ${count("g:")})`)
+console.log(
+  `対象: ${targets.length}件 (芸人 ${count("p:")} / グループ ${count("g:")})`
+)
 
 for (const [i, e] of targets.entries()) {
   const { nodeId } = e
@@ -68,7 +70,9 @@ for (const [i, e] of targets.entries()) {
   const shard = newsShardOf(nodeId)
   const fetchedAt = shardOf(shard)[nodeId]?.fetched_at ?? null
   if (!needsRefresh(fetchedAt, new Date(), REFRESH_DAYS)) {
-    console.log(`  [${i + 1}/${targets.length}] ${e.name} - スキップ（${fetchedAt} 取得済み）`)
+    console.log(
+      `  [${i + 1}/${targets.length}] ${e.name} - スキップ（${fetchedAt} 取得済み）`
+    )
     continue
   }
 
@@ -76,9 +80,14 @@ for (const [i, e] of targets.entries()) {
   const xml = await get(rssUrl)
   if (xml) {
     const articles = sortAndLimit(parseRss(xml), MAX_ARTICLES)
-    shardOf(shard)[nodeId] = { fetched_at: new Date().toISOString(), items: articles }
+    shardOf(shard)[nodeId] = {
+      fetched_at: new Date().toISOString(),
+      items: articles,
+    }
     dirty.add(shard)
-    console.log(`  [${i + 1}/${targets.length}] ${e.name} - ${articles.length}件`)
+    console.log(
+      `  [${i + 1}/${targets.length}] ${e.name} - ${articles.length}件`
+    )
   } else {
     // 失敗時は既存の記事と取得日時を残し、次回に取り直す
     console.log(`  [${i + 1}/${targets.length}] ${e.name} - 取得失敗`)

@@ -17,7 +17,13 @@ import {
   raceSlugs,
 } from "@/lib/graph"
 import { faqOf, recommendations, timelineOf } from "@/lib/related"
-import { groupById, groupsOfPerson, membersOfGroup, personById, graph } from "@/lib/db"
+import {
+  groupById,
+  groupsOfPerson,
+  membersOfGroup,
+  personById,
+  graph,
+} from "@/lib/db"
 import { nodeHref as nodeHrefLib } from "@/lib/graph"
 import { formatFetchedAt } from "@/lib/news"
 
@@ -76,11 +82,18 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
   const personGroups = nodeId.startsWith("p:")
     ? (groupsOfPerson.get(nodeId.slice(2)) ?? [])
         .map((m) => groupById.get(m.group_id))
-        .filter((g): g is typeof g & { id: string; name: string; group_type: string } => !!g)
+        .filter(
+          (
+            g
+          ): g is typeof g & { id: string; name: string; group_type: string } =>
+            !!g
+        )
         .map((g) => ({
           id: g.id,
           name: g.name,
-          type: { combi: "コンビ", trio: "トリオ", unit: "ユニット" }[g.group_type],
+          type: { combi: "コンビ", trio: "トリオ", unit: "ユニット" }[
+            g.group_type
+          ],
           formation_date: g.formation_date,
           dissolution_date: g.dissolution_date,
         }))
@@ -215,14 +228,19 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
                     <ul className="pf-list">
                       {personGroups.map((g) => (
                         <li key={g.id}>
-                          <Link href={nodeHrefLib(`g:${g.id}`)} style={{ fontWeight: "bold" }}>
+                          <Link
+                            href={nodeHrefLib(`g:${g.id}`)}
+                            style={{ fontWeight: "bold" }}
+                          >
                             {g.name}
                           </Link>
                           <span className="pf-muted pf-small">
                             {" "}
                             ({g.type})
-                            {g.formation_date && ` ${g.formation_date.slice(0, 4)}年結成`}
-                            {g.dissolution_date && `～${g.dissolution_date.slice(0, 4)}年解散`}
+                            {g.formation_date &&
+                              ` ${g.formation_date.slice(0, 4)}年結成`}
+                            {g.dissolution_date &&
+                              `～${g.dissolution_date.slice(0, 4)}年解散`}
                           </span>
                         </li>
                       ))}
@@ -240,9 +258,15 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
                     <ul className="pf-cast">
                       {groupMembers.map((m) => (
                         <li key={m.id}>
-                          <Photo src={graph.nodes.get(`p:${m.id}`)?.photo ?? null} size={48} />
+                          <Photo
+                            src={graph.nodes.get(`p:${m.id}`)?.photo ?? null}
+                            size={48}
+                          />
                           <span className="pf-cast-body">
-                            <Link href={nodeHrefLib(`p:${m.id}`)} style={{ fontWeight: "bold" }}>
+                            <Link
+                              href={nodeHrefLib(`p:${m.id}`)}
+                              style={{ fontWeight: "bold" }}
+                            >
                               {m.name}
                             </Link>
                           </span>
@@ -265,12 +289,19 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
                           <Photo src={r.photo} size={48} />
                           <span className="pf-cast-body">
                             <span className="pf-muted pf-small">
-                              {r.id.startsWith("g:") ? "コンビ・グループ" : "芸人"}
+                              {r.id.startsWith("g:")
+                                ? "コンビ・グループ"
+                                : "芸人"}
                             </span>
-                            <Link href={nodeHrefLib(r.id)} style={{ fontWeight: "bold" }}>
+                            <Link
+                              href={nodeHrefLib(r.id)}
+                              style={{ fontWeight: "bold" }}
+                            >
                               {r.name}
                             </Link>
-                            <span className="pf-muted pf-small">{r.reason}</span>
+                            <span className="pf-muted pf-small">
+                              {r.reason}
+                            </span>
                           </span>
                         </li>
                       ))}
@@ -291,12 +322,19 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
                           <Photo src={r.photo} size={48} />
                           <span className="pf-cast-body">
                             <span className="pf-muted pf-small">
-                              {r.id.startsWith("g:") ? "コンビ・グループ" : "芸人"}
+                              {r.id.startsWith("g:")
+                                ? "コンビ・グループ"
+                                : "芸人"}
                             </span>
-                            <Link href={nodeHrefLib(r.id)} style={{ fontWeight: "bold" }}>
+                            <Link
+                              href={nodeHrefLib(r.id)}
+                              style={{ fontWeight: "bold" }}
+                            >
                               {r.name}
                             </Link>
-                            <span className="pf-muted pf-small">{r.reason}</span>
+                            <span className="pf-muted pf-small">
+                              {r.reason}
+                            </span>
                           </span>
                         </li>
                       ))}
@@ -337,12 +375,19 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
                           <Photo src={r.photo} size={48} />
                           <span className="pf-cast-body">
                             <span className="pf-muted pf-small">
-                              {r.id.startsWith("g:") ? "コンビ・グループ" : "芸人"}
+                              {r.id.startsWith("g:")
+                                ? "コンビ・グループ"
+                                : "芸人"}
                             </span>
-                            <Link href={nodeHrefLib(r.id)} style={{ fontWeight: "bold" }}>
+                            <Link
+                              href={nodeHrefLib(r.id)}
+                              style={{ fontWeight: "bold" }}
+                            >
                               {r.name}
                             </Link>
-                            <span className="pf-muted pf-small">{r.reason}</span>
+                            <span className="pf-muted pf-small">
+                              {r.reason}
+                            </span>
                           </span>
                         </li>
                       ))}
@@ -367,28 +412,33 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
                   title: "関連ニュース",
                   body: (
                     <>
-                    <ul className="pf-list">
-                      {info.news.items.map((article, i) => (
-                        <li key={i}>
-                          <a
-                            href={article.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{ fontWeight: "bold", textDecoration: "underline" }}
-                          >
-                            {article.title}
-                          </a>
-                          <span className="pf-muted pf-small">
-                            {" "}
-                            {article.source}
-                            {article.pubDate && ` ${new Date(article.pubDate).toLocaleDateString("ja-JP", { month: "short", day: "numeric" })}`}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                    <p className="pf-muted pf-small">
-                      Google News（{formatFetchedAt(info.news.fetched_at)}時点）より
-                    </p>
+                      <ul className="pf-list">
+                        {info.news.items.map((article, i) => (
+                          <li key={i}>
+                            <a
+                              href={article.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                fontWeight: "bold",
+                                textDecoration: "underline",
+                              }}
+                            >
+                              {article.title}
+                            </a>
+                            <span className="pf-muted pf-small">
+                              {" "}
+                              {article.source}
+                              {article.pubDate &&
+                                ` ${new Date(article.pubDate).toLocaleDateString("ja-JP", { month: "short", day: "numeric" })}`}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                      <p className="pf-muted pf-small">
+                        Google News（{formatFetchedAt(info.news.fetched_at)}
+                        時点）より
+                      </p>
                     </>
                   ),
                   position: "bottom" as const,

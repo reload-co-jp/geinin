@@ -64,10 +64,14 @@ export const parseRss = (xml: string): NewsArticle[] => {
   const itemMatches = xml.matchAll(/<item>([\s\S]*?)<\/item>/g)
   for (const m of itemMatches) {
     const itemXml = m[1]
-    const title = itemXml.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>|<title>([\s\S]*?)<\/title>/)?.[1]
-      ?? itemXml.match(/<title>([\s\S]*?)<\/title>/)?.[1]
-    const link = itemXml.match(/<link><!\[CDATA\[([\s\S]*?)\]\]><\/link>|<link>([\s\S]*?)<\/link>/)?.[1]
-      ?? itemXml.match(/<link>([\s\S]*?)<\/link>/)?.[1]
+    const title =
+      itemXml.match(
+        /<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>|<title>([\s\S]*?)<\/title>/
+      )?.[1] ?? itemXml.match(/<title>([\s\S]*?)<\/title>/)?.[1]
+    const link =
+      itemXml.match(
+        /<link><!\[CDATA\[([\s\S]*?)\]\]><\/link>|<link>([\s\S]*?)<\/link>/
+      )?.[1] ?? itemXml.match(/<link>([\s\S]*?)<\/link>/)?.[1]
     const pubDate = itemXml.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1]
     const source = itemXml.match(/<source[^>]*>([\s\S]*?)<\/source>/)?.[1]
 
@@ -76,7 +80,8 @@ export const parseRss = (xml: string): NewsArticle[] => {
         title: title.replace(/<!\[CDATA\[|\]\]>/g, "").trim(),
         link: link.replace(/<!\[CDATA\[|\]\]>/g, "").trim(),
         pubDate: pubDate.trim(),
-        source: source?.replace(/<!\[CDATA\[|\]\]>/g, "").trim() ?? "Google News",
+        source:
+          source?.replace(/<!\[CDATA\[|\]\]>/g, "").trim() ?? "Google News",
       })
     }
   }
@@ -84,10 +89,15 @@ export const parseRss = (xml: string): NewsArticle[] => {
 }
 
 // 記事を日付の新しい順に並べ、指定数まで絞る
-export const sortAndLimit = (articles: NewsArticle[], limit: number): NewsArticle[] =>
+export const sortAndLimit = (
+  articles: NewsArticle[],
+  limit: number
+): NewsArticle[] =>
   articles
     .filter((a) => parseRfc822(a.pubDate)) // 有効な日付のみ
-    .sort((a, b) => parseRfc822(b.pubDate)!.localeCompare(parseRfc822(a.pubDate)!))
+    .sort((a, b) =>
+      parseRfc822(b.pubDate)!.localeCompare(parseRfc822(a.pubDate)!)
+    )
     .slice(0, limit)
 
 // ノードIDから NewsEntry を引く。読んだシャードは直近 CACHE_SIZE 個だけ保持する
@@ -108,7 +118,10 @@ export const newsStore = (dir: string = NEWS_DIR) => {
   return (nodeId: string, limit = 5): NewsEntry | null => {
     const entry = shardOf(newsShardOf(nodeId))[nodeId]
     return entry
-      ? { fetched_at: entry.fetched_at, items: sortAndLimit(entry.items, limit) }
+      ? {
+          fetched_at: entry.fetched_at,
+          items: sortAndLimit(entry.items, limit),
+        }
       : null
   }
 }
@@ -118,9 +131,7 @@ export const formatFetchedAt = (fetchedAt: string): string => {
   if (/^\d{4}-\d{2}-\d{2}$/.test(fetchedAt)) return fetchedAt
   const d = new Date(fetchedAt)
   if (isNaN(d.getTime())) return fetchedAt
-  return d
-    .toLocaleString("sv-SE", { timeZone: "Asia/Tokyo" })
-    .slice(0, 16)
+  return d.toLocaleString("sv-SE", { timeZone: "Asia/Tokyo" }).slice(0, 16)
 }
 
 // 最終取得から refreshDays 日以上経っていれば再取得する

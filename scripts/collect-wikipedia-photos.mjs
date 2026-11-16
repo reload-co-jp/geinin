@@ -17,13 +17,19 @@ const limitEq = rest.find((a) => a.startsWith("--limit="))
 const limitVal = limitEq ? limitEq.split("=")[1] : rest[limitIdx + 1]
 const limit = limitVal ? parseInt(limitVal, 10) : null
 // カレントディレクトリ基準でパスを解決
-const resolved = inputPath.startsWith("/") ? inputPath : `${process.cwd()}/${inputPath}`
+const resolved = inputPath.startsWith("/")
+  ? inputPath
+  : `${process.cwd()}/${inputPath}`
 const OUT = new URL("file://" + resolved)
 const WAIT_MS = 600 // Wikipedia 礼儀: 間隔を短くしてスループットを上げる
 
 if (!inputPath) {
-  console.log("使い方: node scripts/collect-wikipedia-photos.mjs <jsonファイルパス> [--all]")
-  console.log("例: node scripts/collect-wikipedia-photos.mjs data/yoshimoto.json")
+  console.log(
+    "使い方: node scripts/collect-wikipedia-photos.mjs <jsonファイルパス> [--all]"
+  )
+  console.log(
+    "例: node scripts/collect-wikipedia-photos.mjs data/yoshimoto.json"
+  )
   process.exit(1)
 }
 
@@ -39,7 +45,8 @@ const getJson = async (url) => {
     try {
       const res = await fetch(url, {
         headers: {
-          "User-Agent": "geinin-db wikipedia image collector (contact: example@example.com)",
+          "User-Agent":
+            "geinin-db wikipedia image collector (contact: example@example.com)",
           Accept: "application/json",
         },
         signal: AbortSignal.timeout(10000),
@@ -64,8 +71,9 @@ const isComedian = (desc) => {
   if (!desc) return false
   const d = desc.toLowerCase()
   return (
-    /お笑い|芸人|タレント|ピン芸人|お笑いコンビ|お笑いトリオ|漫才師|コメディアン/.test(d) ||
-    /^\s*\(?\s*(お笑い|芸人|タレント)/.test(d)
+    /お笑い|芸人|タレント|ピン芸人|お笑いコンビ|お笑いトリオ|漫才師|コメディアン/.test(
+      d
+    ) || /^\s*\(?\s*(お笑い|芸人|タレント)/.test(d)
   )
 }
 
@@ -133,10 +141,7 @@ const fetchPhoto = async (name) => {
 }
 
 const save = (data) => {
-  writeFileSync(
-    OUT.pathname,
-    JSON.stringify(data, null, 2)
-  )
+  writeFileSync(OUT.pathname, JSON.stringify(data, null, 2))
 }
 
 const main = async () => {
@@ -147,14 +152,14 @@ const main = async () => {
 
   const items = isMap ? data : data.talents
 
-  let todo = all
-    ? items
-    : items.filter((t) => !t.photo)
+  let todo = all ? items : items.filter((t) => !t.photo)
 
   if (limit) todo = todo.slice(0, limit)
 
   const label = all ? "全件" : "未取得分のみ"
-  console.log(`対象 ${todo.length}件 (${label}${limit ? ` / 制限 ${limit}件` : ""})`)
+  console.log(
+    `対象 ${todo.length}件 (${label}${limit ? ` / 制限 ${limit}件` : ""})`
+  )
 
   let n = 0
   let found = 0
@@ -186,14 +191,20 @@ const main = async () => {
     }
 
     if (n % 50 === 0) {
-      raw.fetched_at = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Tokyo" })
+      raw.fetched_at = new Date().toLocaleDateString("sv-SE", {
+        timeZone: "Asia/Tokyo",
+      })
       save(raw)
-      console.log(`[${n}/${todo.length}] 取得済 ${found}件 / スキップ ${skipped}件`)
+      console.log(
+        `[${n}/${todo.length}] 取得済 ${found}件 / スキップ ${skipped}件`
+      )
     }
     await sleep(WAIT_MS)
   }
 
-  raw.fetched_at = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Tokyo" })
+  raw.fetched_at = new Date().toLocaleDateString("sv-SE", {
+    timeZone: "Asia/Tokyo",
+  })
   save(raw)
   console.log(`完了: ${n}件処理 / 新規取得 ${found}件 / スキップ ${skipped}件`)
 }

@@ -558,7 +558,7 @@ export const Profile: FC<{
   // [見出し, 本文]。目次と本文で共用する
   const sections: [string, ReactNode][] = []
   const isPersonOrGroup = /^[pg]:/.test(info.id)
-  
+
   // 基本情報（芸人・コンビは必ず表示）
   if (isPersonOrGroup || info.biography || info.facts.length > 0 || info.x)
     sections.push([

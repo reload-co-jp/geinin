@@ -21,14 +21,20 @@ const limitVal = limitEq ? limitEq.split("=")[1] : rest[limitIdx + 1]
 const limit = limitVal ? parseInt(limitVal, 10) : null
 
 // カレントディレクトリ基準でパスを解決
-const resolved = inputPath.startsWith("/") ? inputPath : `${process.cwd()}/${inputPath}`
+const resolved = inputPath.startsWith("/")
+  ? inputPath
+  : `${process.cwd()}/${inputPath}`
 const OUT = new URL("file://" + resolved)
 const XDUMP = new URL("file://" + `${process.cwd()}/data/x.json`)
 const WAIT_MS = 1200 // X 礼儀: 1 req/s 以上の間隔
 
 if (!inputPath) {
-  console.log("使い方: node scripts/collect-x-photos.mjs <jsonファイルパス> [--all] [--limit N]")
-  console.log("例: node scripts/collect-x-photos.mjs data/yoshimoto.json --limit 50")
+  console.log(
+    "使い方: node scripts/collect-x-photos.mjs <jsonファイルパス> [--all] [--limit N]"
+  )
+  console.log(
+    "例: node scripts/collect-x-photos.mjs data/yoshimoto.json --limit 50"
+  )
   process.exit(1)
 }
 
@@ -83,7 +89,9 @@ const extractProfileImage = (html) => {
       // デフォルトエッグ画像やサイズ指定なしのものはスキップ
       if (/default_profile_images/.test(url)) continue
       // _400x400.jpg や _normal.jpg を元サイズに変換（_400x400 → なし、_normal → なし）
-      let clean = url.replace(/_400x400\.(jpg|png)$/, ".$1").replace(/_normal\.(jpg|png)$/, ".$1")
+      let clean = url
+        .replace(/_400x400\.(jpg|png)$/, ".$1")
+        .replace(/_normal\.(jpg|png)$/, ".$1")
       // クエリパラメータを除去
       clean = clean.split("?")[0]
       return clean
@@ -133,7 +141,9 @@ const save = (talents) => {
   const raw = JSON.parse(readFileSync(OUT.pathname, "utf8"))
   const key = OUT.pathname.includes("yoshimoto") ? "talents" : "talents"
   raw[key] = talents
-  raw.fetched_at = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Tokyo" })
+  raw.fetched_at = new Date().toLocaleDateString("sv-SE", {
+    timeZone: "Asia/Tokyo",
+  })
   writeFileSync(OUT.pathname, JSON.stringify(raw, null, 2))
 }
 
@@ -145,14 +155,22 @@ const main = async () => {
 
   // 対象ファイルの全タレント（source_id 解決用）
   const allTalents = {
-    yoshimoto: JSON.parse(readFileSync(new URL("file://" + `${process.cwd()}/data/yoshimoto.json`).pathname, "utf8")).talents,
-    agencies: JSON.parse(readFileSync(new URL("file://" + `${process.cwd()}/data/agencies.json`).pathname, "utf8")).talents,
+    yoshimoto: JSON.parse(
+      readFileSync(
+        new URL("file://" + `${process.cwd()}/data/yoshimoto.json`).pathname,
+        "utf8"
+      )
+    ).talents,
+    agencies: JSON.parse(
+      readFileSync(
+        new URL("file://" + `${process.cwd()}/data/agencies.json`).pathname,
+        "utf8"
+      )
+    ).talents,
   }
 
   // 対象を絞り込む: photo なし + pages に source_id があるもののみ（よしもと・M-1公式は pages にキーがないため除外）
-  let todo = all
-    ? talents
-    : talents.filter((t) => !t.photo)
+  let todo = all ? talents : talents.filter((t) => !t.photo)
 
   if (!all) {
     const filtered = []
@@ -241,7 +259,9 @@ const main = async () => {
 
     if (n % 10 === 0) {
       save(talents)
-      console.log(`[${n}/${todo.length}] 取得済 ${found}件 / スキップ ${skipped}件`)
+      console.log(
+        `[${n}/${todo.length}] 取得済 ${found}件 / スキップ ${skipped}件`
+      )
     }
     await sleep(WAIT_MS)
   }

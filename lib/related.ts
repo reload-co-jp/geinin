@@ -15,7 +15,13 @@ import {
 } from "@/lib/db"
 import { venueLabel, venueSlug } from "@/lib/venues"
 import { stageRank } from "@/lib/m1"
-import { rankLabel, termYear, nodeHref, type EdgeKind, type GNode } from "@/lib/graph"
+import {
+  rankLabel,
+  termYear,
+  nodeHref,
+  type EdgeKind,
+  type GNode,
+} from "@/lib/graph"
 import type { NodeInfo } from "@/lib/node-info"
 
 export type Recommendation = {
@@ -364,7 +370,7 @@ export const timelineOf = (nodeId: string, info: NodeInfo): TimelineEntry[] => {
     push(g.dissolution_date, "解散")
   } else return []
   // 賞レース（全記録・重複大会年は最上位のみ）
-  const resultsByCompYear = new Map<string, typeof info.results[0]>()
+  const resultsByCompYear = new Map<string, (typeof info.results)[0]>()
   for (const r of info.results) {
     const key = `${r.competition} ${r.year}`
     const existing = resultsByCompYear.get(key)
@@ -383,7 +389,10 @@ export const timelineOf = (nodeId: string, info: NodeInfo): TimelineEntry[] => {
     const firstLive = info.lives.items.reduce((a, b) =>
       a.date < b.date ? a : b
     )
-    push(firstLive.date, `初ライブ出演「${firstLive.title}」${firstLive.venue ? `（${firstLive.venue}）` : ""}`)
+    push(
+      firstLive.date,
+      `初ライブ出演「${firstLive.title}」${firstLive.venue ? `（${firstLive.venue}）` : ""}`
+    )
   }
   // YouTube開設（公開日は未取得のためスキップ）
   // 同じ年の中では日付の分かるものを先に。日付が同じなら登録順
@@ -415,7 +424,8 @@ export const faqOf = (nodeId: string, info: NodeInfo): Faq[] => {
   const best = finals
     .filter((r) => r.rank)
     .toSorted((a, b) => a.rank! - b.rank!)[0]
-  let p: (typeof personById extends Map<string, infer V> ? V : never) | undefined
+  let p:
+    (typeof personById extends Map<string, infer V> ? V : never) | undefined
   if (kind === "p") {
     p = personById.get(id)
     if (!p) return []
@@ -530,35 +540,68 @@ export const faqOf = (nodeId: string, info: NodeInfo): Faq[] => {
   if (info.youtube?.channels.length)
     out.push({
       q: `${name}のYouTubeチャンネルは？`,
-      a: info.youtube.channels
-        .map((c) => `${c.title}${c.subscribers !== null ? `（登録者${new Intl.NumberFormat("ja-JP", { notation: "compact", maximumSignificantDigits: 3 }).format(c.subscribers)}人）` : ""}`)
-        .join("、") + `（${info.youtube.fetched_at}時点）。`,
+      a:
+        info.youtube.channels
+          .map(
+            (c) =>
+              `${c.title}${c.subscribers !== null ? `（登録者${new Intl.NumberFormat("ja-JP", { notation: "compact", maximumSignificantDigits: 3 }).format(c.subscribers)}人）` : ""}`
+          )
+          .join("、") + `（${info.youtube.fetched_at}時点）。`,
     })
   // テレビ出演番組
   if (info.programs?.items.length)
     out.push({
       q: `${name}のテレビ出演番組は？`,
-      a: `${info.programs.items.slice(0, 5).map((p) => p.title).join("、")}${info.programs.items.length > 5 ? "ほか" : ""}（${info.programs.fetched_at}時点・Wikipedia記載・未照合）。`,
+      a: `${info.programs.items
+        .slice(0, 5)
+        .map((p) => p.title)
+        .join(
+          "、"
+        )}${info.programs.items.length > 5 ? "ほか" : ""}（${info.programs.fetched_at}時点・Wikipedia記載・未照合）。`,
     })
   // X（Twitter）
   if (info.x?.accounts.length)
     out.push({
       q: `${name}のX（旧Twitter）は？`,
-      a: info.x.accounts
-        .map((a) => `@${a.handle}${a.name ? `（${a.name}）` : ""}${a.followers !== undefined ? ` フォロワー${new Intl.NumberFormat("ja-JP", { notation: "compact", maximumSignificantDigits: 3 }).format(a.followers)}人` : ""}`)
-        .join("、") + `（${info.x.fetched_at}時点）。`,
+      a:
+        info.x.accounts
+          .map(
+            (a) =>
+              `@${a.handle}${a.name ? `（${a.name}）` : ""}${a.followers !== undefined ? ` フォロワー${new Intl.NumberFormat("ja-JP", { notation: "compact", maximumSignificantDigits: 3 }).format(a.followers)}人` : ""}`
+          )
+          .join("、") + `（${info.x.fetched_at}時点）。`,
     })
   // 直近のライブ出演
   if (info.lives?.items.length) {
-    const upcoming = info.lives.items.filter((l) => l.date >= new Date().toISOString().slice(0, 10))
+    const upcoming = info.lives.items.filter(
+      (l) => l.date >= new Date().toISOString().slice(0, 10)
+    )
     if (upcoming.length)
       out.push({
         q: `${name}の直近のライブ出演は？`,
-        a: upcoming.slice(0, 3).map((l) => `${l.date.slice(5).replace("-", "/")} ${l.title}${l.venue ? `（${l.venue}）` : ""}`).join("、") + `など（${info.lives.fetched_at}時点）。`,
+        a:
+          upcoming
+            .slice(0, 3)
+            .map(
+              (l) =>
+                `${l.date.slice(5).replace("-", "/")} ${l.title}${l.venue ? `（${l.venue}）` : ""}`
+            )
+            .join("、") + `など（${info.lives.fetched_at}時点）。`,
       })
   }
   // 情報が少ない場合の案内
-  const hasDetail = info.biography || info.birth_date || p?.debut_date || p?.training_school || (kind === "p" && (groupsOfPerson.get(id) ?? []).some(m => m.status === "current")) || info.results.length > 0 || info.lives?.items.length > 0 || info.youtube?.channels.length > 0 || info.programs?.items.length > 0 || info.x?.accounts.length > 0
+  const hasDetail =
+    info.biography ||
+    info.birth_date ||
+    p?.debut_date ||
+    p?.training_school ||
+    (kind === "p" &&
+      (groupsOfPerson.get(id) ?? []).some((m) => m.status === "current")) ||
+    info.results.length > 0 ||
+    info.lives?.items.length > 0 ||
+    info.youtube?.channels.length > 0 ||
+    info.programs?.items.length > 0 ||
+    info.x?.accounts.length > 0
   if (!hasDetail && kind === "p") {
     out.push({
       q: `${name}の詳細な情報を知りたい`,

@@ -41,7 +41,9 @@ describe("newsStore", () => {
       },
     })
     // 1ノード1行で書き出す
-    expect(readFileSync(join(dir, `${shard}.json`), "utf8").split("\n")).toHaveLength(4)
+    expect(
+      readFileSync(join(dir, `${shard}.json`), "utf8").split("\n")
+    ).toHaveLength(4)
     const find = newsStore(dir)
     expect(find("g:a", 1)).toEqual({
       fetched_at: "2026-11-12T03:00:00.000Z",
