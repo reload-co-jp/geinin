@@ -2,6 +2,7 @@
 import { db as manual } from "@/data/db"
 import agencies from "@/data/agencies.json"
 import debuts from "@/data/debuts.json"
+import wikiProfiles from "@/data/wiki-profiles.json"
 import yoshimoto from "@/data/yoshimoto.json"
 import programs from "@/data/programs.json"
 import youtube from "@/data/youtube.json"
@@ -23,6 +24,7 @@ import { livesIndex, type LivesDump } from "@/lib/lives"
 import { buildVenues, liveRelations } from "@/lib/venues"
 import { mergeAgencies, type AgencyDump } from "@/lib/agencies"
 import { mergeDebuts, type DebutDump } from "@/lib/debuts"
+import { mergeWikiProfiles, type WikiProfileDump } from "@/lib/wiki-profiles"
 import {
   buildGraph,
   indexEdges,
@@ -43,12 +45,15 @@ import { newsStore } from "@/lib/news"
 export const m1Prelims = m1PrelimsDump as M1PrelimsDump
 export const db = mergeM1Prelims(
   mergeM1Formation(
-    mergeDebuts(
-      mergeAgencies(
-        mergeYoshimoto(manual, yoshimoto as YoshimotoDump),
-        agencies as AgencyDump
+    mergeWikiProfiles(
+      mergeDebuts(
+        mergeAgencies(
+          mergeYoshimoto(manual, yoshimoto as YoshimotoDump),
+          agencies as AgencyDump
+        ),
+        debuts as DebutDump
       ),
-      debuts as DebutDump
+      wikiProfiles as WikiProfileDump
     ),
     m1Formation as M1FormationDump
   ),

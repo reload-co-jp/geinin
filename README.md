@@ -101,6 +101,9 @@ ISC
   - 手入力データとは名前で統合し、空欄だけを補う（`lib/yoshimoto.ts`）
 - その他事務所（松竹芸能・ワタナベ・太田プロ・人力舎・SMA・グレープ・タイタン・マセキ・浅井企画・プライム・サンミュージック・ホリプロコム・ケイダッシュステージ）の公式サイト: `node scripts/import-agencies.mjs [事務所id...]`（`--all` で全件再取得、事務所ごとに1秒1リクエスト、約4分）。結果は `data/agencies.json`
   - 取り込むのは芸名・読み・メンバー名のみ。吉本統合後のデータと名前で統合する（`lib/agencies.ts`）
+- Wikipedia 日本語版の基礎情報（Infobox）: `npx tsx scripts/collect-wiki-profiles.ts [--limit 件数]` で未調査の芸人・グループを調べる（50件ずつ、2秒1リクエスト）。結果は `data/wiki-profiles.json`
+  - 取り込むのは生年月日・没年月日・養成所と期・師匠（リンク先の記事名）・結成年・解散年のみ。本文は転載しない
+  - 公式プロフィール等で埋まっていない項目だけを補い、師匠欄から師弟関係（確度 medium）を足す（`lib/wiki-profiles.ts`）
 - 参照切れや出典IDの誤りは `pnpm test` で検出される
 
 ## グラフの組み立て
