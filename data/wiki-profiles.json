@@ -932,17 +932,84 @@
       "title": "駒場孝",
       "birth_date": "1986-02-05"
     },
+    "p:y2847": null,
+    "p:y2848": null,
+    "p:y2851": {
+      "title": "村本大輔 (お笑い芸人)",
+      "birth_date": "1980-11-25"
+    },
+    "p:y2852": {
+      "title": "中川パラダイス",
+      "birth_date": "1981-04-12"
+    },
+    "p:y2854": null,
+    "p:y2860": null,
+    "p:y2861": null,
+    "p:y2863": null,
+    "p:y2864": null,
     "p:y287": null,
+    "p:y2871": null,
+    "p:y2872": {
+      "title": "奥田修二",
+      "birth_date": "1982-03-03"
+    },
+    "p:y2874": null,
+    "p:y2875": null,
+    "p:y2877": {
+      "title": "盛山晋太郎",
+      "birth_date": "1986-01-09",
+      "school": "NSC大阪",
+      "term": 29
+    },
+    "p:y2878": {
+      "title": "リリー (お笑い芸人)",
+      "birth_date": "1984-06-02",
+      "school": "NSC大阪",
+      "term": 29
+    },
+    "p:y2883": {
+      "title": "水田信二",
+      "birth_date": "1980-04-15"
+    },
+    "p:y2884": {
+      "title": "川西賢志郎",
+      "birth_date": "1984-01-29"
+    },
+    "p:y2885": null,
+    "p:y2886": {
+      "title": "稲田直樹",
+      "birth_date": "1984-12-28",
+      "school": "NSC大阪",
+      "term": 28
+    },
+    "p:y2887": {
+      "title": "ガリガリガリクソン",
+      "birth_date": "1986-02-19",
+      "school": "NSC大阪",
+      "term": 23
+    },
+    "p:y2894": null,
     "p:y29": null,
+    "p:y2907": null,
+    "p:y2908": null,
+    "p:y2909": null,
     "p:y292": null,
+    "p:y2926": null,
+    "p:y2927": null,
     "p:y293": null,
     "p:y295": null,
+    "p:y2951": null,
+    "p:y2957": null,
+    "p:y2958": null,
     "p:y298": {
       "title": "ムーディ勝山",
       "birth_date": "1980-06-11",
       "school": "NSC大阪",
       "term": 23
     },
+    "p:y2983": null,
+    "p:y2984": null,
+    "p:y2986": null,
     "p:y299": null,
     "p:y30": null,
     "p:y304": null,
@@ -953,9 +1020,42 @@
       "school": "NSC大阪",
       "term": 21
     },
+    "p:y3071": {
+      "title": "笑福亭笑助"
+    },
+    "p:y3086": null,
     "p:y310": null,
     "p:y311": null,
     "p:y313": null,
+    "p:y3154": {
+      "title": "嶋佐和也",
+      "birth_date": "1986-05-14",
+      "school": "NSC東京",
+      "term": 15
+    },
+    "p:y3155": {
+      "title": "屋敷裕政",
+      "birth_date": "1986-03-01",
+      "school": "NSC東京",
+      "term": 15
+    },
+    "p:y3158": {
+      "title": "桂まめだ"
+    },
+    "p:y3160": {
+      "title": "桂茶がま"
+    },
+    "p:y3168": null,
+    "p:y3169": null,
+    "p:y3177": null,
+    "p:y3178": null,
+    "p:y3183": null,
+    "p:y3184": null,
+    "p:y3195": null,
+    "p:y3196": null,
+    "p:y3197": {
+      "title": "ヒッキー北風"
+    },
     "p:y32": {
       "title": "ぼんちおさむ",
       "birth_date": "1952-12-16",
@@ -964,35 +1064,350 @@
         "タイヘイトリオ"
       ]
     },
+    "p:y3203": null,
+    "p:y3204": null,
+    "p:y3209": null,
+    "p:y3210": null,
+    "p:y3212": null,
+    "p:y3216": null,
+    "p:y3218": null,
+    "p:y3219": null,
+    "p:y3220": {
+      "title": "R藤本",
+      "birth_date": "1981-03-16"
+    },
+    "p:y3245": {
+      "title": "清水けんじ",
+      "birth_date": "1975-07-16",
+      "school": "NSC大阪",
+      "term": 15
+    },
+    "p:y3247": {
+      "title": "もりやすバンバンビガロ",
+      "birth_date": "1984-03-16",
+      "school": "NSC大阪",
+      "term": 25
+    },
+    "p:y3255": {
+      "title": "植野行雄",
+      "birth_date": "1982-07-17"
+    },
+    "p:y3256": {
+      "title": "松下宣夫",
+      "birth_date": "1984-05-28"
+    },
+    "p:y3257": {
+      "title": "西川かの子"
+    },
+    "p:y3258": {
+      "title": "西川忠志"
+    },
+    "p:y3263": {
+      "title": "河井ゆずる",
+      "birth_date": "1980-11-28",
+      "school": "NSC大阪",
+      "term": 26
+    },
+    "p:y3269": null,
     "p:y327": null,
+    "p:y3271": null,
+    "p:y3273": null,
+    "p:y3275": null,
+    "p:y3279": null,
     "p:y328": null,
+    "p:y3280": null,
+    "p:y3284": null,
+    "p:y3285": null,
+    "p:y3286": null,
+    "p:y3287": null,
+    "p:y3288": {
+      "title": "上原チョー",
+      "birth_date": "1981-10-10",
+      "school": "NSC東京",
+      "term": 11
+    },
+    "p:y3289": null,
+    "p:y3290": null,
+    "p:y3296": null,
+    "p:y3298": null,
+    "p:y3299": null,
     "p:y33": null,
     "p:y330": null,
+    "p:y3301": null,
+    "p:y3303": {
+      "title": "いしいそうたろう",
+      "birth_date": "1974-02-12",
+      "school": "NSC東京",
+      "term": 2
+    },
+    "p:y3304": null,
+    "p:y3305": null,
+    "p:y3309": {
+      "title": "小野竜輔",
+      "birth_date": "1990-08-13",
+      "school": "NSC大阪",
+      "term": 32
+    },
+    "p:y3310": null,
+    "p:y3311": null,
+    "p:y3312": {
+      "title": "桂三段"
+    },
+    "p:y3313": null,
+    "p:y3317": {
+      "title": "長崎亭キヨちゃんぽん",
+      "birth_date": "1980-01-15",
+      "school": "NSC東京",
+      "term": 8
+    },
+    "p:y3343": null,
+    "p:y3345": null,
+    "p:y3350": {
+      "title": "井上安世"
+    },
+    "p:y3352": {
+      "title": "岡田直子",
+      "birth_date": "1984-04-30",
+      "school": "NSC大阪",
+      "term": 28
+    },
+    "p:y3353": {
+      "title": "奥重敦史"
+    },
+    "p:y3355": {
+      "title": "金原早苗",
+      "birth_date": "1987-03-19"
+    },
+    "p:y3356": {
+      "title": "酒井藍",
+      "birth_date": "1986-09-10"
+    },
+    "p:y3357": {
+      "title": "桜井雅斗"
+    },
+    "p:y3358": {
+      "title": "信濃岳夫",
+      "birth_date": "1981-06-21",
+      "school": "NSC大阪",
+      "term": 25
+    },
+    "p:y3359": {
+      "title": "清水啓之",
+      "birth_date": "1983-12-26"
+    },
     "p:y336": null,
+    "p:y3361": {
+      "title": "新名徹郎",
+      "birth_date": "1982-05-22",
+      "school": "NSC大阪",
+      "term": 25
+    },
+    "p:y3362": {
+      "title": "服部ひで子"
+    },
+    "p:y3363": {
+      "title": "前田まみ",
+      "birth_date": "1982-02-04"
+    },
+    "p:y3364": {
+      "title": "森田まりこ"
+    },
+    "p:y3365": {
+      "title": "安井政史",
+      "birth_date": "1982-01-28",
+      "school": "NSC大阪",
+      "term": 25
+    },
+    "p:y3367": {
+      "title": "レイチェル (お笑い芸人)"
+    },
+    "p:y3368": {
+      "title": "帯谷孝史",
+      "birth_date": "1950-03-16"
+    },
+    "p:y3369": {
+      "title": "音羽一憲"
+    },
+    "p:y3370": {
+      "title": "辰巳智之"
+    },
+    "p:y3371": {
+      "title": "楠本見江子"
+    },
+    "p:y3373": {
+      "title": "おいでやす小田",
+      "birth_date": "1978-07-25",
+      "school": "NSC大阪",
+      "term": 23
+    },
+    "p:y3374": {
+      "title": "ヒューマン中村",
+      "birth_date": "1983-09-08",
+      "school": "NSC大阪",
+      "term": 25
+    },
     "p:y339": null,
+    "p:y3390": {
+      "title": "桂三四郎"
+    },
+    "p:y3391": {
+      "title": "桂三幸"
+    },
+    "p:y3392": null,
+    "p:y3393": {
+      "title": "TASUKU",
+      "birth_date": "1973-08-11",
+      "masters": [
+        "桂文枝 (6代目)"
+      ]
+    },
+    "p:y3394": {
+      "title": "横澤夏子",
+      "birth_date": "1990-07-20",
+      "school": "NSC東京",
+      "term": 15
+    },
+    "p:y3402": null,
+    "p:y3409": null,
+    "p:y3420": null,
+    "p:y3421": null,
+    "p:y3422": null,
+    "p:y3423": null,
+    "p:y3425": null,
+    "p:y3426": null,
+    "p:y3427": null,
+    "p:y3428": null,
+    "p:y3430": null,
+    "p:y3433": {
+      "title": "光永",
+      "birth_date": "1991-10-06",
+      "school": "NSC大阪",
+      "term": 30
+    },
+    "p:y3434": null,
+    "p:y3472": null,
+    "p:y3473": null,
     "p:y348": null,
+    "p:y3480": {
+      "title": "中澤本鮪",
+      "birth_date": "1984-01-06",
+      "school": "NSC東京",
+      "term": 10
+    },
+    "p:y3483": null,
+    "p:y3484": null,
+    "p:y3485": null,
+    "p:y3487": null,
+    "p:y3488": null,
     "p:y349": null,
+    "p:y3490": null,
+    "p:y3491": null,
+    "p:y3492": {
+      "title": "西村ヒロチョ",
+      "birth_date": "1987-02-09",
+      "school": "NSC東京",
+      "term": 15
+    },
+    "p:y3494": {
+      "title": "三浦マイルド",
+      "birth_date": "1977-10-18",
+      "school": "NSC大阪",
+      "term": 23
+    },
     "p:y35": {
       "title": "前田勝",
       "birth_date": "1982-06-24",
       "death_date": "2020-08-26"
     },
     "p:y351": null,
+    "p:y3519": null,
     "p:y352": null,
+    "p:y3520": null,
+    "p:y3526": null,
+    "p:y3527": null,
+    "p:y3529": null,
+    "p:y3530": null,
+    "p:y3533": null,
+    "p:y3534": null,
+    "p:y3538": null,
+    "p:y3539": null,
     "p:y354": null,
+    "p:y3544": null,
+    "p:y3545": null,
     "p:y355": null,
+    "p:y3555": null,
+    "p:y3556": null,
+    "p:y3582": {
+      "title": "とくこ",
+      "birth_date": "1979-04-01",
+      "school": "NSC東京",
+      "term": 5
+    },
+    "p:y3587": {
+      "title": "リロイ太郎",
+      "birth_date": "1993-12-17",
+      "school": "NSC東京",
+      "term": 18
+    },
     "p:y36": null,
+    "p:y3614": null,
+    "p:y3615": null,
+    "p:y3619": {
+      "title": "吉岡友見"
+    },
+    "p:y3623": {
+      "title": "鮫島幸恵",
+      "birth_date": "1989-12-02"
+    },
+    "p:y3625": {
+      "title": "バイク川崎バイク",
+      "birth_date": "1979-12-17",
+      "school": "NSC大阪",
+      "term": 26
+    },
+    "p:y3633": null,
     "p:y364": null,
     "p:y365": null,
+    "p:y3653": {
+      "title": "太田拓郎",
+      "birth_date": "1984-12-28",
+      "school": "NSC東京",
+      "term": 10
+    },
+    "p:y3654": null,
+    "p:y3657": {
+      "title": "亀子のぶお"
+    },
+    "p:y3659": null,
+    "p:y3660": null,
+    "p:y3690": null,
+    "p:y3691": null,
     "p:y370": null,
+    "p:y3707": null,
+    "p:y3708": null,
     "p:y371": null,
+    "p:y3713": null,
+    "p:y3714": null,
+    "p:y3720": null,
+    "p:y3722": {
+      "title": "森下直人",
+      "birth_date": "1960-06-10",
+      "death_date": "2003-01-09"
+    },
+    "p:y3723": null,
     "p:y373": {
       "title": "諸見里大介",
       "birth_date": "1982-07-21",
       "school": "NSC大阪",
       "term": 27
     },
+    "p:y3739": null,
+    "p:y3740": null,
+    "p:y3752": null,
+    "p:y3759": null,
     "p:y376": null,
+    "p:y3760": null,
+    "p:y3761": null,
     "p:y38": {
       "title": "岩尾望",
       "birth_date": "1975-12-19",
@@ -1000,8 +1415,30 @@
       "term": 14
     },
     "p:y380": null,
+    "p:y3813": null,
+    "p:y3814": null,
+    "p:y3819": null,
+    "p:y3837": {
+      "title": "瀧見信行"
+    },
+    "p:y3838": {
+      "title": "もじゃ吉田"
+    },
+    "p:y3839": {
+      "title": "もりすけ"
+    },
+    "p:y3843": {
+      "title": "小寺真理",
+      "birth_date": "1991-08-31"
+    },
     "p:y385": null,
+    "p:y3856": null,
     "p:y386": null,
+    "p:y3866": null,
+    "p:y3867": null,
+    "p:y3871": null,
+    "p:y3877": null,
+    "p:y3878": null,
     "p:y388": null,
     "p:y389": null,
     "p:y39": {
@@ -1010,6 +1447,11 @@
       "school": "NSC大阪",
       "term": 14
     },
+    "p:y3900": {
+      "title": "暗黒天使",
+      "school": "NSC東京",
+      "term": 10
+    },
     "p:y391": {
       "title": "本坊元児",
       "birth_date": "1978-08-07",
@@ -1017,23 +1459,58 @@
       "term": 20
     },
     "p:y392": null,
+    "p:y3921": null,
+    "p:y3939": {
+      "title": "たかくら引越センター",
+      "birth_date": "1982-04-27",
+      "school": "NSC東京",
+      "term": 11
+    },
+    "p:y3944": {
+      "title": "解散したお笑いグループ一覧"
+    },
+    "p:y3945": null,
     "p:y395": null,
+    "p:y3976": null,
     "p:y400": null,
     "p:y401": null,
     "p:y403": null,
+    "p:y4034": null,
     "p:y404": null,
+    "p:y4047": null,
     "p:y405": null,
+    "p:y4072": null,
+    "p:y4076": null,
+    "p:y4078": {
+      "title": "スタジオカドタ (お笑い芸人)",
+      "birth_date": "1985-07-07",
+      "school": "NSC東京",
+      "term": 13
+    },
+    "p:y4079": null,
+    "p:y4082": null,
+    "p:y4083": null,
     "p:y41": {
       "title": "黒沢かずこ",
       "birth_date": "1978-10-17",
       "school": "NSC東京",
       "term": 4
     },
+    "p:y4108": null,
+    "p:y4140": null,
     "p:y416": {
       "title": "おしみんまる",
       "birth_date": "1977-05-05"
     },
     "p:y417": null,
+    "p:y4174": {
+      "title": "あいすけ",
+      "birth_date": "1987-04-23",
+      "school": "NSC東京",
+      "term": 14
+    },
+    "p:y4188": null,
+    "p:y4189": null,
     "p:y419": {
       "title": "吉村崇",
       "birth_date": "1980-07-09",
@@ -1043,6 +1520,10 @@
       "school": "NSC東京",
       "term": 5
     },
+    "p:y4195": null,
+    "p:y4196": null,
+    "p:y4198": null,
+    "p:y4199": null,
     "p:y42": {
       "title": "村上知子",
       "birth_date": "1980-01-02",
@@ -1055,16 +1536,40 @@
       "school": "NSC東京",
       "term": 5
     },
+    "p:y4203": {
+      "title": "守谷日和",
+      "birth_date": "1980-10-26",
+      "school": "NSC大阪",
+      "term": 26
+    },
+    "p:y4205": null,
+    "p:y4216": null,
     "p:y422": null,
     "p:y423": null,
+    "p:y4242": null,
+    "p:y4248": null,
+    "p:y4249": null,
     "p:y425": null,
+    "p:y4254": null,
+    "p:y4255": {
+      "title": "オカリナ"
+    },
     "p:y426": null,
+    "p:y4264": null,
     "p:y428": {
       "title": "とにかく明るい安村",
       "birth_date": "1982-03-15",
       "school": "NSC東京",
       "term": 6
     },
+    "p:y4286": {
+      "title": "さんきゅう倉田",
+      "birth_date": "1985-02-11",
+      "school": "NSC東京",
+      "term": 15
+    },
+    "p:y4293": null,
+    "p:y4294": null,
     "p:y43": {
       "title": "大島美幸",
       "birth_date": "1980-01-13",
@@ -1073,7 +1578,20 @@
     },
     "p:y434": null,
     "p:y437": null,
+    "p:y4372": null,
+    "p:y4373": null,
+    "p:y4375": null,
+    "p:y4377": null,
     "p:y438": null,
+    "p:y4388": null,
+    "p:y4389": null,
+    "p:y4396": null,
+    "p:y4410": null,
+    "p:y4411": null,
+    "p:y4439": null,
+    "p:y4440": null,
+    "p:y4460": null,
+    "p:y4461": null,
     "p:y447": null,
     "p:y449": {
       "title": "熊谷茶",
@@ -1093,6 +1611,7 @@
       "school": "NSC東京",
       "term": 2
     },
+    "p:y4503": null,
     "p:y455": null,
     "p:y456": {
       "title": "遠山大輔",
@@ -1101,7 +1620,10 @@
       "term": 5
     },
     "p:y457": null,
+    "p:y4571": null,
+    "p:y4579": null,
     "p:y459": null,
+    "p:y4596": null,
     "p:y46": {
       "title": "板倉俊之",
       "birth_date": "1978-01-30",
@@ -1109,17 +1631,23 @@
       "term": 4
     },
     "p:y460": null,
+    "p:y4608": null,
     "p:y463": null,
     "p:y465": null,
+    "p:y4657": null,
+    "p:y4658": null,
     "p:y466": null,
     "p:y468": null,
     "p:y469": null,
+    "p:y4698": null,
+    "p:y4699": null,
     "p:y471": {
       "title": "池田一真",
       "birth_date": "1984-01-17",
       "school": "NSC東京",
       "term": 9
     },
+    "p:y4719": null,
     "p:y472": {
       "title": "純 (お笑い芸人)",
       "birth_date": "1981-01-14",
@@ -1132,13 +1660,25 @@
     "p:y478": null,
     "p:y480": null,
     "p:y481": null,
+    "p:y4819": null,
+    "p:y4826": null,
+    "p:y4842": null,
     "p:y486": null,
     "p:y487": null,
+    "p:y4876": null,
+    "p:y4879": null,
+    "p:y4880": null,
     "p:y49": null,
     "p:y492": null,
     "p:y493": null,
     "p:y495": null,
     "p:y496": null,
+    "p:y4972": {
+      "title": "おばたのお兄さん",
+      "birth_date": "1988-06-05",
+      "school": "NSC東京",
+      "term": 18
+    },
     "p:y5": {
       "title": "遠藤章造",
       "birth_date": "1971-07-13"
@@ -1163,7 +1703,32 @@
       "school": "NSC東京",
       "term": 5
     },
+    "p:y5064": null,
+    "p:y5065": null,
+    "p:y5067": null,
+    "p:y5068": null,
     "p:y507": null,
+    "p:y5070": null,
+    "p:y5071": null,
+    "p:y5079": null,
+    "p:y5080": null,
+    "p:y5082": null,
+    "p:y5083": null,
+    "p:y5085": null,
+    "p:y5086": null,
+    "p:y5094": {
+      "title": "ナダル (お笑い芸人)",
+      "birth_date": "1984-12-23",
+      "school": "NSC大阪",
+      "term": 33
+    },
+    "p:y5095": {
+      "title": "西野創人",
+      "birth_date": "1991-09-21",
+      "school": "NSC大阪",
+      "term": 33
+    },
+    "p:y5097": null,
     "p:y51": {
       "title": "山本博 (お笑い芸人)",
       "birth_date": "1978-09-05",
@@ -1171,20 +1736,90 @@
       "term": 4
     },
     "p:y510": null,
+    "p:y5100": {
+      "title": "ゆりやんレトリィバァ",
+      "birth_date": "1990-11-01",
+      "school": "NSC大阪",
+      "term": 35
+    },
     "p:y511": null,
+    "p:y5110": {
+      "title": "Kento fukaya",
+      "birth_date": "1989-09-10",
+      "school": "NSC大阪",
+      "term": 33
+    },
+    "p:y5115": null,
+    "p:y5116": null,
+    "p:y5136": null,
+    "p:y5137": null,
     "p:y514": {
       "title": "キクチウソツカナイ。",
       "birth_date": "1973-07-24"
     },
+    "p:y5140": null,
+    "p:y5142": {
+      "title": "尻"
+    },
+    "p:y5143": null,
+    "p:y5146": {
+      "title": "小森園ひろし",
+      "birth_date": "1982-09-06"
+    },
+    "p:y5148": null,
+    "p:y5151": null,
+    "p:y5155": null,
+    "p:y5156": null,
+    "p:y5158": null,
+    "p:y5161": null,
+    "p:y5162": null,
+    "p:y5167": null,
+    "p:y5168": null,
     "p:y517": null,
+    "p:y5176": null,
+    "p:y5177": {
+      "title": "イワクラ"
+    },
     "p:y518": null,
+    "p:y5186": null,
+    "p:y5187": null,
+    "p:y5189": null,
+    "p:y5190": null,
+    "p:y5192": {
+      "title": "子安裕樹",
+      "birth_date": "1970-03-06"
+    },
+    "p:y5193": null,
+    "p:y5199": {
+      "title": "伊丹祐貴"
+    },
     "p:y52": {
       "title": "秋山竜次",
       "birth_date": "1978-08-15",
       "school": "NSC東京",
       "term": 4
     },
+    "p:y5205": {
+      "title": "きむ"
+    },
+    "p:y5206": null,
+    "p:y5208": null,
+    "p:y5209": null,
+    "p:y5218": null,
+    "p:y5219": null,
+    "p:y5221": null,
+    "p:y5224": null,
+    "p:y5234": null,
+    "p:y5235": null,
+    "p:y5237": null,
     "p:y524": null,
+    "p:y5240": {
+      "title": "トニーフランク",
+      "birth_date": "1990-03-20",
+      "school": "NSC大阪",
+      "term": 34
+    },
+    "p:y5244": null,
     "p:y529": null,
     "p:y53": {
       "title": "馬場裕之",
@@ -1193,8 +1828,11 @@
       "term": 4
     },
     "p:y530": null,
+    "p:y5307": null,
+    "p:y5311": null,
     "p:y532": null,
     "p:y533": null,
+    "p:y5339": null,
     "p:y536": null,
     "p:y541": null,
     "p:y542": null,
@@ -1209,37 +1847,167 @@
       "term": 1
     },
     "p:y550": null,
+    "p:y5509": null,
     "p:y551": null,
     "p:y553": null,
     "p:y554": null,
+    "p:y5541": null,
     "p:y557": null,
+    "p:y5574": null,
+    "p:y5596": null,
     "p:y56": {
       "title": "庄司智春",
       "birth_date": "1976-01-01",
       "school": "NSC東京",
       "term": 1
     },
+    "p:y5611": null,
+    "p:y5616": null,
     "p:y562": null,
     "p:y563": null,
     "p:y565": null,
+    "p:y5707": null,
     "p:y572": null,
+    "p:y5745": {
+      "title": "大島雅斗"
+    },
+    "p:y5754": {
+      "title": "シゲカズです",
+      "birth_date": "1982-04-06",
+      "school": "NSC大阪",
+      "term": 31
+    },
+    "p:y5756": null,
+    "p:y5757": null,
+    "p:y5762": null,
+    "p:y5767": null,
+    "p:y5768": null,
     "p:y577": null,
+    "p:y5773": null,
+    "p:y5774": null,
     "p:y578": null,
+    "p:y5782": null,
+    "p:y5783": null,
+    "p:y5787": null,
+    "p:y5788": null,
+    "p:y5791": {
+      "title": "高関優"
+    },
+    "p:y5792": null,
+    "p:y5794": null,
+    "p:y5795": {
+      "title": "小米良啓太"
+    },
+    "p:y5796": null,
+    "p:y5797": {
+      "title": "桂三語"
+    },
+    "p:y5798": {
+      "title": "桂三河"
+    },
     "p:y58": null,
+    "p:y5808": null,
+    "p:y5809": null,
+    "p:y5811": null,
+    "p:y5816": null,
+    "p:y5817": null,
+    "p:y5828": null,
+    "p:y5835": null,
+    "p:y5836": null,
+    "p:y5837": null,
+    "p:y5848": {
+      "title": "岡本りん",
+      "birth_date": "1993-01-05",
+      "school": "NSC大阪",
+      "term": 34
+    },
+    "p:y5857": {
+      "title": "明石家のんき"
+    },
+    "p:y5869": null,
+    "p:y5877": null,
+    "p:y5879": null,
+    "p:y5880": null,
+    "p:y5882": {
+      "title": "ぶるぼん",
+      "birth_date": "1981-05-19",
+      "school": "NSC大阪",
+      "term": 28
+    },
     "p:y589": {
       "title": "オジョー",
       "birth_date": "1981-06-14",
       "school": "NSC東京",
       "term": 8
     },
+    "p:y5895": null,
+    "p:y5896": null,
+    "p:y5897": {
+      "title": "陳明裕"
+    },
+    "p:y5899": null,
     "p:y59": null,
     "p:y590": null,
+    "p:y5900": null,
+    "p:y5905": null,
+    "p:y5913": null,
+    "p:y5916": null,
+    "p:y5918": null,
+    "p:y5919": null,
+    "p:y5929": null,
+    "p:y5930": null,
+    "p:y5932": null,
+    "p:y5933": null,
+    "p:y5934": null,
+    "p:y5937": {
+      "title": "月亭方気"
+    },
+    "p:y5938": {
+      "title": "桂あおば"
+    },
+    "p:y5940": null,
+    "p:y5941": null,
+    "p:y5942": {
+      "title": "桂ちきん"
+    },
+    "p:y5944": null,
+    "p:y5946": null,
+    "p:y5961": null,
+    "p:y5972": null,
+    "p:y5980": null,
+    "p:y5981": null,
+    "p:y5986": null,
+    "p:y5995": null,
+    "p:y5996": null,
+    "p:y5998": null,
+    "p:y5999": null,
     "p:y6": {
       "title": "田中直樹 (お笑い芸人)",
       "birth_date": "1971-04-26"
     },
+    "p:y6003": {
+      "title": "関田将人",
+      "birth_date": "1985-05-27",
+      "school": "NSC東京",
+      "term": 10
+    },
     "p:y601": null,
+    "p:y6017": null,
     "p:y602": null,
+    "p:y6035": null,
+    "p:y6036": null,
+    "p:y6041": {
+      "title": "西村真二",
+      "birth_date": "1984-06-30",
+      "school": "NSC東京",
+      "term": 17
+    },
+    "p:y6042": {
+      "title": "きょん",
+      "birth_date": "1987-11-18",
+      "school": "NSC東京",
+      "term": 17
+    },
     "p:y607": null,
     "p:y61": null,
     "p:y610": null,
