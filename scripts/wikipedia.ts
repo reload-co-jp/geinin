@@ -99,3 +99,87 @@ export const cluesOf = (personId: string, agencyId: string | null) => [
     .map((m) => groupName.get(m.group_id)!)
     .filter(Boolean),
 ]
+
+export const GROUP_SUFFIXES = [
+  "(お笑いコンビ)",
+  "(お笑いトリオ)",
+  "(お笑いグループ)",
+]
+const COMEDY = /お笑い|芸人|漫才|コント|吉本|NSC/
+
+// 調査対象の芸人・グループ。id はノードID（p:/g:）
+export type Target = {
+  id: string
+  name: string
+  clues: string[]
+  isGroup: boolean
+}
+// 事務所名だけでは同じ事務所の別コンビを拾うため、相方・メンバー名が分かればそちらを必須にする
+export const wikiTargets = (): Target[] => {
+  const personName = new Map(db.people.map((p) => [p.id, p.name]))
+  const strong = (names: (string | undefined)[], fallback: string[]) => {
+    const xs = names.filter((n): n is string => !!n)
+    return xs.length ? xs : fallback
+  }
+  return [
+    ...db.people.map((p) => ({
+      id: `p:${p.id}`,
+      name: p.name,
+      clues: strong(
+        db.memberships
+          .filter((m) => m.person_id === p.id)
+          .map((m) => groupName.get(m.group_id)),
+        cluesOf(p.id, p.agency_id)
+      ),
+      isGroup: false,
+    })),
+    ...db.groups.map((g) => ({
+      id: `g:${g.id}`,
+      name: g.name,
+      clues: strong(
+        db.memberships
+          .filter((m) => m.group_id === g.id)
+          .map((m) => personName.get(m.person_id)),
+        cluesOf("", g.agency_id)
+      ),
+      isGroup: true,
+    })),
+  ].filter((t) => t.name.trim())
+}
+
+// 同名の別人・コンビ記事へのリダイレクトを拾わないよう、記事の種類と手がかりの語を確かめる
+export const matchesTarget = (c: string, t: Target) => {
+  if (!COMEDY.test(c)) return false
+  if (t.clues.length && !t.clues.some((w) => c.includes(w))) return false
+  const box = c.slice(0, c.indexOf("\n}}") + 1 || 5000)
+  // 「メンバー1 =」形式や Infobox 名でもコンビ記事と分かるようにする
+  const isGroupPage =
+    /Infobox お笑い(コンビ|トリオ|グループ|ユニット)/.test(c) ||
+    /^\s*\|\s*(結成年|メンバー\d*)\s*=/m.test(box)
+  return isGroupPage === t.isGroup
+}
+
+// 対象ごとの記事。曖昧さ回避ページなら「(お笑い芸人)」等を付けた記事名で引き直す
+export const findArticles = async (batch: Target[]) => {
+  const pages = await fetchPages([...new Set(batch.map((t) => t.name))])
+  const suffixes = (t: Target) => (t.isGroup ? GROUP_SUFFIXES : SUFFIXES)
+  const ambiguous = batch.filter((t) =>
+    isAmbiguous(pages.get(t.name)?.content ?? "")
+  )
+  const retry = ambiguous.length
+    ? await fetchPages(
+        ambiguous.flatMap((t) => suffixes(t).map((s) => `${t.name} ${s}`))
+      )
+    : new Map<string, Page | undefined>()
+  return new Map(
+    batch.map((t) => {
+      const candidates = isAmbiguous(pages.get(t.name)?.content ?? "")
+        ? suffixes(t).map((s) => retry.get(`${t.name} ${s}`))
+        : [pages.get(t.name)]
+      const page = candidates.find(
+        (pg) => pg && !pg.missing && matchesTarget(pg.content, t)
+      )
+      return [t.id, page] as const
+    })
+  )
+}
