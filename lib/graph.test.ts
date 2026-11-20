@@ -156,6 +156,8 @@ describe("visibleSubgraph", () => {
       "p:matsunosuke",
       "p:sanma",
       "p:takeshi",
+      // ジミー大西（Wikipedia の師匠欄による）
+      "p:y749",
     ])
     expect(
       visibleSubgraph(g, { ...view, depth: 2 }).nodes.has("p:fukami")
