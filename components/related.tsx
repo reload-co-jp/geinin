@@ -68,6 +68,8 @@ export const NextReads: FC<{
   startYear: number | null
   group: boolean
   dokiHref: string | null
+  age: Recommendation[]
+  birthYear: number | null
 }> = ({
   name,
   near,
@@ -81,12 +83,15 @@ export const NextReads: FC<{
   startYear,
   group,
   dokiHref,
+  age,
+  birthYear,
 }) =>
   (near.length > 0 ||
     prelim.length > 0 ||
     live.length > 0 ||
     agency.length > 0 ||
-    year.length > 0) && (
+    year.length > 0 ||
+    age.length > 0) && (
     <aside aria-label="次に見る" className="nd-next">
       <h2 className="nd-next-title">{name}を見た人におすすめ</h2>
       {near.length > 0 && (
@@ -146,6 +151,12 @@ export const NextReads: FC<{
               <Link href={dokiHref}>同期の芸人をすべて見る →</Link>
             </p>
           )}
+        </section>
+      )}
+      {age.length > 0 && birthYear && (
+        <section>
+          <h3 className="pf-section">同い年（{birthYear}年生まれ）の芸人</h3>
+          <Cards items={age} />
         </section>
       )}
       <p className="nd-more">

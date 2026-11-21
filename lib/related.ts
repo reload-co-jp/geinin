@@ -192,6 +192,28 @@ const sameYear = (nodeId: string, y: number, peers?: string[]) =>
       reason: `${y}年${m.kind === "group" ? "結成" : "デビュー"}${m.agencyId ? `・${agencyName(m.agencyId)}` : ""}`,
     }))
 
+// 同じ年に生まれた芸人（事務所を問わず人気順）。生年月日の分かる芸人のみ
+const birthYear = (nodeId: string) => {
+  const d = nodeId.startsWith("p:")
+    ? personById.get(nodeId.slice(2))?.birth_date
+    : null
+  return d ? Number(d.slice(0, 4)) : null
+}
+const byBirthYear = Map.groupBy(
+  entityNodes.filter((n) => birthYear(n.id)),
+  (n) => birthYear(n.id)!
+)
+for (const xs of byBirthYear.values()) xs.sort((a, b) => pop(b.id) - pop(a.id))
+const sameAge = (nodeId: string, y: number): Recommendation[] =>
+  (byBirthYear.get(y) ?? [])
+    .filter((m) => m.id !== nodeId)
+    .map((m) => ({
+      id: m.id,
+      name: m.label,
+      photo: m.photo,
+      reason: `${y}年生まれ${m.agencyId ? `・${agencyName(m.agencyId)}` : ""}`,
+    }))
+
 // 同じライブに出る芸人。芸人は所属コンビとしての出演も含める
 const liveCostars = (nodeId: string): Recommendation[] => {
   const origins = [
@@ -299,6 +321,7 @@ export const recommendations = (
   }
   const n = graph.nodes.get(nodeId)
   const y = doki?.year ?? startYear(nodeId)
+  const by = birthYear(nodeId)
   return {
     near: take(nearBy(nodeId)),
     prelim: take(prelimPeers(nodeId)),
@@ -308,6 +331,9 @@ export const recommendations = (
     agencyId: n?.agencyId ?? null,
     year: y ? take(sameYear(nodeId, y, doki?.ids)) : [],
     startYear: y,
+    // 同期の枠と重ならないよう最後に取る
+    age: by ? take(sameAge(nodeId, by)) : [],
+    birthYear: by,
   }
 }
 
