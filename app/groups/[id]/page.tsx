@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import { NodeDetail } from "@/components/node-detail"
 import { JsonLd } from "@/components/json-ld"
 import { xUrl } from "@/lib/x"
+import { groupMeta } from "@/lib/meta"
 import {
   agencyName,
   db,
@@ -10,12 +11,7 @@ import {
   ownUrls,
   xOf,
   personById,
-  sameName,
 } from "@/lib/db"
-
-// 読みが未登録のときに「名前（）」とならないようにする
-const withReading = (e: { name: string; reading: string }) =>
-  e.reading ? `${e.name}（${e.reading}）` : e.name
 
 type Props = { params: Promise<{ id: string }> }
 
@@ -23,23 +19,10 @@ export const generateStaticParams = () => db.groups.map((g) => ({ id: g.id }))
 
 export const generateMetadata = async ({ params }: Props) => {
   const { id } = await params
-  const g = groupById.get(id)
-  return g
+  const meta = groupMeta(id)
+  return meta
     ? {
-        // 同名の登録があるときは事務所を添えて区別する
-        title: `${withReading(g)}のメンバー・賞レース戦績${sameName(`g:${id}`).length && agencyName(g.agency_id) ? ` - ${agencyName(g.agency_id)}` : ""}`,
-        description: [
-          withReading(g),
-          agencyName(g.agency_id),
-          g.formation_date && `${g.formation_date.slice(0, 4)}年結成`,
-          db.memberships
-            .filter((m) => m.group_id === id)
-            .map((m) => personById.get(m.person_id)?.name)
-            .join("・") || null,
-        ]
-          .filter(Boolean)
-          .join(" / ")
-          .concat("。メンバー変遷・賞レース戦績と関係性"),
+        ...meta,
         alternates: { canonical: `/groups/${id}/` },
         ...(isThin(`g:${id}`) && { robots: { index: false, follow: true } }),
       }

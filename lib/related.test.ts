@@ -43,3 +43,25 @@ test("ライブ出演のある芸人は共演者と出演劇場をおすすめ�
   const f = faqOf(id, nodeInfo(id)!)
   expect(f.some((x) => x.q.includes("劇場"))).toBe(true)
 })
+
+test("同い年のおすすめは同じ生まれ年の芸人だけで、他の枠と重複しない", () => {
+  const id = personId("粗品")
+  const r = recommendations(id)
+  expect(r.birthYear).toBe(1993)
+  expect(r.age.length).toBeGreaterThan(0)
+  for (const x of r.age) {
+    expect(x.reason).toMatch(/^1993年生まれ/)
+    expect(db.people.find((p) => `p:${p.id}` === x.id)?.birth_date).toMatch(
+      /^1993/
+    )
+  }
+  const all = [
+    ...r.near,
+    ...r.prelim,
+    ...r.live,
+    ...r.agency,
+    ...r.year,
+    ...r.age,
+  ].map((x) => x.id)
+  expect(new Set(all).size).toBe(all.length)
+})
