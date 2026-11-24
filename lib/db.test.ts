@@ -4,6 +4,7 @@ import {
   agencyListed,
   db,
   edgeIndex,
+  isNoindex,
   isThin,
   nodeInfo,
   programIds,
@@ -42,6 +43,28 @@ test("情報の少ないページだけを isThin とする", () => {
   const thinPrograms = programIds.filter(isThin)
   expect(thinPrograms.length).toBe(casts.filter((n) => n < 3).length)
   expect(isThin("x:m1-2001")).toBe(false)
+})
+
+test("芸人・コンビとのつながりがあるページは isThin でも noindex にしない", () => {
+  // 検索流入のある isThin ページ（Search Console 2026年11月）
+  for (const id of [
+    "p:maseki-m1-30074-1",
+    "g:kdash-m1-42763",
+    "g:yoshimoto-m1-41816",
+  ]) {
+    expect(isThin(id)).toBe(true)
+    expect(isNoindex(id)).toBe(false)
+  }
+  const lonely = db.people.find(
+    (p) =>
+      isThin(`p:${p.id}`) &&
+      !(edgeIndex.get(`p:${p.id}`) ?? []).some((e) =>
+        /^[pg]:/.test(e.source === `p:${p.id}` ? e.target : e.source)
+      )
+  )
+  if (lonely) expect(isNoindex(`p:${lonely.id}`)).toBe(true)
+  const thinProgram = programIds.find(isThin)
+  if (thinProgram) expect(isNoindex(thinProgram)).toBe(true)
 })
 
 test("事務所サイトの URL 由来の id にURL に使えない文字を含めない", () => {

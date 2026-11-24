@@ -123,19 +123,8 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
           })),
         }}
       />
-      {faqs.length > 0 && (
-        <JsonLd
-          data={{
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            mainEntity: faqs.map((f) => ({
-              "@type": "Question",
-              name: f.q,
-              acceptedAnswer: { "@type": "Answer", text: f.a },
-            })),
-          }}
-        />
-      )}
+      {/* よくある質問は本文にだけ出す。FAQPage の構造化データは 2023年8月から
+          Google のリッチリザルト対象が政府・医療系の権威あるサイトに限られたため出さない */}
       <nav aria-label="パンくずリスト" style={{ fontSize: ".75rem" }}>
         {crumbs.map(([name, href], i) => (
           <span key={href}>
@@ -211,19 +200,10 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
         info={info}
         toc
         extra={[
-          ...(timeline.length >= 2
-            ? [
-                {
-                  title: "年表",
-                  body: <Timeline entries={timeline} />,
-                  position: "top" as const,
-                },
-              ]
-            : []),
           ...(personGroups.length > 0
             ? [
                 {
-                  title: "所属コンビ・グループ",
+                  title: `${info.name}が所属するコンビ・グループ`,
                   body: (
                     <ul className="pf-list">
                       {personGroups.map((g) => (
@@ -253,7 +233,7 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
           ...(groupMembers.length > 0
             ? [
                 {
-                  title: "メンバー",
+                  title: `${info.name}のメンバー`,
                   body: (
                     <ul className="pf-cast">
                       {groupMembers.map((m) => (
@@ -278,10 +258,19 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
                 },
               ]
             : []),
+          ...(timeline.length >= 2
+            ? [
+                {
+                  title: "年表",
+                  body: <Timeline entries={timeline} />,
+                  position: "top" as const,
+                },
+              ]
+            : []),
           ...(recs?.agency.length
             ? [
                 {
-                  title: `同じ${agencyName(recs.agencyId) || "事務所"}の芸人`,
+                  title: `${info.name}と同じ${agencyName(recs.agencyId) || "事務所"}の芸人`,
                   body: (
                     <ul className="pf-cast">
                       {recs.agency.slice(0, 8).map((r) => (
@@ -307,14 +296,14 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
                       ))}
                     </ul>
                   ),
-                  position: "top" as const,
+                  position: "bottom" as const,
                 },
               ]
             : []),
           ...(dokiYear && recs?.year.length
             ? [
                 {
-                  title: `${dokiYear}年デビューの同期芸人`,
+                  title: `${info.name}と同じ${dokiYear}年デビューの芸人`,
                   body: (
                     <ul className="pf-cast">
                       {recs.year.slice(0, 8).map((r) => (
@@ -340,14 +329,14 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
                       ))}
                     </ul>
                   ),
-                  position: "top" as const,
+                  position: "bottom" as const,
                 },
               ]
             : []),
           ...(recs?.venues.length
             ? [
                 {
-                  title: "よく出演する劇場",
+                  title: `${info.name}がよく出演する劇場`,
                   body: (
                     <ul className="nd-chips">
                       {recs.venues.slice(0, 5).map((v) => (
@@ -360,14 +349,14 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
                       ))}
                     </ul>
                   ),
-                  position: "top" as const,
+                  position: "bottom" as const,
                 },
               ]
             : []),
           ...(recs?.prelim.length
             ? [
                 {
-                  title: "M-1予選で同じ組だった芸人",
+                  title: `${info.name}とM-1予選で同じ組だった芸人`,
                   body: (
                     <ul className="pf-cast">
                       {recs.prelim.slice(0, 8).map((r) => (
@@ -393,7 +382,7 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
                       ))}
                     </ul>
                   ),
-                  position: "top" as const,
+                  position: "bottom" as const,
                 },
               ]
             : []),

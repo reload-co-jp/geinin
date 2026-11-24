@@ -126,6 +126,50 @@ export const newsStore = (dir: string = NEWS_DIR) => {
   }
 }
 
+// 名前で検索した記事には、同じ語を含む別の話題（「水質」なら水質検査）が混ざる。
+// 記事の見出しに名前があり、さらに名前が長くて紛れにくいか、相方・コンビ名などの
+// 関係者名かお笑いの語を含むものだけを残す
+const COMEDY_WORDS = [
+  "芸人",
+  "お笑い",
+  "コンビ",
+  "トリオ",
+  "漫才",
+  "コント",
+  "M-1",
+  "キングオブコント",
+  "R-1",
+  "THE W",
+  "THE SECOND",
+  "吉本",
+  "よしもと",
+  "NSC",
+  "相方",
+  "ネタ",
+  "ライブ",
+]
+// これ以上の長さの名前は、見出しに含まれていれば本人の記事とみなす
+const DISTINCT_NAME_LENGTH = 5
+export const relevantNews = (
+  items: NewsArticle[],
+  name: string,
+  related: string[] = []
+): NewsArticle[] => {
+  const n = name.normalize("NFKC")
+  if (!n) return []
+  const context = [...related, ...COMEDY_WORDS]
+    .map((w) => w.normalize("NFKC"))
+    .filter((w) => w && w !== n)
+  return items.filter((a) => {
+    const t = a.title.normalize("NFKC")
+    if (!t.includes(n)) return false
+    return (
+      [...n].length >= DISTINCT_NAME_LENGTH ||
+      context.some((w) => t.includes(w))
+    )
+  })
+}
+
 // 取得日時を日本時間の「YYYY-MM-DD HH:mm」にする。日付だけのものはそのまま返す
 export const formatFetchedAt = (fetchedAt: string): string => {
   if (/^\d{4}-\d{2}-\d{2}$/.test(fetchedAt)) return fetchedAt

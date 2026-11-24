@@ -8,6 +8,7 @@ import {
   newsShardOf,
   newsStore,
   writeNewsShard,
+  relevantNews,
 } from "@/lib/news"
 
 const article = (pubDate: string) => ({
@@ -66,5 +67,36 @@ describe("needsRefresh", () => {
     expect(needsRefresh(null, now, 7)).toBe(true)
     expect(needsRefresh("2026-11-06T00:00:00Z", now, 7)).toBe(false)
     expect(needsRefresh("2026-11-05T00:00:00Z", now, 7)).toBe(true)
+  })
+})
+
+describe("relevantNews", () => {
+  const a = (title: string) => ({
+    title,
+    link: "https://example.com/",
+    pubDate: "Thu, 12 Nov 2026 00:00:00 GMT",
+    source: "test",
+  })
+  it("短い名前は関係者名かお笑いの語も見出しにある記事だけ残す", () => {
+    const items = [
+      a("自動水質検査キット市場の成長見通し"),
+      a("南京町宮殿・水質が新ネタを披露"),
+      a("水質（南京町宮殿）の単独公演"),
+    ]
+    expect(
+      relevantNews(items, "水質", ["南京町宮殿"]).map((x) => x.title)
+    ).toEqual([
+      "南京町宮殿・水質が新ネタを披露",
+      "水質（南京町宮殿）の単独公演",
+    ])
+  })
+  it("長い名前は見出しにあれば残し、名前の無い記事は除く", () => {
+    const items = [a("ヒラモトアイナがドラマ出演"), a("別の話題")]
+    expect(relevantNews(items, "ヒラモトアイナ").map((x) => x.title)).toEqual([
+      "ヒラモトアイナがドラマ出演",
+    ])
+  })
+  it("半角カナの名前でも全角の見出しに一致する", () => {
+    expect(relevantNews([a("レナチョ、お笑いライブ")], "ﾚﾅﾁｮ")).toHaveLength(1)
   })
 })
