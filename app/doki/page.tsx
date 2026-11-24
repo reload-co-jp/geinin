@@ -25,6 +25,8 @@ const Page: FC = () => (
       {ESTIMATED_NOTE}
       {unknown > 0 &&
         `デビュー年を推定できない${unknown.toLocaleString()}人は載せていません。`}
+      養成所の同じ期の芸人は<Link href="/nsc/">NSCの期別一覧</Link>
+      にまとめています。
     </p>
     <InArticleAd />
     {years.map(([year, ps]) => (

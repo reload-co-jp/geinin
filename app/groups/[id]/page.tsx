@@ -7,7 +7,7 @@ import {
   agencyName,
   db,
   groupById,
-  isThin,
+  isNoindex,
   ownUrls,
   xOf,
   personById,
@@ -24,7 +24,7 @@ export const generateMetadata = async ({ params }: Props) => {
     ? {
         ...meta,
         alternates: { canonical: `/groups/${id}/` },
-        ...(isThin(`g:${id}`) && { robots: { index: false, follow: true } }),
+        ...(isNoindex(`g:${id}`) && { robots: { index: false, follow: true } }),
       }
     : {}
 }

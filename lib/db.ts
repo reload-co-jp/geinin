@@ -40,7 +40,7 @@ import { programDescription, type ProgramsDump } from "@/lib/programs"
 import { mergeYoshimoto, type YoshimotoDump } from "@/lib/yoshimoto"
 import { youtubeIndex, type YoutubeDump } from "@/lib/youtube"
 import { xIndex, type XDump } from "@/lib/x"
-import { newsStore } from "@/lib/news"
+import { newsStore, relevantNews } from "@/lib/news"
 
 export const m1Prelims = m1PrelimsDump as M1PrelimsDump
 export const db = mergeM1Prelims(
@@ -351,7 +351,15 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
   ]
     .filter(Boolean)
     .join("")
-  const news = newsOf(nodeId)
+  // 関係者名（コンビ名・メンバー・相方）が見出しにあれば本人の記事とみなす
+  const related = links
+    .filter((l) => /^[pg]:/.test(l.other))
+    .map((l) => l.otherName)
+  const fetchedNews = newsOf(nodeId)
+  const news = fetchedNews && {
+    ...fetchedNews,
+    items: relevantNews(fetchedNews.items, e.name, related),
+  }
 
   return {
     id: nodeId,
@@ -448,10 +456,10 @@ export const nodeInfo = (nodeId: string): NodeInfo | null => {
   }
 }
 
-// 検索結果に出すほどの情報が無いページ。Search Console で「クロール済み -
-// インデックス未登録」になったページの大半がこれに当たるので noindex にし、
-// サイトマップや事務所ページの一覧からも外す。ページ自体は残し、follow で
-// 内部リンクはたどらせる
+// 情報の少ないページ。Search Console で「クロール済み - インデックス未登録」に
+// なったページの大半がこれに当たるので、サイトマップや事務所ページの一覧から外す。
+// 番組はそのまま noindex にする。芸人・グループの noindex は isNoindex で決める
+// （検索流入のあるページがあるため）
 // - 番組: 出演の登録が2組だけ
 // - 芸人・グループ: M-1 エントリー一覧から取り込んだだけのような、名前・事務所・
 //   コンビのメンバー構成と予選序盤の結果しか無いもの。関係はコンビの所属だけ、
@@ -478,6 +486,21 @@ export const isThin = (nodeId: string) => {
     !info.x?.accounts.length
   thinCache.set(nodeId, thin)
   return thin
+}
+
+// noindex にする芸人・グループのページ。isThin（サイトマップ・一覧から外す）より狭く、
+// 芸人・コンビとのつながりが1つも無く、名前と事務所くらいしか載っていないものだけ。
+// isThin の芸人・コンビにも「水質 芸人」「木本沖縄」のように検索され、検索結果に
+// 出ているページがある（Search Console 2026年11月）。メンバー・相方は
+// 「この芸人は誰か」への答えになるので、つながりがあるページは検索に残す
+export const isNoindex = (nodeId: string) => {
+  if (!/^[pg]:/.test(nodeId)) return isThin(nodeId)
+  return (
+    isThin(nodeId) &&
+    !(edgeIndex.get(nodeId) ?? []).some((e) =>
+      /^[pg]:/.test(e.source === nodeId ? e.target : e.source)
+    )
+  )
 }
 
 // 事務所ページの一覧に載せる芸人・コンビ。isThin のものまで並べると吉本興業では

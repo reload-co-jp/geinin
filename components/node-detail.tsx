@@ -7,6 +7,7 @@ import { Heading, Profile } from "@/components/profile"
 import { FaqList, NextReads, Timeline } from "@/components/related"
 import { Photo } from "@/components/photo"
 import { years } from "@/app/doki/shared"
+import { terms } from "@/app/nsc/shared"
 import { OTHER, ROWS, rowOf } from "@/app/list/shared"
 import { agencyName, nodeInfo, raceIds, sameName } from "@/lib/db"
 import {
@@ -54,6 +55,19 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
     ? years.find(([, ps]) => ps.some((p) => p.id === nodeId))
     : undefined
   const dokiYear = doki?.[0]
+  // 養成所（NSC）の同じ期の芸人。期の記載がある芸人だけ
+  const self = nodeId.startsWith("p:") ? personById.get(nodeId.slice(2)) : null
+  const nscTerm =
+    self?.training_school && self.training_school_term
+      ? terms.find(
+          (t) =>
+            t.school === self.training_school &&
+            t.term === self.training_school_term
+        )
+      : undefined
+  const termPeers = (nscTerm?.members ?? []).filter(
+    (m) => `p:${m.id}` !== nodeId
+  )
   const crumbs: [string, string][] = [
     ["トップ", "/"],
     ...(race
@@ -123,19 +137,8 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
           })),
         }}
       />
-      {faqs.length > 0 && (
-        <JsonLd
-          data={{
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            mainEntity: faqs.map((f) => ({
-              "@type": "Question",
-              name: f.q,
-              acceptedAnswer: { "@type": "Answer", text: f.a },
-            })),
-          }}
-        />
-      )}
+      {/* よくある質問は本文にだけ出す。FAQPage の構造化データは 2023年8月から
+          Google のリッチリザルト対象が政府・医療系の権威あるサイトに限られたため出さない */}
       <nav aria-label="パンくずリスト" style={{ fontSize: ".75rem" }}>
         {crumbs.map(([name, href], i) => (
           <span key={href}>
@@ -198,6 +201,14 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
         >
           相関図で見る →
         </Link>
+        {nscTerm && termPeers.length > 0 && (
+          <Link
+            href={nscTerm.href}
+            style={{ marginLeft: "1rem", fontSize: ".875rem" }}
+          >
+            {nscTerm.label}の同期芸人 →
+          </Link>
+        )}
         {dokiYear && (
           <Link
             href={`/doki/${dokiYear}/`}
@@ -211,19 +222,10 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
         info={info}
         toc
         extra={[
-          ...(timeline.length >= 2
-            ? [
-                {
-                  title: "年表",
-                  body: <Timeline entries={timeline} />,
-                  position: "top" as const,
-                },
-              ]
-            : []),
           ...(personGroups.length > 0
             ? [
                 {
-                  title: "所属コンビ・グループ",
+                  title: `${info.name}が所属するコンビ・グループ`,
                   body: (
                     <ul className="pf-list">
                       {personGroups.map((g) => (
@@ -253,7 +255,7 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
           ...(groupMembers.length > 0
             ? [
                 {
-                  title: "メンバー",
+                  title: `${info.name}のメンバー`,
                   body: (
                     <ul className="pf-cast">
                       {groupMembers.map((m) => (
@@ -278,10 +280,63 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
                 },
               ]
             : []),
+          ...(timeline.length >= 2
+            ? [
+                {
+                  title: "年表",
+                  body: <Timeline entries={timeline} />,
+                  position: "top" as const,
+                },
+              ]
+            : []),
+          ...(nscTerm && termPeers.length > 0
+            ? [
+                {
+                  title: `${info.name}と同期（${nscTerm.label}）の芸人`,
+                  body: (
+                    <>
+                      <ul className="pf-cast">
+                        {termPeers.slice(0, 8).map((m) => (
+                          <li key={m.id}>
+                            <Photo src={m.photo} size={48} />
+                            <span className="pf-cast-body">
+                              <Link
+                                href={nodeHrefLib(`p:${m.id}`)}
+                                style={{ fontWeight: "bold" }}
+                              >
+                                {m.name}
+                              </Link>
+                              <span className="pf-muted pf-small">
+                                {[
+                                  m.groups
+                                    .filter((g) => !g.former)
+                                    .map((g) => g.name)
+                                    .join("・"),
+                                  m.best,
+                                ]
+                                  .filter(Boolean)
+                                  .join(" / ")}
+                              </span>
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                      <p className="pf-small">
+                        <Link href={nscTerm.href}>
+                          {nscTerm.label}の芸人をすべて見る（
+                          {nscTerm.members.length}人）→
+                        </Link>
+                      </p>
+                    </>
+                  ),
+                  position: "top" as const,
+                },
+              ]
+            : []),
           ...(recs?.agency.length
             ? [
                 {
-                  title: `同じ${agencyName(recs.agencyId) || "事務所"}の芸人`,
+                  title: `${info.name}と同じ${agencyName(recs.agencyId) || "事務所"}の芸人`,
                   body: (
                     <ul className="pf-cast">
                       {recs.agency.slice(0, 8).map((r) => (
@@ -307,14 +362,14 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
                       ))}
                     </ul>
                   ),
-                  position: "top" as const,
+                  position: "bottom" as const,
                 },
               ]
             : []),
           ...(dokiYear && recs?.year.length
             ? [
                 {
-                  title: `${dokiYear}年デビューの同期芸人`,
+                  title: `${info.name}と同じ${dokiYear}年デビューの芸人`,
                   body: (
                     <ul className="pf-cast">
                       {recs.year.slice(0, 8).map((r) => (
@@ -340,14 +395,14 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
                       ))}
                     </ul>
                   ),
-                  position: "top" as const,
+                  position: "bottom" as const,
                 },
               ]
             : []),
           ...(recs?.venues.length
             ? [
                 {
-                  title: "よく出演する劇場",
+                  title: `${info.name}がよく出演する劇場`,
                   body: (
                     <ul className="nd-chips">
                       {recs.venues.slice(0, 5).map((v) => (
@@ -360,14 +415,14 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
                       ))}
                     </ul>
                   ),
-                  position: "top" as const,
+                  position: "bottom" as const,
                 },
               ]
             : []),
           ...(recs?.prelim.length
             ? [
                 {
-                  title: "M-1予選で同じ組だった芸人",
+                  title: `${info.name}とM-1予選で同じ組だった芸人`,
                   body: (
                     <ul className="pf-cast">
                       {recs.prelim.slice(0, 8).map((r) => (
@@ -393,7 +448,7 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
                       ))}
                     </ul>
                   ),
-                  position: "top" as const,
+                  position: "bottom" as const,
                 },
               ]
             : []),

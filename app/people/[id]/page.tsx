@@ -7,7 +7,7 @@ import {
   agencyName,
   db,
   groupById,
-  isThin,
+  isNoindex,
   nodeInfo,
   ownUrls,
   xOf,
@@ -25,7 +25,7 @@ export const generateMetadata = async ({ params }: Props) => {
     ? {
         ...meta,
         alternates: { canonical: `/people/${id}/` },
-        ...(isThin(`p:${id}`) && { robots: { index: false, follow: true } }),
+        ...(isNoindex(`p:${id}`) && { robots: { index: false, follow: true } }),
       }
     : {}
 }
@@ -44,6 +44,14 @@ const Page = async ({ params }: Props) => {
           name: p.name,
           alternateName: [p.reading, ...p.aliases],
           jobTitle: "お笑い芸人",
+          // 年まで・月までの部分日付は schema.org の Date にならないので出さない
+          birthDate:
+            p.birth_date && /^\d{4}-\d{2}-\d{2}$/.test(p.birth_date)
+              ? p.birth_date
+              : undefined,
+          alumniOf: p.training_school
+            ? { "@type": "EducationalOrganization", name: p.training_school }
+            : undefined,
           sameAs: [
             ...ownUrls(p.source_ids),
             ...xOf(p.source_ids, true).map((a) => xUrl(a.handle)),
