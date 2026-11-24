@@ -3,7 +3,7 @@ import { FC } from "react"
 import { CONFIDENCE_LABEL, db, personById } from "@/lib/db"
 import { EDGE_KINDS } from "@/lib/graph"
 import { KanaNav } from "./nav"
-import { td, th } from "./shared"
+import { tableCss } from "./shared"
 import { InArticleAd } from "@/components/in-article-ad"
 
 export const metadata = {
@@ -41,8 +41,9 @@ const Page: FC = () => (
         同期・賞レース競演は登録データから導出するため、ここには含みません。
       </p>
       <div style={{ overflowX: "auto" }}>
+        <style>{tableCss}</style>
         <table
-          className="stack-table"
+          className="stack-table lt"
           style={{
             borderCollapse: "collapse",
             width: "100%",
@@ -51,19 +52,19 @@ const Page: FC = () => (
         >
           <thead>
             <tr>
-              <th style={th}>種類</th>
-              <th style={th}>人物</th>
-              <th style={th}>内容</th>
-              <th style={th}>確度・確認</th>
+              <th>種類</th>
+              <th>人物</th>
+              <th>内容</th>
+              <th>確度・確認</th>
             </tr>
           </thead>
           <tbody>
             {db.relationships.map((r) => (
               <tr key={r.id}>
-                <td style={td} data-label="種類">
+                <td data-label="種類">
                   {EDGE_KINDS[r.relationship_type].label}
                 </td>
-                <td style={td} data-label="人物">
+                <td data-label="人物">
                   <Link href={`/people/${r.source_person_id}/`}>
                     {name(r.source_person_id)}
                   </Link>{" "}
@@ -72,10 +73,8 @@ const Page: FC = () => (
                     {name(r.target_person_id)}
                   </Link>
                 </td>
-                <td style={td} data-label="内容">
-                  {r.description}
-                </td>
-                <td style={td} data-label="確度・確認">
+                <td data-label="内容">{r.description}</td>
+                <td data-label="確度・確認">
                   {CONFIDENCE_LABEL[r.confidence]} /{" "}
                   {r.last_verified_at ? (
                     `確認日 ${r.last_verified_at}`

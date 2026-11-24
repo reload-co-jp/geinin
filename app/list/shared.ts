@@ -1,15 +1,8 @@
-export const th = {
-  textAlign: "left",
-  padding: ".35rem .5rem",
-  borderBottom: "2px solid var(--line)",
-  whiteSpace: "nowrap",
-} as const
-
-export const td = {
-  padding: ".35rem .5rem",
-  borderBottom: "1px solid var(--line)",
-  verticalAlign: "top",
-} as const
+// 一覧の表のセル。数千行ある表でセルごとに style 属性を出すと HTML が大きくなるのでクラスで当てる
+export const tableCss = `
+.lt th { text-align: left; padding: .35rem .5rem; border-bottom: 2px solid var(--line); white-space: nowrap; }
+.lt td { padding: .35rem .5rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+`
 
 // 読みの頭文字で五十音の行に振り分ける。各行の先頭文字の直前までがその行
 export const ROWS = [

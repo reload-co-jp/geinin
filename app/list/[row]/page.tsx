@@ -3,7 +3,7 @@ import { notFound } from "next/navigation"
 import { agencyName, db, edgeIndex, graph } from "@/lib/db"
 import { linksOf } from "@/lib/graph"
 import { KanaNav } from "../nav"
-import { OTHER, ROWS, rowOf, td, th } from "../shared"
+import { OTHER, ROWS, rowOf, tableCss } from "../shared"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { InArticleAd } from "@/components/in-article-ad"
 
@@ -82,8 +82,9 @@ const Page = async ({ params }: Props) => {
           芸人（{current.label}・{people.length}人）
         </h2>
         <div style={{ overflowX: "auto" }}>
+          <style>{tableCss}</style>
           <table
-            className="stack-table"
+            className="stack-table lt"
             style={{
               borderCollapse: "collapse",
               width: "100%",
@@ -92,19 +93,19 @@ const Page = async ({ params }: Props) => {
           >
             <thead>
               <tr>
-                <th style={th}>芸名</th>
-                <th style={th}>所属グループ</th>
-                <th style={th}>事務所</th>
-                <th style={th}>養成所</th>
+                <th>芸名</th>
+                <th>所属グループ</th>
+                <th>事務所</th>
+                <th>養成所</th>
               </tr>
             </thead>
             <tbody>
               {people.map((p) => (
                 <tr key={p.id}>
-                  <td style={td} data-label="芸名">
+                  <td data-label="芸名">
                     <Link href={`/people/${p.id}/`}>{p.name}</Link>
                   </td>
-                  <td style={td} data-label="所属グループ">
+                  <td data-label="所属グループ">
                     {linksOf(edgeIndex, `p:${p.id}`)
                       .filter(
                         (l) =>
@@ -117,10 +118,8 @@ const Page = async ({ params }: Props) => {
                       )
                       .join("、")}
                   </td>
-                  <td style={td} data-label="事務所">
-                    {agencyName(p.agency_id)}
-                  </td>
-                  <td style={td} data-label="養成所">
+                  <td data-label="事務所">{agencyName(p.agency_id)}</td>
+                  <td data-label="養成所">
                     {p.training_school &&
                       `${p.training_school} ${p.training_school_term ?? "?"}期`}
                   </td>

@@ -801,6 +801,13 @@ h2.pf-name {
   overflow-wrap: anywhere;
   line-height: 1.8;
 }
+/* components/photo.tsx の顔写真の枠 */
+.photo {
+  display: inline-block;
+  flex-shrink: 0;
+  object-fit: contain;
+  background: color-mix(in srgb, var(--line) 12%, transparent);
+}
 .rc-card .photo,
 .rc-champ .photo,
 .rc-rank .photo {
