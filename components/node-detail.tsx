@@ -7,6 +7,7 @@ import { Heading, Profile } from "@/components/profile"
 import { FaqList, NextReads, Timeline } from "@/components/related"
 import { Photo } from "@/components/photo"
 import { years } from "@/app/doki/shared"
+import { terms } from "@/app/nsc/shared"
 import { OTHER, ROWS, rowOf } from "@/app/list/shared"
 import { agencyName, nodeInfo, raceIds, sameName } from "@/lib/db"
 import {
@@ -54,6 +55,19 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
     ? years.find(([, ps]) => ps.some((p) => p.id === nodeId))
     : undefined
   const dokiYear = doki?.[0]
+  // 養成所（NSC）の同じ期の芸人。期の記載がある芸人だけ
+  const self = nodeId.startsWith("p:") ? personById.get(nodeId.slice(2)) : null
+  const nscTerm =
+    self?.training_school && self.training_school_term
+      ? terms.find(
+          (t) =>
+            t.school === self.training_school &&
+            t.term === self.training_school_term
+        )
+      : undefined
+  const termPeers = (nscTerm?.members ?? []).filter(
+    (m) => `p:${m.id}` !== nodeId
+  )
   const crumbs: [string, string][] = [
     ["トップ", "/"],
     ...(race
@@ -187,6 +201,14 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
         >
           相関図で見る →
         </Link>
+        {nscTerm && termPeers.length > 0 && (
+          <Link
+            href={nscTerm.href}
+            style={{ marginLeft: "1rem", fontSize: ".875rem" }}
+          >
+            {nscTerm.label}の同期芸人 →
+          </Link>
+        )}
         {dokiYear && (
           <Link
             href={`/doki/${dokiYear}/`}
@@ -263,6 +285,50 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
                 {
                   title: "年表",
                   body: <Timeline entries={timeline} />,
+                  position: "top" as const,
+                },
+              ]
+            : []),
+          ...(nscTerm && termPeers.length > 0
+            ? [
+                {
+                  title: `${info.name}と同期（${nscTerm.label}）の芸人`,
+                  body: (
+                    <>
+                      <ul className="pf-cast">
+                        {termPeers.slice(0, 8).map((m) => (
+                          <li key={m.id}>
+                            <Photo src={m.photo} size={48} />
+                            <span className="pf-cast-body">
+                              <Link
+                                href={nodeHrefLib(`p:${m.id}`)}
+                                style={{ fontWeight: "bold" }}
+                              >
+                                {m.name}
+                              </Link>
+                              <span className="pf-muted pf-small">
+                                {[
+                                  m.groups
+                                    .filter((g) => !g.former)
+                                    .map((g) => g.name)
+                                    .join("・"),
+                                  m.best,
+                                ]
+                                  .filter(Boolean)
+                                  .join(" / ")}
+                              </span>
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                      <p className="pf-small">
+                        <Link href={nscTerm.href}>
+                          {nscTerm.label}の芸人をすべて見る（
+                          {nscTerm.members.length}人）→
+                        </Link>
+                      </p>
+                    </>
+                  ),
                   position: "top" as const,
                 },
               ]

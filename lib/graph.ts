@@ -789,6 +789,25 @@ export const graphHref = (nodeId: string, query = "") =>
   `/graph/?focus=${encodeURIComponent(nodeId)}${query.includes("sel=") ? "" : `&sel=${encodeURIComponent(nodeId)}`}${query}`
 
 // 養成所の期ノードなど個別ページを持たないものはグラフへ
+// NSC の校舎 → URL のスラッグ（/nsc/<校舎>/<期>/）
+export const NSC_SLUGS: Record<string, string> = {
+  NSC大阪: "osaka",
+  NSC東京: "tokyo",
+  NSC名古屋: "nagoya",
+  NSC福岡: "fukuoka",
+  NSC広島: "hiroshima",
+  NSC岡山: "okayama",
+  NSC札幌: "sapporo",
+  NSC沖縄: "okinawa",
+}
+// 「t:NSC大阪33期」→ { school: "NSC大阪", term: 33 }
+export const parseTermId = (nodeId: string) => {
+  const m = nodeId.match(/^t:(NSC\D+?)(\d+)期$/)
+  return m && NSC_SLUGS[m[1]] ? { school: m[1], term: Number(m[2]) } : null
+}
+export const termHref = (school: string, term: number) =>
+  `/nsc/${NSC_SLUGS[school]}/${term}/`
+
 export const nodeHref = (nodeId: string) => {
   const [kind, id] = nodeId.split(":")
   const race = parseRaceId(nodeId)
@@ -804,7 +823,9 @@ export const nodeHref = (nodeId: string) => {
           ? `/races/${slug}/${race.year}/`
           : debut
             ? `/doki/${debut}/`
-            : graphHref(nodeId)
+            : parseTermId(nodeId)
+              ? termHref(parseTermId(nodeId)!.school, parseTermId(nodeId)!.term)
+              : graphHref(nodeId)
 }
 
 // 個別ページがあるか（養成所の期などはグラフで見る）
