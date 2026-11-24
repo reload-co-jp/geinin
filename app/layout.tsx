@@ -53,6 +53,8 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => {
             <Link href="/list/">芸人一覧</Link>
             <Link href="/doki/">同期</Link>
             <Link href="/races/">賞レース</Link>
+            <Link href="/ranking/">ランキング</Link>
+            <Link href="/shitei/">師弟</Link>
             <Link href="/programs/">番組</Link>
             <Link href="/agencies/">事務所</Link>
             <Link href="/venues/">劇場</Link>

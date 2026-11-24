@@ -201,6 +201,14 @@ export const NodeDetail: FC<{ nodeId: string }> = ({ nodeId }) => {
         >
           相関図で見る →
         </Link>
+        {info.links.some((l) => l.kind === "master") && (
+          <Link
+            href="/shitei/"
+            style={{ marginLeft: "1rem", fontSize: ".875rem" }}
+          >
+            師弟関係の系譜 →
+          </Link>
+        )}
         {nscTerm && termPeers.length > 0 && (
           <Link
             href={nscTerm.href}

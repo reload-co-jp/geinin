@@ -5,6 +5,7 @@ import { prelimYears, stagesOf } from "@/app/m1/shared"
 import { STAGE_SLUGS } from "@/lib/m1"
 import { years } from "@/app/doki/shared"
 import { indexedTerms } from "@/app/nsc/shared"
+import { rankings } from "@/app/ranking/shared"
 import {
   agencyIndexable,
   db,
@@ -35,6 +36,9 @@ const sitemap = (): MetadataRoute.Sitemap =>
       .filter((g) => !isThin(`g:${g.id}`))
       .map((g) => `/groups/${g.id}/`),
     "/races/",
+    "/ranking/",
+    ...rankings.map((r) => `/ranking/${r.slug}/`),
+    "/shitei/",
     ...races.map((r) => `/races/${r.slug}/`),
     ...raceIds.map(nodeHref),
     ...years.map(([y]) => `/doki/${y}/`),

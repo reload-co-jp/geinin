@@ -126,7 +126,19 @@ export const Records: FC<{ race: Race }> = ({ race }) => {
   if (lists.length === 0) return null
   return (
     <>
-      <h3 style={{ fontSize: "1rem" }}>記録</h3>
+      <h3 style={{ fontSize: "1rem" }}>
+        記録
+        <Link
+          href="/ranking/"
+          style={{
+            fontSize: ".8rem",
+            fontWeight: "normal",
+            marginLeft: ".75rem",
+          }}
+        >
+          全大会のランキング →
+        </Link>
+      </h3>
       <div className="rc-records">
         {lists.map((l) => (
           <section key={l.title} className="rc-panel">
