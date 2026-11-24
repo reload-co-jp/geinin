@@ -56,7 +56,6 @@ const Note: FC<{ r: Relationship }> = ({ r }) => (
       {CONFIDENCE_LABEL[r.confidence]}
     </span>{" "}
     {EVIDENCE_LABEL[r.evidence_type]}
-    {r.start_date && `・${r.start_date.slice(0, 4)}年〜`}
     {r.description && ` ${r.description}`}
   </small>
 )
