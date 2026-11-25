@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { FC } from "react"
+import { Photo } from "@/components/photo"
 import { db, edgeIndex, graph, groupById, personById } from "@/lib/db"
 import { nodeHref, termYear } from "@/lib/graph"
 
@@ -94,7 +95,6 @@ const school = (id: string) => {
 export const css = `
 .doki { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); gap: .5rem; }
 .doki li { display: flex; gap: .4rem; align-items: center; }
-.doki .ph { width: 40px; height: 40px; flex-shrink: 0; background: center / contain no-repeat var(--line); }
 .doki li > span { min-width: 0; overflow-wrap: anywhere; }
 .doki small { display: block; color: var(--muted); font-size: .75rem; }
 .doki abbr { color: var(--muted); text-decoration: none; }
@@ -106,14 +106,7 @@ export const Names: FC<{ ps: (typeof years)[number][1] }> = ({ ps }) => (
       const s = school(p.id)
       return (
         <li key={p.id}>
-          <span
-            className="ph"
-            style={
-              p.photo
-                ? { backgroundImage: `url(${JSON.stringify(p.photo)})` }
-                : undefined
-            }
-          />
+          <Photo src={p.photo} size={40} />
           <span>
             <Link href={nodeHref(p.id)}>{p.label}</Link>
             {p.estimated && <abbr title={ESTIMATED}>*</abbr>}
